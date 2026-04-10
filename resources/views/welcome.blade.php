@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- SEO Meta Tags -->
+    <title>HikeConnect - Discover Batangas Mountains | Hiking Guide & Booking</title>
+    <meta name="description" content="Discover the beauty of Batangas mountains with HikeConnect. Book guided hikes to Mt. Batulao, Mt. Pico de Loro, and Mt. Talamitam. Perfect for beginners and experienced hikers.">
+    <meta name="keywords" content="Batangas hiking, Mt. Batulao, Mt. Pico de Loro, Mt. Talamitam, hiking guide Philippines, mountain trekking">
+    <meta name="author" content="HikeConnect">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:title" content="HikeConnect - Discover Batangas Mountains">
+    <meta property="og:description" content="Your gateway to authentic mountain adventures in Batangas. Book guided hikes and explore stunning trails.">
+    <meta property="og:image" content="{{ asset('images/mt-batulao.jpg') }}">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="HikeConnect - Discover Batangas Mountains">
+    <meta name="twitter:description" content="Your gateway to authentic mountain adventures in Batangas.">
+    <meta name="twitter:image" content="{{ asset('images/mt-batulao.jpg') }}">
+    
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%2310b981' rx='20' width='100' height='100'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='white' font-family='Arial'%3EH%3C/text%3E%3C/svg%3E">
+    
+    <!-- Critical CSS Inline -->
+    <style>
+        /* Reset & Critical CSS */
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        :root{--pg:#064e3b;--dg:#022c22;--lg:#065f46;--ag:#10b981;--al:#34d399;--bc:#f0fdf4;--td:#111827;--tg:#6b7280;--w:#fff;--tr:.3s ease}
+        html{scroll-behavior:smooth}
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--td);line-height:1.6;background:var(--w);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+        
+        /* Header */
+        header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.25rem 3.75rem;display:flex;justify-content:space-between;align-items:center;transition:all var(--tr)}
+        header.scrolled{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);box-shadow:0 2px 20px rgba(0,0,0,.1);padding:1rem 3.75rem}
+        header.scrolled .logo,header.scrolled nav a{color:var(--td)}
+        .logo{display:flex;align-items:center;text-decoration:none;gap:.625rem}
+        .logo img{height:2.5rem;width:auto;transition:height var(--tr)}
+        .logo span{font-size:1.5rem;font-weight:700;color:var(--w);transition:all var(--tr)}
+        header.scrolled .logo img{height:2rem}
+        header.scrolled .logo span{color:var(--ag);font-size:1.25rem}
+        nav{display:flex;gap:2.5rem}
+        nav a{color:var(--w);text-decoration:none;font-size:.9375rem;font-weight:500;transition:color var(--tr);position:relative}
+        nav a::after{content:'';position:absolute;bottom:-5px;left:0;width:0;height:2px;background:var(--ag);transition:width var(--tr)}
+        nav a:hover::after{width:100%}
+        .login-btn{background:var(--w);color:var(--pg);padding:.75rem 1.75rem;border-radius:1.875rem;text-decoration:none;font-size:.875rem;font-weight:600;transition:all var(--tr)}
+        .login-btn:hover{background:var(--ag);color:var(--w);transform:translateY(-2px);box-shadow:0 10px 30px rgba(16,185,129,.3)}
+        header.scrolled .login-btn{background:var(--pg);color:var(--w)}
+        
+        /* Mobile Menu Button */
+        .mobile-menu-btn{display:none;flex-direction:column;gap:5px;padding:8px;background:none;border:none;cursor:pointer;z-index:1001}
+        .mobile-menu-btn span{width:24px;height:2px;background:var(--w);transition:all var(--tr);border-radius:2px}
+        header.scrolled .mobile-menu-btn span{background:var(--td)}
+        
+        /* Hero */
+        .hero{height:100vh;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+        .hero-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:url('{{ asset('images/mt-batulao.jpg') }}') center/cover no-repeat;will-change:transform}
+        .hero-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(to bottom,rgba(6,78,59,.3)0%,rgba(6,78,59,.5)40%,rgba(6,78,59,.85)80%,rgba(2,44,34,.98)100%)}
+        .hero-content{position:relative;z-index:2;text-align:center;max-width:56rem;padding:0 1.25rem;animation:fadeInUp 1s ease-out}
+        .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);padding:.625rem 1.5rem;border-radius:1.875rem;color:var(--w);font-size:.8125rem;font-weight:500;margin-bottom:1.875rem;border:1px solid rgba(255,255,255,.2)}
+        .hero h1{font-size:4rem;font-weight:700;color:var(--w);line-height:1.1;margin-bottom:1.5rem}
+        .hero h1 span{color:var(--al)}
+        .hero p{font-size:1.125rem;color:rgba(255,255,255,.85);max-width:37.5rem;margin:0 auto 2.5rem}
+        .hero-cta{display:inline-flex;align-items:center;gap:.75rem;background:var(--ag);color:var(--w);padding:1.125rem 2.5rem;border-radius:2.5rem;text-decoration:none;font-size:1rem;font-weight:600;transition:all var(--tr);box-shadow:0 15px 40px rgba(16,185,129,.4)}
+        .hero-cta:hover{background:var(--al);transform:translateY(-3px);box-shadow:0 20px 50px rgba(16,185,129,.5)}
+        .scroll-indicator{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.625rem;color:var(--w);font-size:.75rem;opacity:.7;animation:bounce 2s infinite}
+        
+        /* Animations */
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(2.5rem)}to{opacity:1;transform:translateY(0)}}
+        @keyframes bounce{0%,20%,50%,80%,100%{transform:translateX(-50%)translateY(0)}40%{transform:translateX(-50%)translateY(-10px)}60%{transform:translateX(-50%)translateY(-5px)}}
+        
+        /* Responsive */
+        @media(max-width:48rem){
+            header{padding:1rem 1.25rem}
+            nav{display:none}
+            .hero h1{font-size:2.25rem}
+            .hero-badge{font-size:.75rem;padding:.5rem 1rem}
+        }
+    </style>
+    
+    <!-- Non-Critical CSS Loaded Asynchronously -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
+    
+    <style>
+        /* Gateway Section */
+        .gateway{padding:7.5rem 3.75rem;background:var(--w);text-align:center}
+        .section-tag{display:inline-block;color:var(--ag);font-size:.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:2px;margin-bottom:1.25rem}
+        .gateway h2{font-size:2.625rem;font-weight:700;color:var(--td);max-width:37.5rem;margin:0 auto 1.875rem;line-height:1.2}
+        .gateway p{font-size:1.0625rem;color:var(--tg);max-width:43.75rem;margin:0 auto 2.5rem}
+        .connect-btn{display:inline-flex;align-items:center;gap:.625rem;background:var(--dg);color:var(--w);padding:1rem 2rem;border-radius:1.875rem;text-decoration:none;font-size:.9375rem;font-weight:600;transition:all var(--tr)}
+        .connect-btn:hover{background:var(--pg);transform:translateY(-2px);box-shadow:0 10px 30px rgba(6,78,59,.3)}
+        
+        /* Mountains */
+        .mountains{padding:5rem 3.75rem;background:var(--bc)}
+        .mountains-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3.75rem;max-width:87.5rem;margin-left:auto;margin-right:auto;gap:2rem}
+        .mountains-header h3{font-size:2.25rem;font-weight:700;color:var(--td);max-width:25rem;line-height:1.2}
+        .mountains-header p{font-size:1rem;color:var(--tg);max-width:25rem}
+        .mountain-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.875rem;max-width:87.5rem;margin:0 auto}
+        .mountain-card{background:var(--w);border-radius:1.25rem;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.08);transition:all var(--tr)}
+        .mountain-card:hover{transform:translateY(-10px);box-shadow:0 25px 60px rgba(0,0,0,.15)}
+        .mountain-img{height:15rem;background-size:cover;background-position:center;position:relative}
+        .mountain-img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:6.25rem;background:linear-gradient(to top,rgba(0,0,0,.6),transparent)}
+        .mountain-tag{position:absolute;top:1rem;left:1rem;background:var(--ag);color:var(--w);padding:.375rem .875rem;border-radius:1.25rem;font-size:.75rem;font-weight:600;z-index:2}
+        .mountain-info{padding:1.5rem}
+        .mountain-info h4{font-size:1.375rem;font-weight:700;color:var(--td);margin-bottom:.75rem}
+        .mountain-info p{font-size:.875rem;color:var(--tg);line-height:1.6;margin-bottom:1.25rem}
+        .mountain-meta{display:flex;gap:1.25rem;font-size:.8125rem;color:var(--tg)}
+        .mountain-meta span{display:flex;align-items:center;gap:.375rem}
+        .explore-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--ag);text-decoration:none;font-size:.875rem;font-weight:600;margin-top:1rem;transition:gap var(--tr)}
+        .explore-link:hover{gap:.75rem}
+        .slider-dots{display:flex;justify-content:center;gap:.625rem;margin-top:3.125rem}
+        .dot{width:.625rem;height:.625rem;border-radius:50%;background:rgba(6,78,59,.2);cursor:pointer;transition:all var(--tr)}
+        .dot.active{background:var(--ag);width:1.875rem;border-radius:5px}
+        
+        /* Info Section */
+        .info-section{padding:7.5rem 3.75rem;background:var(--w)}
+        .info-container{max-width:75rem;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+        .info-left h3{font-size:2.25rem;font-weight:700;color:var(--td);margin-bottom:1.25rem;line-height:1.2}
+        .info-left>p{font-size:1rem;color:var(--tg);margin-bottom:1.875rem}
+        .partners-section .section-tag{margin-bottom:.75rem}
+        .partners-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+        .partner-item{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:var(--bc);border-radius:.75rem;transition:all var(--tr);border:1px solid transparent;opacity:0;transform:translateY(1.25rem)}
+        .partner-item.visible{opacity:1;transform:translateY(0)}
+        .partner-item:nth-child(1).visible{transition-delay:.1s}
+        .partner-item:nth-child(2).visible{transition-delay:.15s}
+        .partner-item:nth-child(3).visible{transition-delay:.2s}
+        .partner-item:nth-child(4).visible{transition-delay:.25s}
+        .partner-item:nth-child(5).visible{transition-delay:.3s}
+        .partner-item:nth-child(6).visible{transition-delay:.35s}
+        .partner-item:hover{border-color:var(--ag);background:var(--w);box-shadow:0 4px 20px rgba(16,185,129,.1);transform:translateY(-3px)}
+        .partner-icon{width:2.5rem;height:2.5rem;background:var(--dg);border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+        .partner-item span{font-size:.9375rem;font-weight:600;color:var(--td)}
+        .faq-list{display:flex;flex-direction:column;gap:1rem}
+        .faq-item{background:var(--bc);border-radius:.75rem;padding:1.25rem 1.5rem;cursor:pointer;transition:all var(--tr);border:1px solid transparent;opacity:0;transform:translateY(1.25rem)}
+        .faq-item.visible{opacity:1;transform:translateY(0)}
+        .faq-item:hover{border-color:var(--ag);background:var(--w);box-shadow:0 4px 20px rgba(16,185,129,.1)}
+        .faq-question{font-size:.9375rem;font-weight:600;color:var(--td);display:flex;justify-content:space-between;align-items:center;gap:1rem}
+        .faq-icon{color:var(--ag);font-size:1.125rem;transition:transform var(--tr);flex-shrink:0}
+        .faq-item.active .faq-icon{transform:rotate(45deg)}
+        .faq-answer{font-size:.875rem;color:var(--tg);margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(16,185,129,.2);display:none;line-height:1.6}
+        .faq-item.active .faq-answer{display:block;animation:fadeIn .3s ease}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        
+        /* Features Section */
+        .features-section{padding:6.25rem 3.75rem;background:var(--bc)}
+        .features-header{text-align:center;margin-bottom:3.75rem}
+        .features-header h3{font-size:2.25rem;font-weight:700;color:var(--td);margin-bottom:1rem}
+        .features-header p{font-size:1.125rem;color:var(--tg);max-width:37.5rem;margin:0 auto}
+        .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.875rem;max-width:87.5rem;margin:0 auto}
+        .feature-card{background:var(--w);border-radius:1.25rem;padding:2.5rem;box-shadow:0 4px 20px rgba(0,0,0,.06);transition:all var(--tr);position:relative;overflow:hidden;border:1px solid transparent}
+        .feature-card:hover{transform:translateY(-8px);box-shadow:0 20px 40px rgba(0,0,0,.1);border-color:rgba(16,185,129,.2)}
+        .feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--ag),var(--al));transform:scaleX(0);transition:transform var(--tr)}
+        .feature-card:hover::before{transform:scaleX(1)}
+        .feature-number{position:absolute;top:1.25rem;right:1.25rem;width:2.5rem;height:2.5rem;border:2px solid var(--ag);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ag);font-size:.875rem;font-weight:700}
+        .feature-icon-wrap{width:3.5rem;height:3.5rem;background:var(--dg);border-radius:1rem;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem}
+        .feature-icon-wrap svg{width:1.75rem;height:1.75rem;color:var(--ag)}
+        .feature-card h4{font-size:1.25rem;font-weight:700;color:var(--td);margin-bottom:.875rem}
+        .feature-card p{font-size:.9375rem;color:var(--tg);line-height:1.7}
+        
+        /* Who We Are Section */
+        .who-we-are{padding:6.25rem 3.75rem;background:var(--w)}
+        .who-container{max-width:62.5rem;margin:0 auto;text-align:center}
+        .who-container .section-tag{margin-bottom:1.25rem}
+        .who-container h3{font-size:2.5rem;font-weight:700;color:var(--td);margin-bottom:1.5rem}
+        .who-container>p{font-size:1.125rem;color:var(--tg);line-height:1.8;margin-bottom:2.5rem;max-width:50rem;margin-left:auto;margin-right:auto}
+        .who-mission{background:linear-gradient(135deg,var(--bc),rgba(16,185,129,.08));border-radius:1.25rem;padding:2.5rem;border-left:4px solid var(--ag);text-align:left}
+        .who-mission p{font-size:1rem;color:var(--td);line-height:1.8;margin:0}
+        .who-mission p strong{color:var(--ag);font-weight:600}
+        
+        /* CTA Banner */
+        .cta-banner{height:25rem;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+        .cta-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:url('{{ asset('images/mt-pico-de-loro.jpg') }}') center/cover no-repeat;will-change:transform}
+        .cta-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(6,78,59,.75)}
+        .cta-content{position:relative;z-index:2;text-align:center;color:var(--w);padding:0 1.25rem}
+        .cta-content h2{font-size:2.625rem;font-weight:700;margin-bottom:1.875rem;line-height:1.2}
+        .cta-btn{display:inline-flex;align-items:center;gap:.625rem;background:var(--w);color:var(--pg);padding:1rem 2.25rem;border-radius:1.875rem;text-decoration:none;font-size:.9375rem;font-weight:600;transition:all var(--tr)}
+        .cta-btn:hover{background:var(--ag);color:var(--w);transform:translateY(-2px)}
+        
+        /* Footer */
+        footer{background:var(--dg);color:var(--w);padding:5rem 3.75rem 2.5rem}
+        .footer-content{max-width:87.5rem;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3.75rem;margin-bottom:3.75rem}
+        .footer-brand h4{margin-bottom:1.25rem;display:flex;align-items:center;gap:.625rem}
+        .footer-brand h4 img{height:2rem;width:auto}
+        .footer-brand h4 span{font-size:1.25rem;font-weight:700;color:var(--ag)}
+        .footer-brand p{font-size:.9375rem;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:1.875rem}
+        .newsletter{display:flex;gap:.625rem}
+        .newsletter input{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:.875rem 1.25rem;border-radius:1.875rem;color:var(--w);font-size:.875rem;outline:none;transition:border-color var(--tr)}
+        .newsletter input:focus{border-color:var(--ag)}
+        .newsletter input::placeholder{color:rgba(255,255,255,.5)}
+        .newsletter button{background:var(--ag);color:var(--w);border:none;padding:.875rem 1.75rem;border-radius:1.875rem;font-size:.875rem;font-weight:600;cursor:pointer;transition:all var(--tr)}
+        .newsletter button:hover{background:var(--al)}
+        .footer-links h5{font-size:.875rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:1.5rem;color:var(--al)}
+        .footer-links ul{list-style:none}
+        .footer-links li{margin-bottom:.75rem}
+        .footer-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.9375rem;transition:color var(--tr)}
+        .footer-links a:hover{color:var(--ag)}
+        .footer-bottom{max-width:87.5rem;margin:0 auto;padding-top:2.5rem;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center;font-size:.875rem;color:rgba(255,255,255,.5)}
+        .social-links{display:flex;gap:1.25rem}
+        .social-links a{width:2.5rem;height:2.5rem;border-radius:50%;border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;color:var(--w);text-decoration:none;transition:all var(--tr)}
+        .social-links a:hover{background:var(--ag);border-color:var(--ag)}
+        
+        /* Mountain Cards Animation */
+        .mountain-card{opacity:0;transform:translateY(1.875rem);transition:all .6s cubic-bezier(.4,0,.2,1)}
+        .mountain-card.visible{opacity:1;transform:translateY(0)}
+        .mountain-card:nth-child(1).visible{transition-delay:.1s}
+        .mountain-card:nth-child(2).visible{transition-delay:.2s}
+        .mountain-card:nth-child(3).visible{transition-delay:.3s}
+        
+        /* Feature Cards Animation */
+        .feature-card{opacity:0;transform:translateY(1.875rem);transition:all .6s cubic-bezier(.4,0,.2,1)}
+        .feature-card.visible{opacity:1;transform:translateY(0)}
+        .feature-card:nth-child(1).visible{transition-delay:.1s}
+        .feature-card:nth-child(2).visible{transition-delay:.15s}
+        .feature-card:nth-child(3).visible{transition-delay:.2s}
+        .feature-card:nth-child(4).visible{transition-delay:.25s}
+        .feature-card:nth-child(5).visible{transition-delay:.3s}
+        .feature-card:nth-child(6).visible{transition-delay:.35s}
+        
+        /* Who We Are Animation */
+        .who-mission{opacity:0;transform:translateY(1.875rem);transition:all .6s ease}
+        .who-mission.visible{opacity:1;transform:translateY(0)}
+        
+        /* Responsive */
+        @media(max-width:64rem){
+            .mountain-cards{grid-template-columns:repeat(2,1fr)}
+            .footer-content{grid-template-columns:repeat(2,1fr)}
+            .info-container{grid-template-columns:1fr;gap:3.125rem}
+            .features-grid{grid-template-columns:repeat(2,1fr)}
+        }
+        
+        @media(max-width:48rem){
+            .gateway,.mountains,.info-section,.features-section,.who-we-are,.cta-banner,footer{padding:3.75rem 1.25rem}
+            header{padding:.75rem 1rem;gap:.75rem}
+            header.scrolled{padding:.5rem 1rem}
+            .logo img{height:1.75rem}
+            .logo span{font-size:1.125rem}
+            .login-btn{padding:.5rem .875rem;font-size:.75rem;white-space:nowrap}
+            .mobile-menu-btn{display:flex}
+            .mountain-cards{grid-template-columns:1fr}
+            .mountains-header{flex-direction:column;text-align:center;gap:1.25rem}
+            .mountains-header h3,.mountains-header p{max-width:100%}
+            .footer-content{grid-template-columns:1fr;gap:2.5rem}
+            .footer-bottom{flex-direction:column;gap:1.25rem;text-align:center}
+            .quote{font-size:1.375rem}
+            .features-grid{grid-template-columns:1fr}
+            .features-header h3{font-size:1.75rem}
+            .who-container h3{font-size:1.75rem}
+            .cta-content h2{font-size:1.75rem}
+            .hero h1{font-size:2rem}
+            .gateway h2{font-size:1.75rem}
+            .mountains-header h3,.info-left h3{font-size:1.5rem}
+            .partners-grid{grid-template-columns:1fr}
+            .partner-item{padding:.75rem 1rem}
+            .partner-icon{width:2rem;height:2rem;font-size:1rem}
+        }
+    </style>
+</head>
+<body>
+    <a href="#main" class="sr-only" style="position:absolute;left:-9999px;">Skip to main content</a>
+    
+    <header id="header" role="banner">
+        <a href="#" class="logo" aria-label="HikeConnect Home">
+            <img src="{{ asset('images/HikeConnect-Logo.png') }}" alt="" style="height: 40px; width: auto;">
+            <span>HikeConnect</span>
+        </a>
+        <nav role="navigation" aria-label="Main navigation">
+            <a href="#mountains">Mountains</a>
+            <a href="#features">Features</a>
+            <a href="#info">Information</a>
+            <a href="#about">About</a>
+        </nav>
+        <a href="#" class="login-btn">Log In</a>
+        <button class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <main id="main">
+        <section class="hero" aria-label="Hero section">
+            <div class="hero-bg" role="img" aria-label="Batangas mountain landscape"></div>
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span aria-hidden="true">⛰️</span>
+                    <span>Batangas #1 Hiking Platform</span>
+                </div>
+                <h1>Discover the Beauty of <span>Batangas Mountains</span></h1>
+                <p>From gentle slopes to challenging peaks, experience the breathtaking views and unforgettable adventures that await in Batangas.</p>
+                <a href="#mountains" class="hero-cta">
+                    <span>Start Your Journey</span>
+                    <span aria-hidden="true">→</span>
+                </a>
+            </div>
+            <div class="scroll-indicator" aria-hidden="true">
+                <span>Scroll to explore</span>
+                <span>↓</span>
+            </div>
+        </section>
+
+        <section class="gateway" aria-labelledby="gateway-heading">
+            <span class="section-tag">Your Gateway</span>
+            <h2 id="gateway-heading">Your Gateway to Authentic Mountain Adventures</h2>
+            <p>At HikeConnect, we're passionate about helping you experience the natural beauty of Batangas. Whether you're a beginner seeking scenic trails or an experienced climber looking for challenging peaks, we connect you with the best mountains, local guides, and essential information to make your hiking journey safe, enjoyable, and truly memorable.</p>
+            <a href="#mountains" class="connect-btn">
+                <span>Connect With Us</span>
+                <span aria-hidden="true">↗</span>
+            </a>
+        </section>
+
+        <section class="mountains" id="mountains" aria-labelledby="mountains-heading">
+            <div class="mountains-header">
+                <h3 id="mountains-heading">From Beginner Trails to Expert Peaks: Discover Batangas</h3>
+                <p>From the iconic views of Batulao to the crystal-clear waters near Pico de Loro, discover the hidden gems of Batangas mountains.</p>
+            </div>
+            
+            <div class="mountain-cards" role="list">
+                <article class="mountain-card" role="listitem">
+                    <div class="mountain-img" style="background-image:url('{{ asset('images/mt-batulao.jpg') }}')" role="img" aria-label="Mount Batulao scenic view">
+                        <span class="mountain-tag">Beginner Friendly</span>
+                    </div>
+                    <div class="mountain-info">
+                        <h4>Mt. Batulao</h4>
+                        <p>Known for its rolling hills and stunning views of Nasugbu. Perfect for beginners with well-established trails and campsites.</p>
+                        <div class="mountain-meta">
+                            <span><span aria-hidden="true">⛰️</span> 811 MASL</span>
+                            <span><span aria-hidden="true">⏱️</span> 4-5 Hours</span>
+                        </div>
+                        <a href="#" class="explore-link" aria-label="Explore Mt. Batulao trail">
+                            <span>Explore Trail</span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="mountain-card" role="listitem">
+                    <div class="mountain-img" style="background-image:url('{{ asset('images/mt-pico-de-loro.jpg') }}')" role="img" aria-label="Mount Pico de Loro landscape">
+                        <span class="mountain-tag">Moderate</span>
+                    </div>
+                    <div class="mountain-info">
+                        <h4>Mt. Pico de Loro</h4>
+                        <p>Famous for its iconic monolith and panoramic views of the West Philippine Sea. A must-visit for every hiker.</p>
+                        <div class="mountain-meta">
+                            <span><span aria-hidden="true">⛰️</span> 664 MASL</span>
+                            <span><span aria-hidden="true">⏱️</span> 5-6 Hours</span>
+                        </div>
+                        <a href="#" class="explore-link" aria-label="Explore Mt. Pico de Loro trail">
+                            <span>Explore Trail</span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="mountain-card" role="listitem">
+                    <div class="mountain-img" style="background-image:url('{{ asset('images/mt-talamitam.jpg') }}')" role="img" aria-label="Mount Talamitam grasslands">
+                        <span class="mountain-tag">Beginner Friendly</span>
+                    </div>
+                    <div class="mountain-info">
+                        <h4>Mt. Talamitam</h4>
+                        <p>Batulao's sister mountain offering open trails, grasslands, and spectacular summit views. Great for day hikes.</p>
+                        <div class="mountain-meta">
+                            <span><span aria-hidden="true">⛰️</span> 630 MASL</span>
+                            <span><span aria-hidden="true">⏱️</span> 3-4 Hours</span>
+                        </div>
+                        <a href="#" class="explore-link" aria-label="Explore Mt. Talamitam trail">
+                            <span>Explore Trail</span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </article>
+            </div>
+            
+            <div class="slider-dots" role="tablist" aria-label="Mountain carousel navigation">
+                <button class="dot active" role="tab" aria-selected="true" aria-label="View page 1"></button>
+                <button class="dot" role="tab" aria-selected="false" aria-label="View page 2"></button>
+            </div>
+        </section>
+
+        <section class="info-section" id="info" aria-labelledby="info-heading">
+            <div class="info-container">
+                <div class="info-left partners-section">
+                    <span class="section-tag">Our Network</span>
+                    <h3 id="info-heading">Trusted Partners & Supporters</h3>
+                    <p>We collaborate with leading organizations to ensure safe, sustainable, and unforgettable hiking experiences across Batangas.</p>
+                    
+                    <div class="partners-grid">
+                        <div class="partner-item">
+                            <div class="partner-icon">🏛️</div>
+                            <span>DENR</span>
+                        </div>
+                        <div class="partner-item">
+                            <div class="partner-icon">🌴</div>
+                            <span>Tourism Batangas</span>
+                        </div>
+                        <div class="partner-item">
+                            <div class="partner-icon">🥾</div>
+                            <span>Philippine Hiking Society</span>
+                        </div>
+                        <div class="partner-item">
+                            <div class="partner-icon">🧭</div>
+                            <span>Trail Blazers PH</span>
+                        </div>
+                        <div class="partner-item">
+                            <div class="partner-icon">🛡️</div>
+                            <span>Mt. Safe Philippines</span>
+                        </div>
+                        <div class="partner-item">
+                            <div class="partner-icon">🌿</div>
+                            <span>Eco Warriors</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-list" role="list">
+                    <div class="faq-item" role="listitem">
+                        <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+                            <span>What is HikeConnect and who can join?</span>
+                            <span class="faq-icon" aria-hidden="true">+</span>
+                        </div>
+                        <div class="faq-answer">HikeConnect is a web-based community platform dedicated to connecting hiking enthusiasts with famous hiking destinations in Batangas, particularly Mt. Batulao, Mt. Talamitam, and Mt. Masapinit. Anyone passionate about hiking, from beginners to experienced trekkers, can join our community.</div>
+                    </div>
+                    <div class="faq-item" role="listitem">
+                        <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+                            <span>How do I access trail information and updates?</span>
+                            <span class="faq-icon" aria-hidden="true">+</span>
+                        </div>
+                        <div class="faq-answer">Once you join our community, you'll have access to detailed trail information, real-time weather updates, difficulty ratings, and user reviews. Our platform provides comprehensive guides for each mountain, including trail maps, safety tips, and recommended gear.</div>
+                    </div>
+                    <div class="faq-item" role="listitem">
+                        <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+                            <span>Is there a fee to use HikeConnect?</span>
+                            <span class="faq-icon" aria-hidden="true">+</span>
+                        </div>
+                        <div class="faq-answer">HikeConnect is completely free to join and use. Our mission is to make hiking information accessible to everyone. You can browse trails, read reviews, and connect with other hikers without any charges.</div>
+                    </div>
+                    <div class="faq-item" role="listitem">
+                        <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+                            <span>How can I contribute to the community?</span>
+                            <span class="faq-icon" aria-hidden="true">+</span>
+                        </div>
+                        <div class="faq-answer">You can contribute by sharing your hiking experiences, posting trail reviews, uploading photos, participating in community discussions, and helping fellow hikers with tips and advice. Your contributions help make our community stronger and more informed.</div>
+                    </div>
+                    <div class="faq-item" role="listitem">
+                        <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+                            <span>What safety measures does HikeConnect promote?</span>
+                            <span class="faq-icon" aria-hidden="true">+</span>
+                        </div>
+                        <div class="faq-answer">We prioritize hiker safety by providing up-to-date trail conditions, weather alerts, safety guidelines, and emergency contact information. We also encourage hikers to register their trips, hike in groups, and follow Leave No Trace principles.</div>
+                    </div>
+                    <div class="faq-item" role="listitem">
+                        <div class="faq-question" tabindex="0" role="button" aria-expanded="false">
+                            <span>Can I organize group hikes through the platform?</span>
+                            <span class="faq-icon" aria-hidden="true">+</span>
+                        </div>
+                        <div class="faq-answer">Yes! Our community feature allows you to create and join group hikes. You can post upcoming hikes, find hiking buddies, and coordinate with other community members. Safety in numbers makes for better hiking experiences.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section" id="features" aria-labelledby="features-heading">
+            <div class="features-header">
+                <span class="section-tag">What We Offer</span>
+                <h3 id="features-heading">Everything You Need for Your Next Adventure</h3>
+                <p>Comprehensive tools and resources designed to make your hiking experience safe, connected, and unforgettable.</p>
+            </div>
+            
+            <div class="features-grid" role="list">
+                <article class="feature-card" role="listitem">
+                    <span class="feature-number" aria-label="Feature 1">01</span>
+                    <div class="feature-icon-wrap" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    </div>
+                    <h4>Comprehensive Trail Guides</h4>
+                    <p>Access detailed information about every hiking trail in Batangas, including difficulty levels, estimated time, trail conditions, and points of interest.</p>
+                </article>
+                
+                <article class="feature-card" role="listitem">
+                    <span class="feature-number" aria-label="Feature 2">02</span>
+                    <div class="feature-icon-wrap" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <h4>Community Connection</h4>
+                    <p>Connect with fellow hiking enthusiasts, find hiking buddies, and join group treks. Share experiences and learn from seasoned hikers.</p>
+                </article>
+                
+                <article class="feature-card" role="listitem">
+                    <span class="feature-number" aria-label="Feature 3">03</span>
+                    <div class="feature-icon-wrap" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                    <h4>Safety Resources</h4>
+                    <p>Stay safe with our comprehensive safety guidelines, weather updates, emergency contacts, and real-time alerts about trail conditions.</p>
+                </article>
+                
+                <article class="feature-card" role="listitem">
+                    <span class="feature-number" aria-label="Feature 4">04</span>
+                    <div class="feature-icon-wrap" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    </div>
+                    <h4>Photo Sharing</h4>
+                    <p>Share your hiking adventures through photos and inspire others. Browse stunning images from Batangas' most beautiful peaks.</p>
+                </article>
+                
+                <article class="feature-card" role="listitem">
+                    <span class="feature-number" aria-label="Feature 5">05</span>
+                    <div class="feature-icon-wrap" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    </div>
+                    <h4>Event Management</h4>
+                    <p>Discover and join organized hiking events, clean-up drives, and community gatherings. Create your own events and build the community.</p>
+                </article>
+                
+                <article class="feature-card" role="listitem">
+                    <span class="feature-number" aria-label="Feature 6">06</span>
+                    <div class="feature-icon-wrap" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    </div>
+                    <h4>Trail Reviews & Tips</h4>
+                    <p>Read honest reviews from fellow hikers, get insider tips, and share your own experiences to help others plan their adventures.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- Who We Are Section -->
+        <section class="who-we-are" id="about" aria-labelledby="who-heading">
+            <div class="who-container">
+                <span class="section-tag">About Us</span>
+                <h3 id="who-heading">Who We Are</h3>
+                <p>HikeConnect is a student-led initiative dedicated to building a comprehensive digital platform for Batangas' hiking community. Our mission is to make mountain information accessible, connect hikers, and promote safe and sustainable hiking practices.</p>
+                <div class="who-mission">
+                    <p>We believe that <strong>every hiker deserves access to accurate trail information, a supportive community, and the tools to explore Batangas' natural beauty responsibly.</strong></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-banner" aria-labelledby="cta-heading">
+            <div class="cta-bg" role="img" aria-label="Mountain landscape background"></div>
+            <div class="cta-overlay"></div>
+            <div class="cta-content">
+                <h2 id="cta-heading">Let the Journey Begin<br>Explore Batangas</h2>
+                <a href="#mountains" class="cta-btn">Explore Now</a>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h4>
+                    <img src="{{ asset('images/HikeConnect-Logo.png') }}" alt="" style="height: 2rem; width: auto;">
+                    <span>HikeConnect</span>
+                </h4>
+                <p>Do what you love - Hiking. Leave the rest to us. From guided treks to detailed trail information, we're here to help you discover the beauty of Batangas mountains.</p>
+                <form class="newsletter" onsubmit="return false;" aria-label="Newsletter signup">
+                    <input type="email" placeholder="Enter your email" aria-label="Email address" required>
+                    <button type="submit">Subscribe</button>
+                </form>
+            </div>
+            
+            <nav class="footer-links" aria-label="Company links">
+                <h5>Company</h5>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                </ul>
+            </nav>
+            
+            <nav class="footer-links" aria-label="Support links">
+                <h5>Support</h5>
+                <ul>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Terms</a></li>
+                </ul>
+            </nav>
+            
+            <nav class="footer-links" aria-label="Social links">
+                <h5>Connect</h5>
+                <ul>
+                    <li><a href="#" aria-label="Instagram">Instagram</a></li>
+                    <li><a href="#" aria-label="Facebook">Facebook</a></li>
+                    <li><a href="#" aria-label="Twitter">Twitter</a></li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="footer-bottom">
+            <span>&copy; {{ date('Y') }} HikeConnect. All rights reserved.</span>
+            <div class="social-links" aria-label="Social media">
+                <a href="#" aria-label="Facebook"><span aria-hidden="true">f</span></a>
+                <a href="#" aria-label="Twitter"><span aria-hidden="true">t</span></a>
+                <a href="#" aria-label="LinkedIn"><span aria-hidden="true">in</span></a>
+                <a href="#" aria-label="Instagram"><span aria-hidden="true">ig</span></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Optimized JavaScript -->
+    <script>
+        (function() {
+            'use strict';
+            
+            // Header scroll effect with throttling
+            const header = document.getElementById('header');
+            let ticking = false;
+            
+            function updateHeader() {
+                header.classList.toggle('scrolled', window.scrollY > 100);
+                ticking = false;
+            }
+            
+            window.addEventListener('scroll', function() {
+                if (!ticking) {
+                    requestAnimationFrame(updateHeader);
+                    ticking = true;
+                }
+            }, { passive: true });
+            
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+            
+            // Intersection Observer for reveal animations
+            const observerOptions = { 
+                threshold: 0.1, 
+                rootMargin: '0px 0px -50px 0px' 
+            };
+            
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        revealObserver.unobserve(entry.target); // Only animate once
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe elements for reveal
+            document.querySelectorAll('.mountain-card, .faq-item, .partner-item, .feature-card, .who-mission')
+                .forEach(el => revealObserver.observe(el));
+            
+            // FAQ accordion functionality
+            document.querySelectorAll('.faq-item').forEach(item => {
+                const question = item.querySelector('.faq-question');
+                
+                function toggle() {
+                    const isActive = item.classList.contains('active');
+                    
+                    // Close all others (optional - remove if you want multiple open)
+                    document.querySelectorAll('.faq-item').forEach(other => {
+                        other.classList.remove('active');
+                        other.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+                    });
+                    
+                    if (!isActive) {
+                        item.classList.add('active');
+                        question.setAttribute('aria-expanded', 'true');
+                    }
+                }
+                
+                question.addEventListener('click', toggle);
+                question.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle();
+                    }
+                });
+            });
+            
+            // Slider dots (visual only - can be extended)
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    dots.forEach(d => {
+                        d.classList.remove('active');
+                        d.setAttribute('aria-selected', 'false');
+                    });
+                    dot.classList.add('active');
+                    dot.setAttribute('aria-selected', 'true');
+                });
+            });
+            
+            // Performance: Lazy load images below the fold (if needed)
+            if ('IntersectionObserver' in window) {
+                const imgObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            if (img.dataset.src) {
+                                img.style.backgroundImage = `url('${img.dataset.src}')`;
+                                img.removeAttribute('data-src');
+                                imgObserver.unobserve(img);
+                            }
+                        }
+                    });
+                });
+                
+                document.querySelectorAll('[data-src]').forEach(img => imgObserver.observe(img));
+            }
+        })();
+    </script>
+</body>
+</html>
