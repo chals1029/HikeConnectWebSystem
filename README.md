@@ -97,7 +97,7 @@ HikeConnect welcomes all outdoor enthusiasts!
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/hikeconnect.git
+git clone https://github.com/chals1029/HikeConnectWebSystem
 cd hikeconnect
 
 # Install dependencies
@@ -180,14 +180,6 @@ HikeConnect promotes responsible hiking:
 
 ---
 
-## Contact
-
-- **Website:** [hikeconnect.com](https://hikeconnect.com)
-- **Email:** info@hikeconnect.com
-- **Instagram:** [@hikeconnect](https://instagram.com/hikeconnect)
-- **Facebook:** [HikeConnectPH](https://facebook.com/HikeConnectPH)
-
----
 
 ## License
 
