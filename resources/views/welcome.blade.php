@@ -356,6 +356,11 @@
             </a>
         </section>
 
+        @php
+            $exploreTrailHref = auth()->check()
+                ? route('hikers.dashboard') . '#mountain-overview'
+                : route('home') . '?auth=login&next_section=mountain-overview';
+        @endphp
         <section class="mountains" id="mountains" aria-labelledby="mountains-heading">
             <div class="mountains-header reveal-section">
                 <h3 id="mountains-heading">From Beginner Trails to Expert Peaks: Discover Batangas</h3>
@@ -374,7 +379,7 @@
                             <span><span aria-hidden="true">⛰️</span> 811 MASL</span>
                             <span><span aria-hidden="true">⏱️</span> 4-5 Hours</span>
                         </div>
-                        <a href="#" class="explore-link" aria-label="Explore Mt. Batulao trail">
+                        <a href="{{ $exploreTrailHref }}" class="explore-link" aria-label="Explore Mt. Batulao trail">
                             <span>Explore Trail</span>
                             <span aria-hidden="true">→</span>
                         </a>
@@ -392,7 +397,7 @@
                             <span><span aria-hidden="true">⛰️</span> 664 MASL</span>
                             <span><span aria-hidden="true">⏱️</span> 5-6 Hours</span>
                         </div>
-                        <a href="#" class="explore-link" aria-label="Explore Mt. Pico de Loro trail">
+                        <a href="{{ $exploreTrailHref }}" class="explore-link" aria-label="Explore Mt. Pico de Loro trail">
                             <span>Explore Trail</span>
                             <span aria-hidden="true">→</span>
                         </a>
@@ -410,7 +415,7 @@
                             <span><span aria-hidden="true">⛰️</span> 630 MASL</span>
                             <span><span aria-hidden="true">⏱️</span> 3-4 Hours</span>
                         </div>
-                        <a href="#" class="explore-link" aria-label="Explore Mt. Talamitam trail">
+                        <a href="{{ $exploreTrailHref }}" class="explore-link" aria-label="Explore Mt. Talamitam trail">
                             <span>Explore Trail</span>
                             <span aria-hidden="true">→</span>
                         </a>

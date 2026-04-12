@@ -83,16 +83,17 @@
         .login-slide-brand {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.625rem;
         }
         .login-slide-brand img {
-            height: 36px;
+            height: 2.5rem;
             width: auto;
-            filter: brightness(0) invert(1);
+            object-fit: contain;
+            flex-shrink: 0;
         }
         .login-slide-brand span {
             font-weight: 700;
-            font-size: 1.125rem;
+            font-size: 1.5rem;
             color: #fff;
             letter-spacing: -0.02em;
         }
@@ -322,6 +323,12 @@
             }
             .login-slideshow {
                 min-height: 320px;
+            }
+            .login-slide-brand img {
+                height: 1.75rem;
+            }
+            .login-slide-brand span {
+                font-size: 1.125rem;
             }
         }
         @media (prefers-reduced-motion: reduce) {

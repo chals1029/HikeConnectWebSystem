@@ -96,16 +96,125 @@
         min-height: min(640px, 90vh);
     }
     @media (max-width: 640px) {
-        .auth-modal__scene { width: min(480px, 96vw); }
-        .auth-modal__face { grid-template-columns: 1fr; }
+        .auth-modal {
+            padding: 0.65rem;
+            padding-bottom: max(0.65rem, env(safe-area-inset-bottom, 0px));
+            padding-top: max(0.65rem, env(safe-area-inset-top, 0px));
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-modal__scene {
+            width: 100%;
+            max-width: 26.5rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .auth-modal__face {
+            grid-template-columns: 1fr;
+            border-radius: 18px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
         .auth-modal__face--back { grid-template-columns: 1fr; }
-        .auth-slideshow { min-height: 200px; order: -1; }
-        .auth-modal[data-mode="register"] .auth-modal__inner { min-height: min(560px, 85vh); }
-        .auth-modal__face { position: relative; display: flex; flex-direction: column; }
         .auth-modal__face--front,
         .auth-modal__face--back { position: absolute; }
-        .auth-modal__inner { min-height: 520px; }
-        .auth-modal[data-mode="register"] .auth-slideshow { min-height: 200px; }
+        /* Fit the card in the viewport; scroll inside the face so the form is never clipped */
+        .auth-modal__inner {
+            height: calc(100vh - 2rem);
+            max-height: calc(100vh - 2rem);
+            min-height: 0;
+        }
+        .auth-modal[data-mode="register"] .auth-modal__inner {
+            height: calc(100vh - 2rem);
+            max-height: calc(100vh - 2rem);
+        }
+        @supports (height: 100dvh) {
+            .auth-modal__inner {
+                height: calc(100dvh - 2rem);
+                max-height: calc(100dvh - 2rem);
+            }
+            .auth-modal[data-mode="register"] .auth-modal__inner {
+                height: calc(100dvh - 2rem);
+                max-height: calc(100dvh - 2rem);
+            }
+        }
+        .auth-slideshow {
+            order: -1;
+            flex-shrink: 0;
+            min-height: clamp(180px, 28vh, 260px);
+            max-height: 32vh;
+        }
+        .auth-modal[data-mode="register"] .auth-slideshow {
+            min-height: clamp(175px, 26vh, 240px);
+            max-height: 30vh;
+        }
+        .auth-slide__inner {
+            padding: 1rem 1rem 1.65rem;
+        }
+        .auth-slide__brand img { height: 1.75rem; width: auto; }
+        .auth-slide__brand span { font-size: 1.125rem; }
+        .auth-slide h3 {
+            font-size: 1.125rem;
+            margin-bottom: 0.35rem;
+        }
+        .auth-slide p {
+            font-size: 0.75rem;
+            line-height: 1.45;
+        }
+        .auth-dots {
+            bottom: 0.55rem;
+            left: 1rem;
+            right: 1rem;
+        }
+        .auth-form-panel {
+            flex: 0 0 auto;
+            min-height: unset;
+            padding: 1.35rem 1.15rem calc(1.85rem + env(safe-area-inset-bottom, 0px));
+            padding-top: 1.5rem;
+        }
+        .auth-modal__face--front .auth-form-panel,
+        .auth-modal__face--back .auth-form-panel {
+            justify-content: flex-start;
+        }
+        .auth-form-panel h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.35rem;
+        }
+        .auth-sub {
+            margin-bottom: 1.35rem;
+            font-size: 0.8125rem;
+        }
+        .auth-close {
+            top: 0.6rem;
+            right: 0.6rem;
+            width: 40px;
+            height: 40px;
+        }
+        .auth-field { margin-bottom: 0.85rem; }
+        .auth-input-wrap input {
+            padding: 0.75rem 1rem;
+            padding-right: 2.75rem;
+            font-size: 1rem;
+            min-height: 48px;
+        }
+        .auth-submit {
+            min-height: 48px;
+            padding-top: 0.85rem;
+            padding-bottom: 0.85rem;
+        }
+        .auth-toggle-pw {
+            width: 44px;
+            height: 44px;
+        }
+        .auth-field-row { gap: 0.65rem; }
+        .auth-register-form .auth-input-wrap input {
+            min-height: 48px;
+        }
     }
     .auth-slide {
         position: absolute; inset: 0;
@@ -124,9 +233,9 @@
         display: flex; flex-direction: column;
         padding: 1.2rem 1.15rem 2.1rem;
     }
-    .auth-slide__brand { display: flex; align-items: center; gap: 0.45rem; }
-    .auth-slide__brand img { height: 34px; width: auto; filter: brightness(0) invert(1); }
-    .auth-slide__brand span { font-weight: 700; font-size: 1.0625rem; color: #fff; letter-spacing: -0.02em; }
+    .auth-slide__brand { display: flex; align-items: center; gap: 0.625rem; }
+    .auth-slide__brand img { height: 2.5rem; width: auto; object-fit: contain; flex-shrink: 0; }
+    .auth-slide__brand span { font-weight: 700; font-size: 1.5rem; color: #fff; letter-spacing: -0.02em; }
     .auth-slide__body { margin-top: auto; padding-bottom: 0.25rem; }
     .auth-badge {
         display: inline-block;
@@ -473,10 +582,17 @@
         cursor: pointer;
         transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
     }
-    .auth-submit:hover {
+    .auth-submit:hover:not(:disabled) {
         background: #b89a75;
         box-shadow: 0 10px 28px rgba(166, 139, 103, 0.32);
         transform: translateY(-1px);
+    }
+    .auth-submit:disabled {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.3);
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
     }
     /* Register form: pill inputs + layout */
     .auth-register-form .auth-input-wrap input {
@@ -678,61 +794,78 @@
                     <div class="auth-progress-track" aria-hidden="true"><div class="auth-progress-fill is-animating" data-progress-bar></div></div>
                 </div>
                 <div class="auth-form-panel">
-                    <button type="button" class="auth-close js-auth-close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-                    <h2 id="auth-register-title">Create an account</h2>
-                    <p class="auth-sub">Already have an account? <button type="button" class="auth-flip-link js-auth-flip" data-flip="login">Log in</button></p>
+                    <div class="auth-login-views">
+                        <div class="auth-login-view is-active" data-login-view="register-form" role="tabpanel">
+                            <button type="button" class="auth-close js-auth-close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                            <h2 id="auth-register-title">Create an account</h2>
+                            <p class="auth-sub">Already have an account? <button type="button" class="auth-flip-link js-auth-flip" data-flip="login">Log in</button></p>
 
-                    @if (session('register_notice'))
-                        <p class="auth-notice" role="status">{{ session('register_notice') }}</p>
-                    @endif
-                    @if ($errors->any() && old('form_side') === 'register')
-                        <div class="auth-errors" role="alert">
-                            <ul>@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
-                        </div>
-                    @endif
+                            <div class="auth-errors" id="register-errors" style="display:none;" role="alert"><ul></ul></div>
 
-                    <form method="post" action="{{ route('register.attempt') }}" id="auth-register-form" class="auth-register-form">
-                        @csrf
-                        <input type="hidden" name="form_side" value="register">
-                        <div class="auth-field-row">
-                            <div class="auth-field">
-                                <label for="auth-reg-first">First name</label>
-                                <div class="auth-input-wrap">
-                                    <input id="auth-reg-first" name="first_name" type="text" autocomplete="given-name" placeholder="First name" value="{{ old('first_name') }}" required>
+                            <form id="auth-register-form" class="auth-register-form">
+                                @csrf
+                                <div class="auth-field-row">
+                                    <div class="auth-field">
+                                        <label for="auth-reg-first">First name</label>
+                                        <div class="auth-input-wrap">
+                                            <input id="auth-reg-first" name="first_name" type="text" autocomplete="given-name" placeholder="First name" required>
+                                        </div>
+                                    </div>
+                                    <div class="auth-field">
+                                        <label for="auth-reg-last">Last name</label>
+                                        <div class="auth-input-wrap">
+                                            <input id="auth-reg-last" name="last_name" type="text" autocomplete="family-name" placeholder="Last name" required>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="auth-field">
-                                <label for="auth-reg-last">Last name</label>
-                                <div class="auth-input-wrap">
-                                    <input id="auth-reg-last" name="last_name" type="text" autocomplete="family-name" placeholder="Last name" value="{{ old('last_name') }}" required>
+                                <div class="auth-field">
+                                    <label for="auth-reg-email">Email</label>
+                                    <div class="auth-input-wrap">
+                                        <input id="auth-reg-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+                                    </div>
                                 </div>
-                            </div>
+                                <div class="auth-field">
+                                    <label for="auth-reg-phone">Phone number</label>
+                                    <div class="auth-input-wrap">
+                                        <input id="auth-reg-phone" name="phone" type="tel" autocomplete="tel" placeholder="09123456789" inputmode="numeric" required>
+                                    </div>
+                                </div>
+                                <div class="auth-field">
+                                    <label for="auth-reg-password">Password</label>
+                                    <div class="auth-input-wrap">
+                                        <input id="auth-reg-password" name="password" type="password" autocomplete="new-password" placeholder="••••••••" required minlength="8">
+                                        <button type="button" class="auth-toggle-pw" data-target="auth-reg-password" aria-label="Show password">…</button>
+                                    </div>
+                                </div>
+                                <label class="auth-checkbox-row">
+                                    <input type="checkbox" id="auth-reg-confirm" name="confirm_details" value="1" required>
+                                    <span>I confirm all the details are correct</span>
+                                </label>
+                                <button type="submit" class="auth-submit" id="btn-register-submit" style="margin-top:0.15rem" disabled>Create Account</button>
+                            </form>
                         </div>
-                        <div class="auth-field">
-                            <label for="auth-reg-email">Email</label>
-                            <div class="auth-input-wrap">
-                                <input id="auth-reg-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" value="{{ old('email') }}" required>
-                            </div>
+                        
+                        <div class="auth-login-view" data-login-view="register-verify" role="tabpanel">
+                            <button type="button" class="auth-close js-auth-close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                            <h2>Verify your email</h2>
+                            <p class="auth-sub" style="margin-bottom:0.5rem">We sent a 6-digit code to <strong id="verify-email-display" style="color:#fff"></strong>.</p>
+                            <p class="auth-sub">Please enter it below to complete registration.</p>
+
+                            <div class="auth-errors" id="verify-errors" style="display:none;" role="alert"><ul></ul></div>
+
+                            <form id="auth-verify-form">
+                                @csrf
+                                <input type="hidden" name="email" id="verify-email-input">
+                                <div class="auth-field">
+                                    <label for="auth-verify-code">Verification code</label>
+                                    <div class="auth-input-wrap">
+                                        <input id="auth-verify-code" name="code" class="auth-code-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" autocomplete="one-time-code" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="auth-submit" id="btn-verify-submit" style="margin-top:0.75rem">Verify & Login</button>
+                            </form>
                         </div>
-                        <div class="auth-field">
-                            <label for="auth-reg-phone">Phone number</label>
-                            <div class="auth-input-wrap">
-                                <input id="auth-reg-phone" name="phone" type="tel" autocomplete="tel" placeholder="09123456789" value="{{ old('phone') }}" inputmode="numeric" required>
-                            </div>
-                        </div>
-                        <div class="auth-field">
-                            <label for="auth-reg-password">Password</label>
-                            <div class="auth-input-wrap">
-                                <input id="auth-reg-password" name="password" type="password" autocomplete="new-password" placeholder="••••••••" required minlength="8">
-                                <button type="button" class="auth-toggle-pw" data-target="auth-reg-password" aria-label="Show password">…</button>
-                            </div>
-                        </div>
-                        <label class="auth-checkbox-row">
-                            <input type="checkbox" name="confirm_details" value="1" {{ old('confirm_details') ? 'checked' : '' }} required>
-                            <span>I confirm all the details are correct</span>
-                        </label>
-                        <button type="submit" class="auth-submit" style="margin-top:0.15rem">Create Account</button>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -751,9 +884,14 @@
     var progressMs = 6500;
 
     function showLoginView(name) {
-        modal.querySelectorAll('.auth-login-view').forEach(function (el) {
-            el.classList.toggle('is-active', el.getAttribute('data-login-view') === name);
-        });
+        var isBackFace = name.startsWith('register');
+        var faceSelector = isBackFace ? '.auth-modal__face--back' : '.auth-modal__face--front';
+        var face = modal.querySelector(faceSelector);
+        if (face) {
+            face.querySelectorAll('.auth-login-view').forEach(function (el) {
+                el.classList.toggle('is-active', el.getAttribute('data-login-view') === name);
+            });
+        }
     }
 
     function resetForgotFlowUI() {
@@ -778,6 +916,7 @@
 
     function resetLoginViews() {
         showLoginView('login');
+        showLoginView('register-form');
         resetForgotFlowUI();
     }
 
@@ -794,9 +933,7 @@
         modal.setAttribute('aria-hidden', 'false');
         modal.setAttribute('data-mode', mode === 'register' ? 'register' : 'login');
         document.body.style.overflow = 'hidden';
-        if (mode !== 'register') {
-            resetLoginViews();
-        }
+        resetLoginViews();
         restartAllProgress();
         startSlideshowTimers();
     }
@@ -993,7 +1130,151 @@
         });
     }
 
+    // --- AJAX AUTHENTICATION LOGIC ---
+    function handleFormErrors(formId, responseData) {
+        var errContainer = null;
+        if (formId === 'auth-register-form') errContainer = document.getElementById('register-errors');
+        if (formId === 'auth-verify-form') errContainer = document.getElementById('verify-errors');
+        if (formId === 'auth-login-form') {
+            errContainer = document.createElement('div');
+            errContainer.className = 'auth-errors';
+            errContainer.role = 'alert';
+            errContainer.innerHTML = '<ul></ul>';
+            var form = document.getElementById(formId);
+            var prevErr = form.parentElement.querySelector('.auth-errors');
+            if (prevErr) prevErr.remove();
+            form.parentNode.insertBefore(errContainer, form);
+        }
+
+        if (errContainer) {
+            errContainer.style.display = 'block';
+            var ul = errContainer.querySelector('ul');
+            ul.innerHTML = '';
+            if (responseData.errors) {
+                for (var key in responseData.errors) {
+                    responseData.errors[key].forEach(function(msg) {
+                        var li = document.createElement('li');
+                        li.textContent = msg;
+                        ul.appendChild(li);
+                    });
+                }
+            } else if (responseData.message) {
+                var li = document.createElement('li');
+                li.textContent = responseData.message;
+                ul.appendChild(li);
+            }
+        }
+    }
+
+    var loginForm = document.getElementById('auth-login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var btn = loginForm.querySelector('.auth-submit');
+            var originalText = btn.textContent;
+            btn.textContent = 'Wait...';
+            btn.disabled = true;
+
+            var fd = new FormData(loginForm);
+            fetch(@json(url('/login')), {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: fd
+            }).then(r => r.json().then(data => ({status: r.status, body: data})))
+              .then(res => {
+                  btn.textContent = originalText;
+                  btn.disabled = false;
+                  if (res.status === 200 && res.body.success) {
+                      window.location.href = res.body.redirect;
+                  } else {
+                      handleFormErrors('auth-login-form', res.body);
+                  }
+              }).catch(err => {
+                  btn.textContent = originalText;
+                  btn.disabled = false;
+              });
+        });
+    }
+
+    var cbConfirm = document.getElementById('auth-reg-confirm');
+    var btnReg = document.getElementById('btn-register-submit');
+    if (cbConfirm && btnReg) {
+        cbConfirm.addEventListener('change', function() {
+            btnReg.disabled = !this.checked;
+        });
+    }
+
+    var registerForm = document.getElementById('auth-register-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var errContainer = document.getElementById('register-errors');
+            if (errContainer) errContainer.style.display = 'none';
+
+            var originalText = btnReg.textContent;
+            btnReg.textContent = 'Sending code...';
+            btnReg.disabled = true;
+
+            var fd = new FormData(registerForm);
+            fetch(@json(url('/register')), {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: fd
+            }).then(r => r.json().then(data => ({status: r.status, body: data})))
+              .then(res => {
+                  btnReg.textContent = originalText;
+                  btnReg.disabled = false;
+                  if (res.status === 200 && res.body.success) {
+                      document.getElementById('verify-email-display').textContent = res.body.email;
+                      document.getElementById('verify-email-input').value = res.body.email;
+                      showLoginView('register-verify');
+                  } else {
+                      handleFormErrors('auth-register-form', res.body);
+                  }
+              }).catch(err => {
+                  console.error(err);
+                  alert('Something went wrong connecting to the server. Please try again.');
+                  btnReg.textContent = originalText;
+                  btnReg.disabled = false;
+              });
+        });
+    }
+
+    var verifyForm = document.getElementById('auth-verify-form');
+    if (verifyForm) {
+        verifyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var errContainer = document.getElementById('verify-errors');
+            if (errContainer) errContainer.style.display = 'none';
+
+            var btn = document.getElementById('btn-verify-submit');
+            var originalText = btn.textContent;
+            btn.textContent = 'Verifying...';
+            btn.disabled = true;
+
+            var fd = new FormData(verifyForm);
+            fetch(@json(url('/verify-email')), {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: fd
+            }).then(r => r.json().then(data => ({status: r.status, body: data})))
+              .then(res => {
+                  btn.textContent = originalText;
+                  btn.disabled = false;
+                  if (res.status === 200 && res.body.success) {
+                      window.location.href = res.body.redirect;
+                  } else {
+                      handleFormErrors('auth-verify-form', res.body);
+                  }
+              }).catch(err => {
+                  btn.textContent = originalText;
+                  btn.disabled = false;
+              });
+        });
+    }
+
     var startMode = @json($initialAuthMode);
+
     if (startMode) {
         openModal(startMode);
         var q = new URLSearchParams(window.location.search).get('auth');
