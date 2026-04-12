@@ -1,0 +1,277 @@
+﻿        .dashboard-header {
+            margin-bottom: 24px;
+        }
+
+        .dashboard-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .dashboard-header p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--panel);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: none;
+            box-shadow: 0 1px 2px rgba(6,95,70,0.04), 0 4px 12px rgba(6,95,70,0.06), 0 12px 28px rgba(6,95,70,0.08);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.green { background: #e9fbf2; color: #065f46; }
+        .stat-icon.blue { background: #eff6ff; color: #1d4ed8; }
+        .stat-icon.orange { background: #fff7ed; color: #c2410c; }
+        .stat-icon.purple { background: #faf5ff; color: #6d28d9; }
+
+        .stat-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .stat-info h4 {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .stat-info .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .achievement-card {
+            background: var(--panel);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 1px 2px rgba(6,95,70,0.04);
+        }
+        .achievement-card.is-claimed { border-color: #10b981; background: linear-gradient(180deg, rgba(16,185,129,0.08), var(--panel)); }
+        .achievement-card.is-eligible { border-color: #34d399; }
+        .achievement-card.is-locked { opacity: 0.92; }
+        .achievement-badge-ring {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--brand-soft);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .achievement-title { font-size: 16px; font-weight: 700; margin: 0; color: var(--text); }
+        .achievement-desc { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; flex: 1; }
+        .achievement-status { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+        .achievement-pill {
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+            padding: 4px 10px; border-radius: 999px;
+        }
+        .achievement-pill.claimed { background: #d1fae5; color: #065f46; }
+        .achievement-pill.ready { background: #fef3c7; color: #92400e; }
+        .achievement-pill.locked { background: var(--bg); color: var(--muted); }
+        .achievement-claim-btn { margin-top: 4px; padding: 8px 16px !important; font-size: 13px !important; width: auto !important; }
+
+        .dashboard-main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1050px) {
+            .dashboard-main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dashboard-card {
+            background: var(--panel);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            border: none;
+            box-shadow: 0 1px 2px rgba(6,95,70,0.04), 0 4px 12px rgba(6,95,70,0.06), 0 12px 28px rgba(6,95,70,0.08);
+        }
+
+        .dashboard-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .dashboard-card-header a {
+            font-size: 13px;
+            color: var(--brand-dark);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .dashboard-card-header a:hover {
+            text-decoration: underline;
+        }
+
+        /* Activity List */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brand-dark);
+            flex-shrink: 0;
+            border: 1px solid var(--line);
+        }
+
+        .activity-details h5 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .activity-details p {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: #9baca1;
+            font-weight: 600;
+        }
+
+        /* Upcoming Hike Card */
+        .upcoming-hike {
+            background: linear-gradient(135deg, rgba(6, 95, 70, 0.05), rgba(16, 185, 129, 0.05));
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upcoming-hike::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            background: var(--brand);
+            opacity: 0.1;
+            border-radius: 50%;
+            filter: blur(20px);
+        }
+
+        .upcoming-hike-date {
+            display: inline-block;
+            background: var(--brand-dark);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 99px;
+            margin-bottom: 12px;
+        }
+
+        .upcoming-hike h4 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .upcoming-hike-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .upcoming-hike-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .upcoming-hike-meta svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .upcoming-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: var(--brand-dark);
+            color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+
+        .upcoming-btn:hover {
+            background: #044e39;
+        }

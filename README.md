@@ -12,6 +12,8 @@
   <a href="#features">Features</a> •
   <a href="#mountains">Mountains</a> •
   <a href="#about">About</a> •
+  <a href="#technology-stack">Stack</a> •
+  <a href="#installation">Installation</a> •
   <a href="#contributing">Contributing</a>
 </p>
 
@@ -22,109 +24,120 @@
 HikeConnect is a web-based community platform dedicated to connecting hiking enthusiasts with famous hiking destinations in Batangas, Philippines. Our mission is to make mountain information accessible, connect hikers, and promote safe and sustainable hiking practices.
 
 ### Featured Mountains
-- **Mt. Batulao** (811 MASL) - Beginner-friendly with rolling hills and stunning views
-- **Mt. Pico de Loro** (664 MASL) - Famous for its iconic monolith
-- **Mt. Talamitam** (630 MASL) - Great for day hikes with open trails
-- **Mt. Masapinit** - Challenging peaks for experienced trekkers
+
+- **Mt. Batulao** (811 MASL) — Beginner-friendly with rolling hills and stunning views
+- **Mt. Pico de Loro** (664 MASL) — Famous for its iconic monolith
+- **Mt. Talamitam** (630 MASL) — Great for day hikes with open trails
+- **Mt. Masapinit** — Challenging peaks for experienced trekkers
 
 ---
 
 ## Features
 
 ### 🗺️ Comprehensive Trail Guides
-Access detailed information about every hiking trail in Batangas, including difficulty levels, estimated time, trail conditions, and points of interest.
 
-### 👥 Community Connection
-Connect with fellow hiking enthusiasts, find hiking buddies, and join group treks. Share experiences and learn from seasoned hikers.
+Access detailed information about hiking trails, including difficulty, estimated time, conditions, and points of interest. The **hiker dashboard** lists mountains, jump-off points, and booking flows.
+
+### 👥 Community & Bookings
+
+Sign up, verify email, book guided hikes, leave reviews, and post in community threads (data-driven from the database).
 
 ### 🛡️ Safety Resources
-Stay safe with comprehensive safety guidelines, weather updates, emergency contacts, and real-time alerts about trail conditions.
 
-### 📸 Photo Sharing
-Share your hiking adventures through photos and inspire others. Browse stunning images from Batangas' most beautiful peaks.
+Safety guidelines, weather hooks, and structured alerts for responsible hiking.
 
-### 📅 Event Management
-Discover and join organized hiking events, clean-up drives, and community gatherings. Create your own events and build the community.
+### 📍 Live location (hiker dashboard)
+
+**Track Location** uses the browser Geolocation API and Google Maps for live GPS tracking and a trail polyline while hiking (best with the tab active; background tracking is limited on the web).
 
 ### ⭐ Trail Reviews & Tips
-Read honest reviews from fellow hikers, get insider tips, and share your own experiences to help others plan their adventures.
+
+Read and submit reviews tied to mountains and your completed hikes.
 
 ---
 
 ## Who Can Join?
 
-Anyone passionate about hiking, from **beginners to experienced trekkers**, can join our community. Whether you're looking for:
-- Scenic beginner trails
-- Challenging peaks
-- Group hiking experiences
-- Trail information and maps
-- Hiking buddies
-
-HikeConnect welcomes all outdoor enthusiasts!
+Anyone passionate about hiking, from **beginners to experienced trekkers**, can join. HikeConnect welcomes outdoor enthusiasts looking for trails, guides, and community.
 
 ---
 
 ## Trusted Partners & Supporters
 
-- 🏛️ **DENR** - Department of Environment and Natural Resources
-- 🌴 **Tourism Batangas** - Provincial Tourism Office
-- 🥾 **Philippine Hiking Society** - National hiking community
-- 🧭 **Trail Blazers PH** - Trail conservation advocates
-- 🛡️ **Mt. Safe Philippines** - Hiking safety organization
-- 🌿 **Eco Warriors** - Environmental protection group
+- 🏛️ **DENR** — Department of Environment and Natural Resources
+- 🌴 **Tourism Batangas**
+- 🥾 **Philippine Hiking Society**
+- 🧭 **Trail Blazers PH**
+- 🛡️ **Mt. Safe Philippines**
+- 🌿 **Eco Warriors**
 
 ---
 
 ## Technology Stack
 
-- **Framework:** Laravel 12
-- **Frontend:** Blade Templates with custom CSS
-- **Language:** PHP 8.2+
-- **Database:** MySQL/PostgreSQL
-- **Server:** Apache/Nginx
+| Layer | Choice |
+|--------|--------|
+| **Backend** | Laravel 13, PHP 8.3+ |
+| **Auth** | Session-based login; AJAX registration with email verification; `AuthController` + `EmailService` (PHPMailer) |
+| **Frontend** | Blade templates; **Tailwind CSS v4** + **Vite 8** for built assets |
+| **Hiker UI** | `resources/css/hikers.css` (Tailwind + legacy component CSS extracted from inline styles) |
+| **Maps** | Google Maps JavaScript API (tracking & jump-off markers) |
+| **Database** | MySQL / MariaDB / PostgreSQL (via Laravel) |
+
+The marketing **welcome** page and **auth modal** still include large inline/CSS blocks; the **hiker dashboard** loads compiled CSS via `@vite`.
 
 ---
 
 ## Installation
 
 ### Requirements
-- PHP 8.2 or higher
+
+- PHP 8.3+
 - Composer
-- MySQL or PostgreSQL
-- Node.js & NPM (optional)
+- Node.js 20+ and npm (for Vite/Tailwind)
+- MySQL, MariaDB, or PostgreSQL
 
 ### Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/chals1029/HikeConnectWebSystem
-cd hikeconnect
+git clone https://github.com/chals1029/HikeConnectWebSystem.git
+cd HikeConnectWebSystem
 
-# Install dependencies
 composer install
-
-# Copy environment file
 cp .env.example .env
-
-# Generate application key
 php artisan key:generate
+```
 
-# Configure your database in .env file
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1
-# DB_PORT=3306
-# DB_DATABASE=hikeconnect
-# DB_USERNAME=root
-# DB_PASSWORD=your_password
+Configure `.env` (database, `APP_URL`, mail for verification codes). Then:
 
-# Run migrations
+```bash
 php artisan migrate
 
-# Start the development server
+npm install
+npm run build
+```
+
+For local development with hot reload for CSS/JS:
+
+```bash
+npm run dev
+```
+
+In another terminal:
+
+```bash
 php artisan serve
 ```
 
-Visit `http://localhost:8000` to see the application.
+Open `http://127.0.0.1:8000` (or your Laragon host).
+
+### One-shot Composer setup (optional)
+
+The project includes a Composer `setup` script that installs PHP deps, ensures `.env`, runs migrations, and installs npm packages — see `composer.json` → `scripts.setup`.
+
+### Google Maps (Track Location)
+
+Set your Maps JavaScript API key in `.env` (e.g. `GOOGLE_MAPS_API_KEY` or as your app expects) so the hiker **Track Location** map and markers load.
 
 ---
 
@@ -132,65 +145,60 @@ Visit `http://localhost:8000` to see the application.
 
 ```
 HikeConnectWebSystem/
-├── app/                    # Application logic
-├── bootstrap/              # Framework bootstrap
-├── config/                 # Configuration files
-├── database/               # Migrations and seeds
-├── public/                 # Public assets
-│   └── images/             # Mountain photos & logos
+├── app/
+│   ├── Http/Controllers/     # HikerDashboardController, AuthController, …
+│   ├── Models/               # User, Mountain, HikeBooking, …
+│   └── Services/             # Email, achievements, …
+├── database/migrations/
+├── public/
+│   ├── build/                # Vite manifest + hashed CSS/JS (after npm run build)
+│   └── images/               # Logos & mountain photos
 ├── resources/
-│   ├── views/              # Blade templates
-│   └── Pictures/           # Raw image assets
-├── routes/                 # Route definitions
-├── storage/                # Logs and cache
-└── tests/                  # Unit tests
+│   ├── css/
+│   │   ├── app.css           # Tailwind entry (shared / welcome-oriented)
+│   │   ├── hikers.css        # Tailwind + hiker dashboard styles
+│   │   └── hikers-dashboard*.css
+│   ├── js/app.js
+│   └── views/
+│       ├── welcome.blade.php
+│       ├── hikers.blade.php
+│       ├── hikers/           # Partials (_new-sections, _new-styles)
+│       └── auth/
+├── routes/web.php
+└── vite.config.js
 ```
 
 ---
 
 ## Contributing
 
-We welcome contributions from the community! Here's how you can help:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-### Ways to Contribute
-- 🐛 Report bugs and issues
-- 💡 Suggest new features
-- 📝 Improve documentation
-- 🎨 UI/UX improvements
-- 🔒 Security enhancements
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes
+4. Push and open a Pull Request
 
 ---
 
 ## Safety Guidelines
 
-HikeConnect promotes responsible hiking:
-
-- ✅ Register your trips with local authorities
-- ✅ Hike in groups when possible
-- ✅ Follow Leave No Trace principles
-- ✅ Check weather conditions before hiking
-- ✅ Bring essential gear and first aid
-- ✅ Respect local communities and wildlife
+- Register trips where required; hike in groups when possible
+- Follow Leave No Trace
+- Check weather and trail conditions
+- Carry essentials and first aid
+- Respect communities and wildlife
 
 ---
-
 
 ## License
 
-HikeConnect is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Open-sourced under the [MIT license](https://opensource.org/licenses/MIT).
 
 ---
 
 <p align="center">
-  <strong>Do what you love - Hiking. Leave the rest to us. 🥾</strong>
+  <strong>Do what you love — hiking. Leave the rest to us. 🥾</strong>
 </p>
 
 <p align="center">
-  Made with ❤️ by the HikeConnect Team
+  Made with care by the HikeConnect team
 </p>
