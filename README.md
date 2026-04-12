@@ -137,7 +137,7 @@ The project includes a Composer `setup` script that installs PHP deps, ensures `
 
 ### Google Maps (Track Location)
 
-Set your Maps JavaScript API key in `.env` (e.g. `GOOGLE_MAPS_API_KEY` or as your app expects) so the hiker **Track Location** map and markers load.
+Set `GOOGLE_MAPS_API_KEY` in `.env` (see `.env.example`). The hiker dashboard loads the Maps script only when this value is set. Restrict the key by HTTP referrer in Google Cloud Console.
 
 ---
 

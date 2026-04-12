@@ -625,6 +625,8 @@
         $__hikerBootstrap = [
             'csrf' => csrf_token(),
             'userId' => $user->id,
+            'hasGoogleMapsKey' => filled(config('services.google_maps.key')),
+            'mapsFallbackCenter' => ['lat' => 13.94, 'lng' => 120.92],
             'weather' => ($weatherLat !== null && $weatherLng !== null)
                 ? ['lat' => $weatherLat, 'lng' => $weatherLng]
                 : null,
@@ -703,6 +705,18 @@
                 // Hide booking success if navigating away
                 const bs = document.getElementById('booking-success');
                 if (bs) bs.style.display = 'none';
+                // Google Maps was hidden in a display:none section — reflow tiles when Track Location is shown
+                if (rawId === 'track-location' && typeof google !== 'undefined' && google.maps && window.hikeTracker && window.hikeTracker.map) {
+                    setTimeout(function() {
+                        google.maps.event.trigger(window.hikeTracker.map, 'resize');
+                        const dj = window.HIKER_BOOTSTRAP.defaultJumpoff;
+                        const fb = window.HIKER_BOOTSTRAP.mapsFallbackCenter;
+                        const c = (dj && dj.lat != null && dj.lng != null) ? dj : fb;
+                        if (c && c.lat != null && c.lng != null) {
+                            window.hikeTracker.map.setCenter({ lat: c.lat, lng: c.lng });
+                        }
+                    }, 150);
+                }
             };
 
             menuLinks.forEach(link => {
@@ -1233,9 +1247,10 @@
             const mapEl = document.getElementById('tracker-gmap');
             if (!mapEl || typeof google === 'undefined' || !google.maps || !window.HIKER_BOOTSTRAP) return false;
             const dj = window.HIKER_BOOTSTRAP.defaultJumpoff;
-            if (!dj || dj.lat == null || dj.lng == null) return false;
+            const fb = window.HIKER_BOOTSTRAP.mapsFallbackCenter || { lat: 13.94, lng: 120.92 };
+            const center = (dj && dj.lat != null && dj.lng != null) ? { lat: dj.lat, lng: dj.lng } : fb;
             const map = new google.maps.Map(mapEl, {
-                center: { lat: dj.lat, lng: dj.lng },
+                center,
                 zoom: 14,
                 mapTypeId: 'terrain',
                 disableDefaultUI: false,
@@ -1279,7 +1294,11 @@
                 return;
             }
             if (!ensureHikeTrackerMap()) {
-                if (statusEl) statusEl.textContent = 'Map unavailable — add trails / jump-off in the system';
+                if (statusEl) {
+                    statusEl.textContent = !document.getElementById('tracker-gmap')
+                        ? 'Add GOOGLE_MAPS_API_KEY to .env and run php artisan config:clear'
+                        : 'Map failed to load — check API key and billing in Google Cloud';
+                }
                 if (distEl) distEl.textContent = '—';
                 return;
             }
@@ -1304,6 +1323,10 @@
             if (clearBtn) clearBtn.style.display = '';
 
             const dj = window.HIKER_BOOTSTRAP.defaultJumpoff;
+            const jm = (window.HIKER_BOOTSTRAP.jumpoffMarkers || [])[0];
+            const jumpoffRef = (dj && dj.lat != null && dj.lng != null)
+                ? dj
+                : (jm ? { lat: jm.lat, lng: jm.lng } : null);
             const geoOpts = { enableHighAccuracy: true, maximumAge: 4000, timeout: 25000 };
 
             const onPos = (pos) => {
@@ -1321,12 +1344,14 @@
                 }
                 if (lastEl) lastEl.textContent = new Date().toLocaleTimeString();
 
-                if (dj && dj.lat != null && dj.lng != null && distEl) {
-                    const d = haversine(lat, lng, dj.lat, dj.lng);
+                if (jumpoffRef && jumpoffRef.lat != null && jumpoffRef.lng != null && distEl) {
+                    const d = haversine(lat, lng, jumpoffRef.lat, jumpoffRef.lng);
                     distEl.textContent = d.toFixed(2) + ' km';
                     if (statusEl) {
                         statusEl.textContent = d < 1 ? 'Near jump-off' : d < 5 ? 'On trail' : 'Away from jump-off';
                     }
+                } else if (distEl) {
+                    distEl.textContent = '—';
                 }
 
                 hikeAppendTrackPoint(lat, lng);
@@ -1503,10 +1528,15 @@
     <script>
         // Initialize default map for tracker page on load
         function initTrackerDefaultMap() {
-            if (typeof ensureHikeTrackerMap === 'function') {
-                ensureHikeTrackerMap();
+            if (typeof ensureHikeTrackerMap !== 'function') return;
+            if (ensureHikeTrackerMap() && window.hikeTracker.map) {
+                setTimeout(function() {
+                    google.maps.event.trigger(window.hikeTracker.map, 'resize');
+                }, 0);
             }
         }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCwFcYfuG72Uo8RbWjFqfpOehIsyjalz54&callback=initTrackerDefaultMap" async defer></script>
+    @if (filled(config('services.google_maps.key')))
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ e(config('services.google_maps.key')) }}&callback=initTrackerDefaultMap" async defer></script>
+    @endif
 </body>

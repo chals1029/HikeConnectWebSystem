@@ -156,8 +156,32 @@
     .ns-feedback-btn:hover { background:var(--brand); color:#fff; }
 
     /* ── Track Location ─────────────────────────────────────── */
-    .ns-tracker-layout { display:grid; grid-template-columns:2fr 1fr; gap:20px; }
-    .ns-tracker-map-area { display:flex; flex-direction:column; gap:16px; }
+    #view-track-location { padding-bottom: 2rem; }
+    .ns-tracker-layout { display:grid; grid-template-columns:2fr 1fr; gap:20px; align-items:start; }
+    .ns-tracker-map-area { display:flex; flex-direction:column; gap:16px; min-width:0; }
+    .ns-tracker-map-shell {
+        width:100%;
+        min-height:380px;
+        border-radius:var(--radius-lg);
+        overflow:hidden;
+        border:1px solid var(--line);
+        background:var(--panel);
+        box-shadow:0 1px 2px rgba(6,95,70,0.04), 0 4px 12px rgba(6,95,70,0.06);
+    }
+    .ns-tracker-gmap { width:100%; min-height:380px; height:min(52vh, 480px); }
+    .ns-tracker-gmap--placeholder {
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        min-height:380px;
+        height:auto;
+        padding:24px;
+        background:linear-gradient(160deg, var(--brand-soft) 0%, var(--panel) 45%);
+    }
+    .ns-tracker-gmap__placeholder-inner { max-width:28rem; text-align:center; }
+    .ns-tracker-gmap__title { font-size:16px; font-weight:700; color:var(--text); margin:12px 0 8px; }
+    .ns-tracker-gmap__text { font-size:13px; color:var(--muted); line-height:1.55; margin:0; }
+    .ns-tracker-gmap__text code { font-size:12px; background:var(--bg); padding:2px 6px; border-radius:6px; }
     .ns-map-display { position:relative; height:360px; border-radius:var(--radius-lg); overflow:hidden; background:linear-gradient(135deg,#0f2419,#132b21,#16331e,#1a3a22); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; }
     .ns-map-grid-lines { position:absolute; inset:0; background-image:linear-gradient(rgba(16,185,129,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(16,185,129,.08) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; }
     .ns-map-center-dot { width:18px; height:18px; border-radius:50%; background:var(--brand); box-shadow:0 0 0 6px rgba(16,185,129,.3),0 0 0 12px rgba(16,185,129,.1); animation:pulse-dot 2s ease-in-out infinite; z-index:2; }
@@ -167,7 +191,7 @@
     .ns-map-coords { font-size:11px; color:rgba(255,255,255,.7); font-family:monospace; }
 
     .ns-tracker-controls { }
-    .ns-tracker-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-top:16px; }
+    .ns-tracker-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px; margin-top:16px; margin-bottom:8px; }
     .ns-tracker-stat { background:var(--panel); border:none; border-radius:var(--radius-md); padding:14px; text-align:center; box-shadow:0 1px 2px rgba(6,95,70,0.04), 0 4px 12px rgba(6,95,70,0.06), 0 10px 24px rgba(6,95,70,0.06); }
     .ns-tracker-stat span { display:block; font-size:11px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
     .ns-tracker-stat strong { font-size:18px; color:var(--text); }

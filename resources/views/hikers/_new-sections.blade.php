@@ -1,4 +1,4 @@
-{{-- ============================================================
+﻿{{-- ============================================================
      HikeConnect — New Hiker Dashboard Sections
      All sections follow view-section pattern for SPA navigation
      ============================================================ --}}
@@ -331,7 +331,19 @@
 
     <div class="ns-tracker-layout">
         <div class="ns-tracker-map-area">
-            <div id="tracker-gmap" style="width:100%;height:380px;border-radius:16px;overflow:hidden;"></div>
+            <div class="ns-tracker-map-shell">
+                @if (filled(config('services.google_maps.key')))
+                    <div id="tracker-gmap" class="ns-tracker-gmap" role="application" aria-label="Hiking area map"></div>
+                @else
+                    <div class="ns-tracker-gmap ns-tracker-gmap--placeholder" role="status">
+                        <div class="ns-tracker-gmap__placeholder-inner">
+                            <iconify-icon icon="lucide:map-pin-off" style="font-size:40px;color:var(--muted);"></iconify-icon>
+                            <p class="ns-tracker-gmap__title">Map not configured</p>
+                            <p class="ns-tracker-gmap__text">Add <code>GOOGLE_MAPS_API_KEY</code> to your <code>.env</code> file (Maps JavaScript API enabled), then run <code>php artisan config:clear</code> and reload this page.</p>
+                        </div>
+                    </div>
+                @endif
+            </div>
             <div class="ns-tracker-controls">
                 <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
                     <button type="button" class="ns-submit-btn" onclick="toggleLiveTracking()" id="track-btn" aria-pressed="false">
