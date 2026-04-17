@@ -28,6 +28,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
+    <!-- Icon Framework -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    
     <!-- Favicon & app icons (HikeConnect logo) -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/HikeConnect-Logo.png') }}">
     <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/HikeConnect-Logo.png') }}">
@@ -43,21 +46,24 @@
         body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--td);line-height:1.6;background:var(--w);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
         
         /* Header */
-        header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.25rem 3.75rem;display:flex;justify-content:space-between;align-items:center;transition:all var(--tr)}
-        header.scrolled{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);box-shadow:0 2px 20px rgba(0,0,0,.1);padding:1rem 3.75rem}
+        header{position:fixed;top:1.25rem;left:50%;transform:translateX(-50%);width:calc(100% - 2.5rem);max-width:87.5rem;z-index:1000;padding:.75rem 1.25rem;display:flex;justify-content:space-between;align-items:center;transition:all .45s var(--ease-smooth);border-radius:100px;background:rgba(255,255,255,0.06);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.12);box-shadow:0 4px 30px rgba(0,0,0,0.1)}
+        header.scrolled{top:0.75rem;background:rgba(255,255,255,.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 10px 40px rgba(0,0,0,.08);border:1px solid rgba(255,255,255,0.8);padding:.625rem 1.25rem;width:calc(100% - 1.5rem)}
         header.scrolled .logo,header.scrolled nav a{color:var(--td)}
-        .logo{display:flex;align-items:center;text-decoration:none;gap:.625rem}
-        .logo img{height:2.5rem;width:auto;transition:height var(--tr)}
-        .logo span{font-size:1.5rem;font-weight:700;color:var(--w);transition:all var(--tr)}
+        .logo{display:flex;align-items:center;text-decoration:none;gap:.625rem;padding-left:.5rem}
+        .logo img{height:2.25rem;width:auto;transition:all .45s var(--ease-smooth)}
+        .logo span{font-size:1.375rem;font-weight:700;color:var(--w);transition:all .45s var(--ease-smooth);letter-spacing:-0.02em}
         header.scrolled .logo img{height:2rem}
         header.scrolled .logo span{color:var(--ag);font-size:1.25rem}
-        nav{display:flex;gap:2.5rem}
-        nav a{color:var(--w);text-decoration:none;font-size:.9375rem;font-weight:500;transition:color var(--tr);position:relative}
-        nav a::after{content:'';position:absolute;bottom:-5px;left:0;width:0;height:2px;background:var(--ag);transition:width var(--tr)}
-        nav a:hover::after{width:100%}
-        .login-btn{background:var(--w);color:var(--pg);padding:.75rem 1.75rem;border-radius:1.875rem;text-decoration:none;font-size:.875rem;font-weight:600;transition:all var(--tr);border:none;font:inherit;cursor:pointer}
-        .login-btn:hover{background:var(--ag);color:var(--w);transform:translateY(-2px);box-shadow:0 10px 30px rgba(16,185,129,.3)}
-        header.scrolled .login-btn{background:var(--pg);color:var(--w)}
+        header nav{display:flex;gap:1.5rem;background:rgba(255,255,255,0.06);padding:0.375rem 1.5rem;border-radius:100px;border:1px solid rgba(255,255,255,0.08);transition:all .45s var(--ease-smooth)}
+        header.scrolled nav{background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.12)}
+        header nav a{color:var(--w);text-decoration:none;font-size:.9rem;font-weight:600;transition:all var(--tr);position:relative;padding:.25rem 0}
+        header.scrolled nav a:hover{color:var(--ag)}
+        header nav a::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--ag);transition:all var(--tr);border-radius:2px}
+        header nav a:hover::after{width:100%}
+        .login-btn{background:var(--w);color:var(--pg);padding:.625rem 1.5rem;border-radius:100px;text-decoration:none;font-size:.875rem;font-weight:700;transition:all .35s ease;border:none;font:inherit;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+        .login-btn:hover{background:var(--ag);color:var(--w);transform:translateY(-2px);box-shadow:0 8px 25px rgba(16,185,129,.4)}
+        header.scrolled .login-btn{background:var(--td);color:var(--w)}
+        header.scrolled .login-btn:hover{background:var(--ag);box-shadow:0 8px 25px rgba(16,185,129,.35)}
         
         /* Mobile Menu Button */
         .mobile-menu-btn{display:none;flex-direction:column;gap:5px;padding:8px;background:none;border:none;cursor:pointer;z-index:1001}
@@ -65,14 +71,21 @@
         header.scrolled .mobile-menu-btn span{background:var(--td)}
         
         /* Hero */
-        .hero{height:100vh;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
-        .hero-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:url('{{ asset('images/mt-batulao.jpg') }}') center/cover no-repeat;will-change:transform;transform:scale(1);animation:heroKenBurns 32s var(--ease-smooth) infinite alternate}
+        .hero{height:100vh;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;isolation:isolate}
+        .hero::before{content:'';position:absolute;inset:-25% -20%;z-index:1;pointer-events:none;background:
+            radial-gradient(circle at 20% 25%,rgba(52,211,153,.34),transparent 42%),
+            radial-gradient(circle at 78% 18%,rgba(110,231,183,.26),transparent 48%),
+            radial-gradient(circle at 50% 90%,rgba(6,95,70,.28),transparent 58%);
+            mix-blend-mode:screen;animation:auroraShift 18s ease-in-out infinite alternate}
+        .hero-bg{--bg-parallax-x:0px;--bg-parallax-y:0px;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;will-change:transform;transform:translate3d(var(--bg-parallax-x),var(--bg-parallax-y),0) scale(1.05);animation:heroKenBurns 32s var(--ease-smooth) infinite alternate}
         .hero-overlay{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(6,78,59,.32)0%,rgba(6,78,59,.42)28%,rgba(6,78,59,.38)52%,rgba(6,78,59,.2)72%,rgba(6,78,59,.06)88%,rgba(6,78,59,0)96%)}
+        .hero-particles{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+        .hero-particle{position:absolute;bottom:-10%;border-radius:999px;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.75),rgba(255,255,255,.08) 72%,transparent 100%);filter:blur(.35px);opacity:.45;animation:particleRise var(--duration,14s) linear infinite;animation-delay:var(--delay,0s)}
         .hero-mist{position:absolute;left:0;right:0;bottom:0;z-index:2;height:clamp(3.25rem,9vh,7rem);pointer-events:none;background:
             radial-gradient(ellipse 160% 120% at 30% 100%,rgba(255,255,255,.35) 0%,transparent 50%),
             radial-gradient(ellipse 140% 100% at 70% 100%,rgba(255,255,255,.3) 0%,transparent 48%),
             linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,0) 35%,rgba(255,255,255,.18) 62%,rgba(255,255,255,.72) 82%,#fff 100%)}
-        .hero-content{position:relative;z-index:3;text-align:center;max-width:56rem;padding:0 1.25rem}
+        .hero-content{position:relative;z-index:3;text-align:center;max-width:56rem;padding:0 1.25rem;transform-style:preserve-3d;will-change:transform;transition:transform .45s var(--ease-smooth)}
         .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);padding:.625rem 1.5rem;border-radius:1.875rem;color:var(--w);font-size:.8125rem;font-weight:500;margin-bottom:1.875rem;border:1px solid rgba(255,255,255,.2);animation:heroStagger 1s var(--ease-smooth) .12s both}
         .hero h1{font-size:4rem;font-weight:700;color:var(--w);line-height:1.1;margin-bottom:1.5rem;animation:heroStagger 1s var(--ease-smooth) .28s both}
         .hero h1 span{display:inline-block;background:linear-gradient(110deg,var(--al),#a7f3d0,var(--ag),#6ee7b7,var(--al));background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gradientFlow 10s ease-in-out infinite;animation-delay:.5s}
@@ -86,11 +99,14 @@
         /* Animations */
         @keyframes fadeInUp{from{opacity:0;transform:translateY(2.5rem)}to{opacity:1;transform:translateY(0)}}
         @keyframes heroStagger{from{opacity:0;transform:translateY(2rem) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-        @keyframes heroKenBurns{from{transform:scale(1)}to{transform:scale(1.09)}}
+        @keyframes heroKenBurns{from{transform:translate3d(var(--bg-parallax-x),var(--bg-parallax-y),0) scale(1.05)}to{transform:translate3d(calc(var(--bg-parallax-x) * .75),calc(var(--bg-parallax-y) * .75),0) scale(1.15)}}
         @keyframes gradientFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
         @keyframes bounce{0%,20%,50%,80%,100%{transform:translateX(-50%)translateY(0)}40%{transform:translateX(-50%)translateY(-10px)}60%{transform:translateX(-50%)translateY(-5px)}}
+        @keyframes auroraShift{0%{transform:translate3d(0,0,0) scale(1) rotate(0deg)}50%{transform:translate3d(-2%,2%,0) scale(1.06) rotate(5deg)}100%{transform:translate3d(2%,-2%,0) scale(1.03) rotate(-3deg)}}
+        @keyframes particleRise{0%{transform:translate3d(0,0,0) scale(.85);opacity:0}12%{opacity:.5}85%{opacity:.24}100%{transform:translate3d(var(--drift,0px),-120vh,0) scale(1.35);opacity:0}}
         @media(prefers-reduced-motion:reduce){
             .hero-bg,.cta-bg{animation:none!important;transform:none!important}
+            .hero::before,.hero-particle{animation:none!important}
             .hero-badge,.hero h1,.hero h1 span,.hero p,.hero-cta{animation:none!important;opacity:1!important;transform:none!important}
             .hero h1 span{background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;color:var(--al)!important}
             .scroll-progress{display:none!important}
@@ -99,8 +115,9 @@
         
         /* Responsive */
         @media(max-width:48rem){
-            header{padding:1rem 1.25rem}
-            nav{display:none}
+            header{top:0.75rem;width:calc(100% - 1.5rem);padding:0.5rem 0.75rem}
+            header.scrolled{top:0.5rem;width:calc(100% - 1rem);padding:0.5rem 0.75rem}
+            header nav{display:none}
             .hero h1{font-size:2.25rem}
             .hero-badge{font-size:.75rem;padding:.5rem 1rem}
         }
@@ -136,8 +153,9 @@
         .mountain-info{padding:1.5rem}
         .mountain-info h4{font-size:1.375rem;font-weight:700;color:var(--td);margin-bottom:.75rem}
         .mountain-info p{font-size:.875rem;color:var(--tg);line-height:1.6;margin-bottom:1.25rem}
-        .mountain-meta{display:flex;gap:1.25rem;font-size:.8125rem;color:var(--tg)}
+        .mountain-meta{display:flex;gap:1.25rem;font-size:.8125rem;color:var(--tg);flex-wrap:wrap}
         .mountain-meta span{display:flex;align-items:center;gap:.375rem}
+        .weather-chip{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .6rem;border-radius:999px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.22);color:var(--pg);font-weight:600;line-height:1}
         .explore-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--ag);text-decoration:none;font-size:.875rem;font-weight:600;margin-top:1rem;transition:gap var(--tr)}
         .explore-link:hover{gap:.75rem}
         .slider-dots{display:flex;justify-content:center;gap:.625rem;margin-top:3.125rem}
@@ -160,7 +178,7 @@
         .partner-item:nth-child(5).visible{transition-delay:.3s}
         .partner-item:nth-child(6).visible{transition-delay:.35s}
         .partner-item:hover{border-color:var(--ag);background:var(--w);box-shadow:0 4px 20px rgba(16,185,129,.1);transform:translateY(-3px)}
-        .partner-icon{width:2.5rem;height:2.5rem;background:var(--dg);border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+        .partner-icon{width:2.5rem;height:2.5rem;background:var(--dg);border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;color:var(--ag)}
         .partner-item span{font-size:.9375rem;font-weight:600;color:var(--td)}
         .faq-list{display:flex;flex-direction:column;gap:1rem}
         .faq-item{background:var(--bc);border-radius:.75rem;padding:1.25rem 1.5rem;cursor:pointer;transition:all var(--tr);border:1px solid transparent;opacity:0;transform:translateY(1.25rem)}
@@ -230,14 +248,16 @@
         .footer-links a:hover{color:var(--ag)}
         .footer-bottom{max-width:87.5rem;margin:0 auto;padding-top:2.5rem;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center;font-size:.875rem;color:rgba(255,255,255,.5)}
         .social-links{display:flex;align-items:center;gap:1.125rem;flex-wrap:wrap;justify-content:center}
-        .social-links a{width:2.625rem;height:2.625rem;min-width:2.625rem;border-radius:50%;border:1px solid rgba(255,255,255,.92);background:transparent;display:inline-flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;font-size:.75rem;font-weight:500;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;letter-spacing:.02em;line-height:1;transition:border-color .25s ease,color .25s ease,box-shadow .25s ease}
-        .social-links a span{display:inline-block;text-transform:lowercase;text-shadow:.35px 0 0 rgba(255,90,90,.22),-.35px 0 0 rgba(70,170,255,.22),0 0 1px rgba(255,255,255,.85)}
-        .social-links a:hover{border-color:var(--al);color:var(--al);box-shadow:0 0 0 1px rgba(52,211,153,.35)}
+        .social-links a{width:2.75rem;height:2.75rem;min-width:2.75rem;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,0.05);display:inline-flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;font-size:1.25rem;transition:all .35s ease}
+        .social-links a:hover{border-color:var(--ag);color:var(--w);background:var(--ag);transform:translateY(-3px);box-shadow:0 10px 25px rgba(16,185,129,.35)}
         .social-links a:focus-visible{outline:2px solid var(--al);outline-offset:3px}
         
         /* Section reveal (scroll) */
         .reveal-section{opacity:0;transform:translateY(1.75rem);transition:opacity .7s cubic-bezier(0.16,1,0.3,1),transform .7s cubic-bezier(0.16,1,0.3,1)}
         .reveal-section.visible{opacity:1;transform:translateY(0)}
+        .interactive-tilt{position:relative;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .35s var(--ease-smooth),box-shadow .35s var(--ease-smooth)}
+        .interactive-tilt::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(52,211,153,.18),transparent 42%);opacity:0;transition:opacity .35s ease}
+        .interactive-tilt:hover::after{opacity:1}
         
         /* Mountain Cards Animation */
         .mountain-card{opacity:0;transform:translateY(1.875rem);transition:opacity .6s cubic-bezier(.4,0,.2,1),transform .6s cubic-bezier(.4,0,.2,1),box-shadow .35s ease}
@@ -263,6 +283,8 @@
         @media (prefers-reduced-motion: reduce) {
             .reveal-section{opacity:1!important;transform:none!important;transition:none!important}
             .mountain-card:hover .mountain-img{transform:scale(1)!important}
+            .interactive-tilt{transform:none!important}
+            .interactive-tilt::after{display:none!important}
         }
         
         /* Responsive */
@@ -275,8 +297,7 @@
         
         @media(max-width:48rem){
             .gateway,.mountains,.info-section,.features-section,.who-we-are,.cta-banner,footer{padding:3.75rem 1.25rem}
-            header{padding:.75rem 1rem;gap:.75rem}
-            header.scrolled{padding:.5rem 1rem}
+            .logo{padding-left:0}
             .logo img{height:1.75rem}
             .logo span{font-size:1.125rem}
             .login-btn{padding:.5rem .875rem;font-size:.75rem;white-space:nowrap}
@@ -325,12 +346,15 @@
 
     <main id="main">
         <section class="hero" aria-label="Hero section">
-            <div class="hero-bg" role="img" aria-label="Batangas mountain landscape"></div>
+            <video class="hero-bg" autoplay loop muted playsinline aria-label="Batangas mountain landscape">
+                <source src="{{ asset('videos/MountBatulao.mp4') }}" type="video/mp4">
+            </video>
             <div class="hero-overlay"></div>
+            <div class="hero-particles" id="hero-particles" aria-hidden="true"></div>
             <div class="hero-mist" aria-hidden="true"></div>
             <div class="hero-content">
                 <div class="hero-badge">
-                    <span aria-hidden="true">⛰️</span>
+                    <span aria-hidden="true"><iconify-icon icon="lucide:mountain" style="vertical-align:text-bottom;"></iconify-icon></span>
                     <span>Batangas #1 Hiking Platform</span>
                 </div>
                 <h1>Discover the Beauty of <span>Batangas Mountains</span></h1>
@@ -368,7 +392,7 @@
             </div>
             
             <div class="mountain-cards" role="list">
-                <article class="mountain-card" role="listitem">
+                <article class="mountain-card" role="listitem" data-weather-lat="14.0474" data-weather-lng="120.9877">
                     <div class="mountain-img" style="background-image:url('{{ asset('images/mt-batulao.jpg') }}')" role="img" aria-label="Mount Batulao scenic view">
                         <span class="mountain-tag">Beginner Friendly</span>
                     </div>
@@ -376,8 +400,9 @@
                         <h4>Mt. Batulao</h4>
                         <p>Known for its rolling hills and stunning views of Nasugbu. Perfect for beginners with well-established trails and campsites.</p>
                         <div class="mountain-meta">
-                            <span><span aria-hidden="true">⛰️</span> 811 MASL</span>
-                            <span><span aria-hidden="true">⏱️</span> 4-5 Hours</span>
+                            <span><span aria-hidden="true"><iconify-icon icon="lucide:mountain" style="vertical-align:text-bottom;"></iconify-icon></span> 811 MASL</span>
+                            <span><span aria-hidden="true"><iconify-icon icon="lucide:timer" style="vertical-align:text-bottom;"></iconify-icon></span> 4-5 Hours</span>
+                            <span class="weather-chip"><span aria-hidden="true"><iconify-icon icon="lucide:cloud-sun" style="vertical-align:text-bottom;"></iconify-icon></span> <span data-weather-temp>--°C</span></span>
                         </div>
                         <a href="{{ $exploreTrailHref }}" class="explore-link" aria-label="Explore Mt. Batulao trail">
                             <span>Explore Trail</span>
@@ -386,7 +411,7 @@
                     </div>
                 </article>
                 
-                <article class="mountain-card" role="listitem">
+                <article class="mountain-card" role="listitem" data-weather-lat="14.1520" data-weather-lng="120.6309">
                     <div class="mountain-img" style="background-image:url('{{ asset('images/mt-pico-de-loro.jpg') }}')" role="img" aria-label="Mount Pico de Loro landscape">
                         <span class="mountain-tag">Moderate</span>
                     </div>
@@ -394,8 +419,9 @@
                         <h4>Mt. Pico de Loro</h4>
                         <p>Famous for its iconic monolith and panoramic views of the West Philippine Sea. A must-visit for every hiker.</p>
                         <div class="mountain-meta">
-                            <span><span aria-hidden="true">⛰️</span> 664 MASL</span>
-                            <span><span aria-hidden="true">⏱️</span> 5-6 Hours</span>
+                            <span><span aria-hidden="true"><iconify-icon icon="lucide:mountain" style="vertical-align:text-bottom;"></iconify-icon></span> 664 MASL</span>
+                            <span><span aria-hidden="true"><iconify-icon icon="lucide:timer" style="vertical-align:text-bottom;"></iconify-icon></span> 5-6 Hours</span>
+                            <span class="weather-chip"><span aria-hidden="true"><iconify-icon icon="lucide:cloud-sun" style="vertical-align:text-bottom;"></iconify-icon></span> <span data-weather-temp>--°C</span></span>
                         </div>
                         <a href="{{ $exploreTrailHref }}" class="explore-link" aria-label="Explore Mt. Pico de Loro trail">
                             <span>Explore Trail</span>
@@ -404,7 +430,7 @@
                     </div>
                 </article>
                 
-                <article class="mountain-card" role="listitem">
+                <article class="mountain-card" role="listitem" data-weather-lat="14.0508" data-weather-lng="120.9050">
                     <div class="mountain-img" style="background-image:url('{{ asset('images/mt-talamitam.jpg') }}')" role="img" aria-label="Mount Talamitam grasslands">
                         <span class="mountain-tag">Beginner Friendly</span>
                     </div>
@@ -412,8 +438,9 @@
                         <h4>Mt. Talamitam</h4>
                         <p>Batulao's sister mountain offering open trails, grasslands, and spectacular summit views. Great for day hikes.</p>
                         <div class="mountain-meta">
-                            <span><span aria-hidden="true">⛰️</span> 630 MASL</span>
-                            <span><span aria-hidden="true">⏱️</span> 3-4 Hours</span>
+                            <span><span aria-hidden="true"><iconify-icon icon="lucide:mountain" style="vertical-align:text-bottom;"></iconify-icon></span> 630 MASL</span>
+                            <span><span aria-hidden="true"><iconify-icon icon="lucide:timer" style="vertical-align:text-bottom;"></iconify-icon></span> 3-4 Hours</span>
+                            <span class="weather-chip"><span aria-hidden="true"><iconify-icon icon="lucide:cloud-sun" style="vertical-align:text-bottom;"></iconify-icon></span> <span data-weather-temp>--°C</span></span>
                         </div>
                         <a href="{{ $exploreTrailHref }}" class="explore-link" aria-label="Explore Mt. Talamitam trail">
                             <span>Explore Trail</span>
@@ -438,27 +465,27 @@
                     
                     <div class="partners-grid">
                         <div class="partner-item">
-                            <div class="partner-icon">🏛️</div>
+                            <div class="partner-icon"><iconify-icon icon="lucide:landmark"></iconify-icon></div>
                             <span>DENR</span>
                         </div>
                         <div class="partner-item">
-                            <div class="partner-icon">🌴</div>
+                            <div class="partner-icon"><iconify-icon icon="lucide:palmtree"></iconify-icon></div>
                             <span>Tourism Batangas</span>
                         </div>
                         <div class="partner-item">
-                            <div class="partner-icon">🥾</div>
+                            <div class="partner-icon"><iconify-icon icon="lucide:footprints"></iconify-icon></div>
                             <span>Philippine Hiking Society</span>
                         </div>
                         <div class="partner-item">
-                            <div class="partner-icon">🧭</div>
+                            <div class="partner-icon"><iconify-icon icon="lucide:compass"></iconify-icon></div>
                             <span>Trail Blazers PH</span>
                         </div>
                         <div class="partner-item">
-                            <div class="partner-icon">🛡️</div>
+                            <div class="partner-icon"><iconify-icon icon="lucide:shield-check"></iconify-icon></div>
                             <span>Mt. Safe Philippines</span>
                         </div>
                         <div class="partner-item">
-                            <div class="partner-icon">🌿</div>
+                            <div class="partner-icon"><iconify-icon icon="lucide:leaf"></iconify-icon></div>
                             <span>Eco Warriors</span>
                         </div>
                     </div>
@@ -633,9 +660,8 @@
             <nav class="footer-links" aria-label="Social links">
                 <h5>Connect</h5>
                 <ul>
-                    <li><a href="#" aria-label="Instagram">Instagram</a></li>
                     <li><a href="#" aria-label="Facebook">Facebook</a></li>
-                    <li><a href="#" aria-label="Twitter">Twitter</a></li>
+                    <li><a href="#" aria-label="Instagram">Instagram</a></li>
                 </ul>
             </nav>
         </div>
@@ -643,10 +669,8 @@
         <div class="footer-bottom">
             <span>&copy; {{ date('Y') }} HikeConnect. All rights reserved.</span>
             <div class="social-links" aria-label="Social media">
-                <a href="#" aria-label="Facebook"><span aria-hidden="true">f</span></a>
-                <a href="#" aria-label="Twitter"><span aria-hidden="true">t</span></a>
-                <a href="#" aria-label="LinkedIn"><span aria-hidden="true">in</span></a>
-                <a href="#" aria-label="Instagram"><span aria-hidden="true">ig</span></a>
+                <a href="#" aria-label="Facebook"><iconify-icon icon="lucide:facebook"></iconify-icon></a>
+                <a href="#" aria-label="Instagram"><iconify-icon icon="lucide:instagram"></iconify-icon></a>
             </div>
         </div>
     </footer>
@@ -661,6 +685,7 @@
             // Header + scroll progress (throttled)
             const header = document.getElementById('header');
             const scrollProgress = document.getElementById('scroll-progress');
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             let ticking = false;
             
             function applyScrollUI() {
@@ -682,6 +707,78 @@
                 }
             }, { passive: true });
             applyScrollUI();
+
+            // Hero particles + depth parallax for premium landing feel
+            const hero = document.querySelector('.hero');
+            const heroBg = document.querySelector('.hero-bg');
+            const heroContent = document.querySelector('.hero-content');
+            const particleField = document.getElementById('hero-particles');
+            const finePointer = window.matchMedia('(pointer:fine)').matches;
+
+            if (!prefersReducedMotion && particleField) {
+                const particleCount = window.innerWidth < 768 ? 14 : 28;
+                const fragment = document.createDocumentFragment();
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('span');
+                    const size = (Math.random() * 5 + 2).toFixed(1);
+                    const left = (Math.random() * 100).toFixed(2);
+                    const drift = (Math.random() * 70 - 35).toFixed(1);
+                    const delay = (Math.random() * 12).toFixed(2);
+                    const duration = (Math.random() * 10 + 12).toFixed(2);
+                    particle.className = 'hero-particle';
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.left = `${left}%`;
+                    particle.style.setProperty('--drift', `${drift}px`);
+                    particle.style.setProperty('--delay', `${delay}s`);
+                    particle.style.setProperty('--duration', `${duration}s`);
+                    fragment.appendChild(particle);
+                }
+                particleField.appendChild(fragment);
+            }
+
+            if (!prefersReducedMotion && finePointer && hero && heroBg && heroContent) {
+                let heroRAF = null;
+                const pointer = { x: 0, y: 0 };
+                const target = { x: 0, y: 0 };
+
+                function animateHeroDepth() {
+                    pointer.x += (target.x - pointer.x) * 0.12;
+                    pointer.y += (target.y - pointer.y) * 0.12;
+                    heroContent.style.transform = `translate3d(${pointer.x * 10}px,${pointer.y * 8}px,0)`;
+                    heroBg.style.setProperty('--bg-parallax-x', `${(pointer.x * -14).toFixed(2)}px`);
+                    heroBg.style.setProperty('--bg-parallax-y', `${(pointer.y * -10).toFixed(2)}px`);
+                    heroRAF = requestAnimationFrame(animateHeroDepth);
+                }
+
+                hero.addEventListener('pointermove', (event) => {
+                    const rect = hero.getBoundingClientRect();
+                    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                    const y = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+                    target.x = Math.max(-1, Math.min(1, x));
+                    target.y = Math.max(-1, Math.min(1, y));
+                    if (!heroRAF) {
+                        heroRAF = requestAnimationFrame(animateHeroDepth);
+                    }
+                });
+
+                hero.addEventListener('pointerleave', () => {
+                    target.x = 0;
+                    target.y = 0;
+                    if (!heroRAF) {
+                        heroRAF = requestAnimationFrame(animateHeroDepth);
+                    }
+                    setTimeout(() => {
+                        if (Math.abs(pointer.x) < 0.01 && Math.abs(pointer.y) < 0.01 && heroRAF) {
+                            cancelAnimationFrame(heroRAF);
+                            heroRAF = null;
+                            heroContent.style.transform = '';
+                            heroBg.style.removeProperty('--bg-parallax-x');
+                            heroBg.style.removeProperty('--bg-parallax-y');
+                        }
+                    }, 520);
+                });
+            }
             
             // Smooth scroll for anchor links
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -692,6 +789,28 @@
                         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
+            });
+
+            // Open-Meteo temperatures for landing mountain cards (same behavior as dashboard chips)
+            const mountainWeatherCards = document.querySelectorAll('.mountain-card[data-weather-lat][data-weather-lng]');
+            mountainWeatherCards.forEach((card) => {
+                const lat = card.getAttribute('data-weather-lat');
+                const lng = card.getAttribute('data-weather-lng');
+                const tempEl = card.querySelector('[data-weather-temp]');
+                if (!lat || !lng || !tempEl) return;
+                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lng)}&current_weather=true`;
+                fetch(weatherUrl)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data && data.current_weather && typeof data.current_weather.temperature === 'number') {
+                            tempEl.textContent = `${Math.round(data.current_weather.temperature)}°C`;
+                        } else {
+                            tempEl.textContent = '--°C';
+                        }
+                    })
+                    .catch(() => {
+                        tempEl.textContent = '--°C';
+                    });
             });
             
             // Intersection Observer for reveal animations
@@ -712,6 +831,30 @@
             // Observe elements for reveal
             document.querySelectorAll('.reveal-section, .mountain-card, .faq-item, .partner-item, .feature-card, .who-mission')
                 .forEach(el => revealObserver.observe(el));
+
+            // Card tilt interactions for mountain + feature cards
+            if (!prefersReducedMotion && finePointer) {
+                document.querySelectorAll('.mountain-card, .feature-card').forEach((card) => {
+                    card.classList.add('interactive-tilt');
+                    card.addEventListener('pointermove', (event) => {
+                        const rect = card.getBoundingClientRect();
+                        const x = event.clientX - rect.left;
+                        const y = event.clientY - rect.top;
+                        const rx = ((y / rect.height) - 0.5) * -10;
+                        const ry = ((x / rect.width) - 0.5) * 12;
+                        card.style.setProperty('--rx', `${rx.toFixed(2)}deg`);
+                        card.style.setProperty('--ry', `${ry.toFixed(2)}deg`);
+                        card.style.setProperty('--mx', `${(x / rect.width * 100).toFixed(2)}%`);
+                        card.style.setProperty('--my', `${(y / rect.height * 100).toFixed(2)}%`);
+                    });
+                    card.addEventListener('pointerleave', () => {
+                        card.style.removeProperty('--rx');
+                        card.style.removeProperty('--ry');
+                        card.style.removeProperty('--mx');
+                        card.style.removeProperty('--my');
+                    });
+                });
+            }
             
             // FAQ accordion functionality
             document.querySelectorAll('.faq-item').forEach(item => {
