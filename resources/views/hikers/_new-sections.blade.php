@@ -25,6 +25,145 @@
         </div>
     </div>
 
+    <section class="card ns-detail-spotlight" id="detail-spotlight" hidden>
+        <div class="ns-detail-spotlight-head">
+            <div class="ns-detail-spotlight-copy">
+                <span class="ns-detail-kicker">Trail spotlight</span>
+                <h3 id="detail-spotlight-title">Batulao trail guide</h3>
+                <p id="detail-spotlight-subtitle">A richer trail view for Batulao lives here first, with weather, route cues, and hiker feedback in one place.</p>
+                <div class="ns-detail-inline-meta">
+                    <span><iconify-icon icon="lucide:star" style="vertical-align:text-bottom; margin-right:4px; color:#f59e0b;"></iconify-icon><strong id="detail-meta-rating">--</strong></span>
+                    <span><iconify-icon icon="lucide:map-pin" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon><span id="detail-meta-region">Batangas</span></span>
+                </div>
+            </div>
+            <div class="ns-detail-tabs" role="tablist" aria-label="Mountain spotlight sections">
+                <button type="button" class="ns-detail-tab active" data-detail-tab="overview" role="tab" aria-selected="true">Overview</button>
+                <button type="button" class="ns-detail-tab" data-detail-tab="conditions" role="tab" aria-selected="false">Conditions</button>
+            </div>
+        </div>
+
+        <div class="ns-detail-panel active" data-detail-panel="overview">
+            <div class="ns-spotlight-overview">
+                <div class="ns-spotlight-media">
+                    <figure class="ns-media-card ns-media-card--primary">
+                        <img id="detail-gallery-primary" src="{{ $d ? asset($d->image_path) : asset('images/mt-batulao.jpg') }}" alt="Primary mountain view">
+                        <figcaption>
+                            <strong id="detail-gallery-primary-label">Open trail approach</strong>
+                            <span id="detail-gallery-primary-accent">Trail view</span>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="ns-media-card ns-media-card--secondary">
+                        <img id="detail-gallery-secondary" src="{{ asset('images/mt-batulao-2.jpg') }}" alt="Secondary mountain view">
+                        <figcaption>
+                            <strong id="detail-gallery-secondary-label">Summit ridges</strong>
+                            <span id="detail-gallery-secondary-accent">Scenic section</span>
+                        </figcaption>
+                    </figure>
+
+                    <div class="ns-route-preview">
+                        <div class="ns-route-preview-head">
+                            <span class="ns-route-preview-kicker">Trail line</span>
+                            <strong>Batulao path preview</strong>
+                        </div>
+                        <div class="ns-route-map-art" aria-hidden="true">
+                            <svg id="detail-route-preview-svg" viewBox="0 0 260 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path class="ns-route-preview-outline" id="detail-route-preview-outline" d="" />
+                                <path class="ns-route-preview-line" id="detail-route-preview-line" d="" />
+                                <circle class="ns-route-preview-node ns-route-preview-node--start" id="detail-route-preview-start" cx="24" cy="136" r="8" />
+                                <circle class="ns-route-preview-node ns-route-preview-node--mid" id="detail-route-preview-mid" cx="130" cy="74" r="8" />
+                                <circle class="ns-route-preview-node ns-route-preview-node--end" id="detail-route-preview-end" cx="236" cy="24" r="8" />
+                            </svg>
+                        </div>
+                        <div class="ns-route-markers" id="detail-route-markers">
+                            <div class="ns-route-marker">
+                                <strong>Jump-off</strong>
+                                <span>0.0 km</span>
+                            </div>
+                            <div class="ns-route-marker">
+                                <strong>Camp 9</strong>
+                                <span>3.7 km</span>
+                            </div>
+                            <div class="ns-route-marker">
+                                <strong>Summit</strong>
+                                <span>5.0 km</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ns-spotlight-side">
+                    <div class="ns-spotlight-metrics">
+                        <div class="ns-spotlight-metric">
+                            <span>Length</span>
+                            <strong id="detail-spotlight-distance">-- km</strong>
+                        </div>
+                        <div class="ns-spotlight-metric">
+                            <span>Elevation gain</span>
+                            <strong id="detail-spotlight-elevation">-- m</strong>
+                        </div>
+                        <div class="ns-spotlight-metric">
+                            <span>Route</span>
+                            <strong id="detail-spotlight-route">--</strong>
+                        </div>
+                    </div>
+
+                    <div class="ns-spotlight-story">
+                        <p id="detail-spotlight-story">This area becomes a richer mountain summary for selected trails. Batulao will be the first version.</p>
+                        <div class="ns-highlight-list" id="detail-highlight-list"></div>
+                    </div>
+
+                    <div class="ns-top-sights">
+                        <div class="ns-top-sights-head">
+                            <h4>Top sights</h4>
+                        </div>
+                        <div class="ns-top-sights-list" id="detail-top-sights"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ns-detail-panel" data-detail-panel="conditions" hidden>
+            <div class="ns-conditions-layout">
+                <div class="ns-forecast-card">
+                    <div class="ns-panel-head">
+                        <h4>Weather</h4>
+                        <span id="detail-weather-updated">Weekly outlook</span>
+                    </div>
+                    <div class="ns-forecast-list" id="detail-forecast-list">
+                        <div class="ns-forecast-row">
+                            <strong>Loading</strong>
+                            <div class="ns-forecast-range"><i style="left:0%;width:35%;"></i></div>
+                            <span>--° / --°</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ns-condition-card">
+                    <div class="ns-panel-head">
+                        <h4>Trail conditions</h4>
+                        <span id="detail-condition-badge">Batulao focus</span>
+                    </div>
+
+                    <div class="ns-condition-hero">
+                        <div class="ns-condition-score">
+                            <strong id="detail-condition-temp">--°</strong>
+                            <span>Current temp</span>
+                        </div>
+                        <div class="ns-condition-legend">
+                            <span id="detail-condition-crowd">Crowd: --</span>
+                            <span id="detail-condition-shade">Shade: --</span>
+                            <span id="detail-condition-surface">Surface: --</span>
+                        </div>
+                    </div>
+
+                    <p id="detail-condition-summary">Live trail guidance will appear here for mountains that have spotlight data.</p>
+                    <div class="ns-condition-tips" id="detail-condition-tips"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <div class="ns-detail-layout">
         <div class="ns-detail-main">
             {{-- About --}}
@@ -63,12 +202,17 @@
                 <div class="ns-jumpoff">
                     <div class="ns-jumpoff-map">
                         <div id="detail-jumpoff-gmap" style="width:100%;height:100%;min-height:220px;border-radius:12px;"></div>
+                        <div class="ns-trail-map-badge" id="detail-trail-badge" hidden>Mount Batulao Trail</div>
                         <div class="ns-jumpoff-map-info">
                             <strong id="detail-jumpoff-name">{{ $d?->jumpoff_name ?? '—' }}</strong>
                             <span id="detail-jumpoff-address" style="font-size:12px;color:var(--muted);">{{ $d?->jumpoff_address ?? '' }}</span>
                         </div>
                     </div>
                     <div class="ns-jumpoff-info">
+                        <div class="ns-jumpoff-row">
+                            <strong>Trail Data</strong>
+                            <span id="detail-trail-source">Trail data preview coming soon.</span>
+                        </div>
                         <div class="ns-jumpoff-row">
                             <strong>Meeting Time</strong>
                             <span id="detail-meeting-time">{{ $d?->jumpoff_meeting_time ?? '—' }}</span>
@@ -77,6 +221,13 @@
                             <strong>Guide Notes</strong>
                             <span id="detail-jumpoff-notes">{{ $d?->jumpoff_notes ?? '' }}</span>
                         </div>
+                        <button type="button" class="ns-sim-cta" id="detail-trail-simulation-btn" onclick="openTrailSimulation()" hidden>
+                            <iconify-icon icon="lucide:orbit"></iconify-icon>
+                            <span>
+                                <strong>Open 3D trail simulation</strong>
+                                <small>Fly through the saved trail line</small>
+                            </span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -113,6 +264,47 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 Book This Mountain
             </button>
+        </div>
+    </div>
+
+    <div class="ns-trail-sim-overlay" id="detail-trail-simulation-overlay" hidden aria-hidden="true">
+        <div class="ns-trail-sim-backdrop" onclick="closeTrailSimulation()"></div>
+        <div class="ns-trail-sim-shell" role="dialog" aria-modal="true" aria-labelledby="detail-trail-simulation-title">
+            <button type="button" class="ns-trail-sim-close" onclick="closeTrailSimulation()" aria-label="Close trail simulation">
+                <iconify-icon icon="lucide:x"></iconify-icon>
+            </button>
+            <div class="ns-trail-sim-topbar">
+                <div class="ns-trail-sim-copy">
+                    <span class="ns-trail-sim-kicker">3D trail simulation</span>
+                    <h3 id="detail-trail-simulation-title">{{ $d?->name ?? 'Mountain' }} flyover</h3>
+                </div>
+                <button type="button" class="ns-trail-sim-replay" onclick="replayTrailSimulation()">
+                    <iconify-icon icon="lucide:rotate-ccw"></iconify-icon>
+                    Replay flyover
+                </button>
+            </div>
+            <div class="ns-trail-sim-map-shell">
+                <div id="detail-trail-simulation-map" class="ns-trail-sim-map" aria-live="polite"></div>
+                <div class="ns-trail-sim-status" id="detail-trail-simulation-status">Preparing 3D trail view...</div>
+                <div class="ns-trail-sim-hud">
+                    <div class="ns-trail-sim-pill">
+                        <span>Trail source</span>
+                        <strong id="detail-trail-simulation-source">Saved trail line</strong>
+                    </div>
+                    <div class="ns-trail-sim-pill">
+                        <span>Jump-off</span>
+                        <strong id="detail-trail-simulation-jumpoff">{{ $d?->jumpoff_name ?? '—' }}</strong>
+                    </div>
+                    <div class="ns-trail-sim-pill">
+                        <span>Summit</span>
+                        <strong id="detail-trail-simulation-summit">{{ $d?->name ?? 'Mountain' }} summit</strong>
+                    </div>
+                    <div class="ns-trail-sim-pill">
+                        <span>Distance</span>
+                        <strong id="detail-trail-simulation-distance">-- km</strong>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -309,10 +501,10 @@
                 @if($booking->ui_tab === 'upcoming' && in_array($booking->status, ['pending', 'approved'], true))
                 <button type="button" class="ns-cancel-btn" onclick="cancelBooking(this)">Cancel</button>
                 @endif
-                @if($booking->status === 'completed')
-                <button type="button" class="ns-feedback-btn" onclick="showView('#reviews')">Leave Feedback</button>
-                @endif
             </div>
+            @if($booking->status === 'completed')
+                @include('hikers._completed-hike-feedback', ['booking' => $booking])
+            @endif
         </div>
         @empty
         <p style="padding:16px;color:var(--muted);">No bookings yet. Create one from Book a Hike.</p>
@@ -472,16 +664,7 @@
                     <span><iconify-icon icon="lucide:clock" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon> Duration: {{ $booking->duration_hours ?? '—' }} hours</span>
                     <span><iconify-icon icon="lucide:mountain" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon> {{ $booking->mountain->elevation_label }}</span>
                 </div>
-                @if($booking->rating)
-                <div class="ns-history-rating">
-                    <span class="stars">
-                        @for($i = 1; $i <= 5; $i++)
-                        <iconify-icon icon="lucide:star" style="vertical-align:text-bottom; color:{{ $i <= $booking->rating ? '#f59e0b' : '#cbd5e1' }};"></iconify-icon>
-                        @endfor
-                    </span>
-                    @if($booking->review_text)<span style="color:var(--muted);font-size:12px;margin-left:6px;">"{{ $booking->review_text }}"</span>@endif
-                </div>
-                @endif
+                @include('hikers._completed-hike-feedback', ['booking' => $booking])
             </div>
         </div>
         @empty

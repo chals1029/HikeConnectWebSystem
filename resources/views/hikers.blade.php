@@ -84,10 +84,6 @@
                     <span class="menu-text">Community Groups</span>
                     @if($communityPostTotal > 0)<span class="menu-badge">{{ $communityPostTotal }}</span>@endif
                 </a>
-                <a href="#reviews" class="menu-item">
-                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                    <span class="menu-text">Reviews & Feedback</span>
-                </a>
                 <a href="#settings" class="menu-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     <span class="menu-text">Account Settings</span>
@@ -440,80 +436,6 @@
                 </div>
             </div>
 
-            <div class="view-section" id="view-reviews">
-                <section>
-                    <article class="card">
-                        <h3>Mountain Reviews</h3>
-                        <div class="reviews">
-                            @forelse($mountainReviews as $rev)
-                            <div class="review">
-                                <div class="review-head">
-                                    <strong>{{ $rev->reviewer_name }}</strong>
-                                    <span class="stars">
-                                        @for($i = 1; $i <= 5; $i++)
-                                        <iconify-icon icon="lucide:star" style="vertical-align:text-bottom; color:{{ $i <= $rev->rating ? '#f59e0b' : '#cbd5e1' }};"></iconify-icon>
-                                        @endfor
-                                    </span>
-                                </div>
-                                <p>{{ $rev->body }}</p>
-                                @if($rev->mountain)<p style="font-size:12px;color:var(--muted);margin-top:6px;">{{ $rev->mountain->name }}</p>@endif
-                            </div>
-                            @empty
-                            <p style="color:var(--muted);">No reviews yet. Be the first to leave feedback below.</p>
-                            @endforelse
-                        </div>
-                    </article>
-
-                    {{-- Feedback Form --}}
-                    <div class="ns-feedback-form">
-                        <h3>📝 Leave Your Feedback</h3>
-                        <form id="feedback-form" onsubmit="submitFeedback(event)">
-                            
-                            <div class="ns-feedback-card" id="feedback-step-1">
-                                <div class="ns-step-progress"><span class="step-active"></span><span></span></div>
-                                <div class="ns-form-group" style="margin-bottom: 20px;">
-                                    <label class="ns-rating-label" style="font-size: 14px; color: #64748b; font-weight: 500; margin-bottom: 8px;">Who and what are you reviewing?</label>
-                                    <select class="ns-form-select" id="feedback-mountain" required style="width: 100%; max-width: 400px; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #1e293b;">
-                                        <option value="" disabled selected>Choose a mountain to review...</option>
-                                        @foreach($mountains as $m)
-                                        <option value="{{ $m->slug }}">{{ $m->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="ns-rating-group" style="margin-bottom:0;">
-                                    <span class="ns-rating-label">Rate your experience with our product...</span>
-                                    <div class="ns-star-rating" id="rating-experience">
-                                        <button type="button" class="ns-num-btn" data-value="1" onclick="setRating('experience',1)">1</button>
-                                        <button type="button" class="ns-num-btn" data-value="2" onclick="setRating('experience',2)">2</button>
-                                        <button type="button" class="ns-num-btn" data-value="3" onclick="setRating('experience',3)">3</button>
-                                        <button type="button" class="ns-num-btn" data-value="4" onclick="setRating('experience',4)">4</button>
-                                        <button type="button" class="ns-num-btn active" data-value="5" onclick="setRating('experience',5)">5</button>
-                                        <div class="ns-num-label"><span style="color:#10b981;"><iconify-icon icon="lucide:star" style="vertical-align:text-bottom; color:#f59e0b;"></iconify-icon></span> Stars</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="ns-feedback-card" id="feedback-step-2">
-                                <div class="ns-step-progress"><span></span><span class="step-active"></span></div>
-                                <div class="ns-form-group" style="margin-bottom:16px;">
-                                    <label class="ns-rating-label">Anything that can be improved?</label>
-                                    <textarea class="ns-form-textarea" id="feedback-body" rows="3" placeholder="Your feedback (Optional)"></textarea>
-                                </div>
-                                <button type="submit" class="ns-feedback-submit" id="feedback-submit-btn">
-                                    Submit
-                                </button>
-                            </div>
-                            
-                            <div class="ns-feedback-card" id="feedback-step-3" style="display:none; align-items:center; gap:10px;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="#10b981"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> 
-                                <span style="font-weight:500; font-size:15px; color:#1e293b;">Thanks for the feedback!</span>
-                            </div>
-
-                        </form>
-                    </div>
-                </section>
-            </div>
-
             @php
                 $maskEmail = $user->email;
                 if (str_contains($maskEmail, '@')) {
@@ -635,6 +557,7 @@
             'routes' => [
                 'storeBooking' => url('/hikers/bookings'),
                 'storeReview' => url('/hikers/reviews'),
+                'storeGuideReview' => url('/hikers/guide-reviews'),
                 'storeCommunityPost' => url('/hikers/community-posts'),
                 'cancelBookingPrefix' => url('/hikers/bookings'),
                 'updateProfilePicture' => url('/hikers/profile/picture'),
@@ -655,11 +578,657 @@
 
         const mountainData = @json($mountainData);
         const guideData = @json($guideData);
+        const hasGoogleMapsKey = @json(filled(config('services.google_maps.key')));
 
-        let currentMountain = null;
-        const ratings = { mountain: 0, guide: 0, experience: 5 };
+        let currentMountain = @json($trailMountain?->slug);
+        let googleMapsReadyResolve = null;
+        const googleMapsReadyPromise = hasGoogleMapsKey
+            ? new Promise((resolve) => {
+                googleMapsReadyResolve = resolve;
+            })
+            : Promise.resolve(false);
+        const trailSimulationState = {
+            map: null,
+            mountainId: null,
+            animationBound: false,
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatDayLabel(dateString, index) {
+            if (!dateString) return index === 0 ? 'Today' : 'Day ' + (index + 1);
+            if (index === 0) return 'Today';
+            if (index === 1) return 'Tomorrow';
+            const date = new Date(dateString + 'T00:00:00');
+            return date.toLocaleDateString(undefined, { weekday: 'long' });
+        }
+
+        function renderTrailPreview(trailMap, mountain, experience = null) {
+            const pathEl = document.getElementById('detail-route-preview-line');
+            const outlineEl = document.getElementById('detail-route-preview-outline');
+            const startEl = document.getElementById('detail-route-preview-start');
+            const midEl = document.getElementById('detail-route-preview-mid');
+            const endEl = document.getElementById('detail-route-preview-end');
+            if (!pathEl || !outlineEl || !startEl || !midEl || !endEl) return;
+
+            const jumpOffPoint = mountain && mountain.jumpoff
+                ? { lat: Number(mountain.jumpoff.lat), lng: Number(mountain.jumpoff.lng) }
+                : null;
+            const summitPoint = mountain && mountain.summit
+                ? { lat: Number(mountain.summit.lat), lng: Number(mountain.summit.lng) }
+                : null;
+            const routeEndPoint = experience && experience.routeEnd
+                ? { lat: Number(experience.routeEnd.lat), lng: Number(experience.routeEnd.lng) }
+                : null;
+            const routeEndIsDistinct = Number.isFinite(routeEndPoint?.lat)
+                && Number.isFinite(routeEndPoint?.lng)
+                && Number.isFinite(summitPoint?.lat)
+                && Number.isFinite(summitPoint?.lng)
+                && (Math.abs(routeEndPoint.lat - summitPoint.lat) + Math.abs(routeEndPoint.lng - summitPoint.lng) > 0.0005);
+            const rawPath = trailMap && Array.isArray(trailMap.path) ? trailMap.path : [];
+            let points = rawPath
+                .map((point) => ({
+                    lat: Number(point.lat),
+                    lng: Number(point.lng),
+                }))
+                .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+
+            if (routeEndIsDistinct && points.length > 1) {
+                let summitIndex = 0;
+                let summitDistance = Infinity;
+                points.forEach((point, index) => {
+                    const score = Math.abs(point.lat - summitPoint.lat) + Math.abs(point.lng - summitPoint.lng);
+                    if (score < summitDistance) {
+                        summitDistance = score;
+                        summitIndex = index;
+                    }
+                });
+                points = points.slice(0, summitIndex + 1);
+            }
+
+            if (points.length < 2) {
+                pathEl.setAttribute('d', '');
+                outlineEl.setAttribute('d', '');
+                return;
+            }
+
+            const width = 260;
+            const height = 160;
+            const padding = 16;
+            const effectiveJumpOffPoint = jumpOffPoint ?? points[0];
+            const effectiveSummitPoint = summitPoint ?? points[points.length - 1];
+            const effectiveRouteEndPoint = routeEndIsDistinct ? effectiveSummitPoint : (routeEndPoint ?? points[points.length - 1]);
+            const framePoints = [...points, effectiveJumpOffPoint, effectiveSummitPoint, effectiveRouteEndPoint].filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+            const minLat = Math.min(...framePoints.map((point) => point.lat));
+            const maxLat = Math.max(...framePoints.map((point) => point.lat));
+            const minLng = Math.min(...framePoints.map((point) => point.lng));
+            const maxLng = Math.max(...framePoints.map((point) => point.lng));
+            const lngSpan = Math.max(0.0001, maxLng - minLng);
+            const latSpan = Math.max(0.0001, maxLat - minLat);
+            const usableWidth = width - padding * 2;
+            const usableHeight = height - padding * 2;
+
+            const projectPoint = (point) => {
+                const x = padding + ((point.lng - minLng) / lngSpan) * usableWidth;
+                const y = padding + ((maxLat - point.lat) / latSpan) * usableHeight;
+                return { x, y };
+            };
+            const projected = points.map(projectPoint);
+
+            const d = projected.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
+            const summitIsDistinct = Number.isFinite(effectiveSummitPoint.lat)
+                && Number.isFinite(effectiveSummitPoint.lng)
+                && (Math.abs(effectiveSummitPoint.lat - effectiveJumpOffPoint.lat) + Math.abs(effectiveSummitPoint.lng - effectiveJumpOffPoint.lng) > 0.0005)
+                && (Math.abs(effectiveSummitPoint.lat - effectiveRouteEndPoint.lat) + Math.abs(effectiveSummitPoint.lng - effectiveRouteEndPoint.lng) > 0.0005);
+            const midPoint = summitIsDistinct
+                ? projectPoint(effectiveSummitPoint)
+                : projected[Math.floor(projected.length / 2)];
+            const startPoint = projectPoint(effectiveJumpOffPoint);
+            const endPoint = projectPoint(effectiveRouteEndPoint);
+
+            pathEl.setAttribute('d', d);
+            outlineEl.setAttribute('d', d);
+
+            startEl.setAttribute('cx', startPoint.x.toFixed(1));
+            startEl.setAttribute('cy', startPoint.y.toFixed(1));
+            midEl.setAttribute('cx', midPoint.x.toFixed(1));
+            midEl.setAttribute('cy', midPoint.y.toFixed(1));
+            endEl.setAttribute('cx', endPoint.x.toFixed(1));
+            endEl.setAttribute('cy', endPoint.y.toFixed(1));
+            midEl.style.fill = routeEndIsDistinct ? '#dc2626' : '';
+            endEl.style.display = routeEndIsDistinct ? 'none' : '';
+        }
+
+        function toFinitePoint(point) {
+            if (!point) return null;
+            const lat = Number(point.lat);
+            const lng = Number(point.lng);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+            return { lat, lng };
+        }
+
+        function haversineDistanceMeters(a, b) {
+            if (!a || !b) return 0;
+            const toRadians = (value) => value * (Math.PI / 180);
+            const earthRadius = 6371000;
+            const dLat = toRadians(b.lat - a.lat);
+            const dLng = toRadians(b.lng - a.lng);
+            const lat1 = toRadians(a.lat);
+            const lat2 = toRadians(b.lat);
+            const sinLat = Math.sin(dLat / 2);
+            const sinLng = Math.sin(dLng / 2);
+            const root = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng;
+            return 2 * earthRadius * Math.asin(Math.min(1, Math.sqrt(root)));
+        }
+
+        function computeTrailDistanceKm(points) {
+            return points.reduce((total, point, index) => {
+                if (index === 0) return total;
+                return total + haversineDistanceMeters(points[index - 1], point);
+            }, 0) / 1000;
+        }
+
+        function computeHeadingDegrees(from, to) {
+            if (!from || !to) return 0;
+            const toRadians = (value) => value * (Math.PI / 180);
+            const toDegrees = (value) => value * (180 / Math.PI);
+            const lat1 = toRadians(from.lat);
+            const lat2 = toRadians(to.lat);
+            const deltaLng = toRadians(to.lng - from.lng);
+            const y = Math.sin(deltaLng) * Math.cos(lat2);
+            const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLng);
+            return (toDegrees(Math.atan2(y, x)) + 360) % 360;
+        }
+
+        function getVisibleTrailPath(mountain, experience = null) {
+            const summitPoint = toFinitePoint(mountain && mountain.summit);
+            const routeEndPoint = experience && experience.routeEnd ? toFinitePoint(experience.routeEnd) : summitPoint;
+            const routeEndIsDistinct = summitPoint
+                && routeEndPoint
+                && (Math.abs(routeEndPoint.lat - summitPoint.lat) + Math.abs(routeEndPoint.lng - summitPoint.lng) > 0.0005);
+            const rawPath = experience && experience.trailMap && Array.isArray(experience.trailMap.path)
+                ? experience.trailMap.path
+                : [];
+            let points = rawPath.map(toFinitePoint).filter(Boolean);
+
+            if (routeEndIsDistinct && points.length > 1) {
+                let summitIndex = 0;
+                let summitDistance = Infinity;
+                points.forEach((point, index) => {
+                    const score = Math.abs(point.lat - summitPoint.lat) + Math.abs(point.lng - summitPoint.lng);
+                    if (score < summitDistance) {
+                        summitDistance = score;
+                        summitIndex = index;
+                    }
+                });
+                points = points.slice(0, summitIndex + 1);
+            }
+
+            return points;
+        }
+
+        function getSimulationTrailPath(mountain, experience = null) {
+            const jumpOff = toFinitePoint(mountain && mountain.jumpoff);
+            const summit = toFinitePoint(mountain && mountain.summit);
+            const points = getVisibleTrailPath(mountain, experience).slice();
+
+            if (jumpOff && (!points.length || haversineDistanceMeters(jumpOff, points[0]) > 90)) {
+                points.unshift(jumpOff);
+            }
+
+            if (summit && (!points.length || haversineDistanceMeters(points[points.length - 1], summit) > 90)) {
+                points.push(summit);
+            }
+
+            return points;
+        }
+
+        function setTrailSimulationStatus(message, isError = false) {
+            const statusEl = document.getElementById('detail-trail-simulation-status');
+            if (!statusEl) return;
+            statusEl.textContent = message || '';
+            statusEl.classList.toggle('is-error', Boolean(isError));
+            statusEl.hidden = !message;
+        }
+
+        function updateTrailSimulationMeta(mountain, experience, trailPath) {
+            const titleEl = document.getElementById('detail-trail-simulation-title');
+            const sourceEl = document.getElementById('detail-trail-simulation-source');
+            const jumpOffEl = document.getElementById('detail-trail-simulation-jumpoff');
+            const summitEl = document.getElementById('detail-trail-simulation-summit');
+            const distanceEl = document.getElementById('detail-trail-simulation-distance');
+            const distanceKm = trailPath.length > 1
+                ? computeTrailDistanceKm(trailPath)
+                : Number(experience && experience.distanceKm);
+            const safeDistance = Number.isFinite(distanceKm) && distanceKm > 0 ? `${distanceKm.toFixed(1)} km` : '-- km';
+
+            if (titleEl) titleEl.textContent = `${mountain.name} flyover`;
+            if (sourceEl) sourceEl.textContent = experience && experience.trailMap && experience.trailMap.sourceLabel ? experience.trailMap.sourceLabel : 'Saved trail line';
+            if (jumpOffEl) jumpOffEl.textContent = mountain.jumpoff?.name || 'Jump-off';
+            if (summitEl) summitEl.textContent = `${mountain.name} summit`;
+            if (distanceEl) distanceEl.textContent = safeDistance;
+        }
+
+        function syncTrailSimulationLauncher(mountain) {
+            const button = document.getElementById('detail-trail-simulation-btn');
+            if (!button) return;
+            const experience = mountain && mountain.experience && mountain.experience.enabled ? mountain.experience : null;
+            const trailPath = mountain && experience ? getSimulationTrailPath(mountain, experience) : [];
+            const canOpen = hasGoogleMapsKey && trailPath.length > 1;
+            button.hidden = !canOpen;
+        }
+
+        async function ensureGoogleMapsReady(timeoutMs = 12000) {
+            if (!hasGoogleMapsKey) return false;
+            if (typeof google !== 'undefined' && google.maps && typeof google.maps.importLibrary === 'function') {
+                return true;
+            }
+
+            return Promise.race([
+                googleMapsReadyPromise.then(() => Boolean(typeof google !== 'undefined' && google.maps && typeof google.maps.importLibrary === 'function')),
+                new Promise((resolve) => setTimeout(() => resolve(false), timeoutMs)),
+            ]);
+        }
+
+        function clearTrailSimulationMap() {
+            const host = document.getElementById('detail-trail-simulation-map');
+            if (trailSimulationState.map && typeof trailSimulationState.map.stopCameraAnimation === 'function') {
+                try {
+                    trailSimulationState.map.stopCameraAnimation();
+                } catch (error) {
+                    console.warn('Could not stop 3D trail animation.', error);
+                }
+            }
+
+            trailSimulationState.map = null;
+            trailSimulationState.mountainId = null;
+            trailSimulationState.animationBound = false;
+
+            if (host) {
+                host.replaceChildren();
+            }
+        }
+
+        function getTrailSimulationCamera(trailPath, jumpOff, summit) {
+            const framePoints = [...trailPath, jumpOff, summit].filter(Boolean);
+            const latitudes = framePoints.map((point) => point.lat);
+            const longitudes = framePoints.map((point) => point.lng);
+            const minLat = Math.min(...latitudes);
+            const maxLat = Math.max(...latitudes);
+            const minLng = Math.min(...longitudes);
+            const maxLng = Math.max(...longitudes);
+            const center = {
+                lat: (minLat + maxLat) / 2,
+                lng: (minLng + maxLng) / 2,
+            };
+            const northSouth = haversineDistanceMeters({ lat: minLat, lng: center.lng }, { lat: maxLat, lng: center.lng });
+            const eastWest = haversineDistanceMeters({ lat: center.lat, lng: minLng }, { lat: center.lat, lng: maxLng });
+            const spanMeters = Math.max(northSouth, eastWest, 500);
+            const heading = computeHeadingDegrees(jumpOff || trailPath[0], summit || trailPath[trailPath.length - 1]);
+            const focusCenter = summit
+                ? {
+                    lat: center.lat + ((summit.lat - center.lat) * 0.32),
+                    lng: center.lng + ((summit.lng - center.lng) * 0.32),
+                }
+                : center;
+
+            return {
+                center,
+                focusCenter,
+                heading,
+                overviewRange: Math.max(2600, Math.min(12000, spanMeters * 3.15)),
+                flyRange: Math.max(1800, Math.min(8500, spanMeters * 2.15)),
+                orbitRange: Math.max(1500, Math.min(7200, spanMeters * 1.9)),
+            };
+        }
+
+        async function buildTrailSimulation(mountain) {
+            const overlay = document.getElementById('detail-trail-simulation-overlay');
+            const host = document.getElementById('detail-trail-simulation-map');
+            if (!overlay || !host || !mountain) return;
+
+            const experience = mountain.experience && mountain.experience.enabled ? mountain.experience : null;
+            const trailPath = experience ? getSimulationTrailPath(mountain, experience) : [];
+            if (trailPath.length < 2) {
+                setTrailSimulationStatus('This mountain does not have enough saved trail points yet for a 3D flyover.', true);
+                return;
+            }
+
+            updateTrailSimulationMeta(mountain, experience, trailPath);
+            setTrailSimulationStatus('Loading Google 3D terrain...');
+
+            const apiReady = await ensureGoogleMapsReady();
+            if (!apiReady) {
+                setTrailSimulationStatus('Google Maps 3D could not load. Check the Maps key or reload the page, then try again.', true);
+                return;
+            }
+
+            try {
+                const {
+                    Map3DElement,
+                    MapMode,
+                    AltitudeMode,
+                    Marker3DElement,
+                    Polyline3DElement,
+                } = await google.maps.importLibrary('maps3d');
+                const { PinElement } = await google.maps.importLibrary('marker');
+
+                if (!Map3DElement || !Marker3DElement || !Polyline3DElement || !PinElement) {
+                    setTrailSimulationStatus('This browser does not expose the Google 3D map elements needed for the flyover.', true);
+                    return;
+                }
+
+                clearTrailSimulationMap();
+
+                const jumpOff = toFinitePoint(mountain.jumpoff) || trailPath[0];
+                const summit = toFinitePoint(mountain.summit) || trailPath[trailPath.length - 1];
+                const camera = getTrailSimulationCamera(trailPath, jumpOff, summit);
+                const map = new Map3DElement({
+                    center: { lat: camera.center.lat, lng: camera.center.lng, altitude: 220 },
+                    range: camera.overviewRange,
+                    tilt: 58,
+                    heading: camera.heading,
+                    mode: MapMode && MapMode.SATELLITE ? MapMode.SATELLITE : 'SATELLITE',
+                    gestureHandling: 'GREEDY',
+                    defaultUIHidden: false,
+                });
+                map.style.width = '100%';
+                map.style.height = '100%';
+
+                const polyline = new Polyline3DElement({
+                    path: trailPath,
+                    strokeColor: '#4ade80',
+                    outerColor: '#dcfce7',
+                    strokeWidth: 7,
+                    outerWidth: 0.9,
+                    altitudeMode: AltitudeMode && AltitudeMode.CLAMP_TO_GROUND ? AltitudeMode.CLAMP_TO_GROUND : 'CLAMP_TO_GROUND',
+                    drawsOccludedSegments: true,
+                    geodesic: true,
+                });
+                map.append(polyline);
+
+                const jumpOffMarker = new Marker3DElement({
+                    position: jumpOff,
+                });
+                jumpOffMarker.append(new PinElement({
+                    background: '#2563eb',
+                    borderColor: '#ffffff',
+                    glyphColor: '#ffffff',
+                    scale: 1.05,
+                }));
+                map.append(jumpOffMarker);
+
+                const summitMarker = new Marker3DElement({
+                    position: summit,
+                });
+                summitMarker.append(new PinElement({
+                    background: '#dc2626',
+                    borderColor: '#ffffff',
+                    glyphColor: '#ffffff',
+                    scale: 1.1,
+                }));
+                map.append(summitMarker);
+
+                host.replaceChildren(map);
+
+                trailSimulationState.map = map;
+                trailSimulationState.mountainId = currentMountain;
+                trailSimulationState.animationBound = true;
+
+                const flyToCamera = {
+                    center: { lat: camera.focusCenter.lat, lng: camera.focusCenter.lng, altitude: 220 },
+                    range: camera.flyRange,
+                    tilt: 60,
+                    heading: camera.heading,
+                };
+                const orbitCamera = {
+                    center: { lat: camera.focusCenter.lat, lng: camera.focusCenter.lng, altitude: 180 },
+                    range: camera.orbitRange,
+                    tilt: 62,
+                    heading: (camera.heading + 18) % 360,
+                };
+
+                requestAnimationFrame(() => {
+                    setTrailSimulationStatus('Flying over the saved trail route...');
+                    map.addEventListener('gmp-animationend', () => {
+                        try {
+                            map.flyCameraAround({
+                                camera: orbitCamera,
+                                durationMillis: 9000,
+                                repeatCount: 1,
+                            });
+                            setTrailSimulationStatus('Orbiting the summit. Tap the map any time to stop the flyover.');
+                        } catch (error) {
+                            console.warn('Could not start summit orbit.', error);
+                            setTrailSimulationStatus('');
+                        }
+                    }, { once: true });
+
+                    map.addEventListener('gmp-click', () => {
+                        if (trailSimulationState.map && typeof trailSimulationState.map.stopCameraAnimation === 'function') {
+                            try {
+                                trailSimulationState.map.stopCameraAnimation();
+                            } catch (error) {
+                                console.warn('Could not stop 3D trail animation.', error);
+                            }
+                        }
+                        setTrailSimulationStatus('Flyover paused. Use Replay flyover to start again.');
+                    });
+
+                    map.flyCameraTo({
+                        endCamera: flyToCamera,
+                        durationMillis: 6500,
+                    });
+                });
+            } catch (error) {
+                console.error('Could not build trail simulation.', error);
+                setTrailSimulationStatus('The 3D flyover could not start on this browser or API setup yet.', true);
+            }
+        }
+
+        window.openTrailSimulation = async function() {
+            const mountain = currentMountain ? mountainData[currentMountain] : null;
+            if (!mountain) return;
+
+            const overlay = document.getElementById('detail-trail-simulation-overlay');
+            if (!overlay) return;
+
+            overlay.hidden = false;
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('ns-no-scroll');
+            await buildTrailSimulation(mountain);
+        };
+
+        window.replayTrailSimulation = function() {
+            const mountain = currentMountain ? mountainData[currentMountain] : null;
+            if (!mountain) return;
+            buildTrailSimulation(mountain);
+        };
+
+        window.closeTrailSimulation = function() {
+            const overlay = document.getElementById('detail-trail-simulation-overlay');
+            if (overlay) {
+                overlay.hidden = true;
+                overlay.setAttribute('aria-hidden', 'true');
+            }
+            document.body.classList.remove('ns-no-scroll');
+            clearTrailSimulationMap();
+            setTrailSimulationStatus('Preparing 3D trail view...');
+        };
+
+        window.selectDetailTab = function(tabName) {
+            document.querySelectorAll('[data-detail-tab]').forEach((button) => {
+                const active = button.getAttribute('data-detail-tab') === tabName;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+
+            document.querySelectorAll('[data-detail-panel]').forEach((panel) => {
+                const active = panel.getAttribute('data-detail-panel') === tabName;
+                panel.classList.toggle('active', active);
+                panel.hidden = !active;
+            });
+        };
+
+        function renderMountainWeather(mountain) {
+            const forecastList = document.getElementById('detail-forecast-list');
+            const tempEl = document.getElementById('detail-condition-temp');
+            const updatedEl = document.getElementById('detail-weather-updated');
+            if (!forecastList || !tempEl || !updatedEl) return;
+
+            forecastList.innerHTML = `
+                <div class="ns-forecast-row">
+                    <strong>Loading</strong>
+                    <div class="ns-forecast-range"><i style="left:0%;width:35%;"></i></div>
+                    <span>--° / --°</span>
+                </div>
+            `;
+            tempEl.textContent = '--°';
+            updatedEl.textContent = 'Weekly outlook';
+
+            const weather = mountain && mountain.weather ? mountain.weather : null;
+            if (!weather || weather.lat == null || weather.lng == null) return;
+
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(weather.lat)}&longitude=${encodeURIComponent(weather.lng)}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&forecast_days=7&timezone=auto`;
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    const current = data && data.current_weather ? data.current_weather : null;
+                    if (current && typeof current.temperature === 'number') {
+                        tempEl.textContent = `${Math.round(current.temperature)}°`;
+                    }
+
+                    const daily = data && data.daily ? data.daily : null;
+                    if (!daily || !Array.isArray(daily.time) || !Array.isArray(daily.temperature_2m_max) || !Array.isArray(daily.temperature_2m_min)) {
+                        forecastList.innerHTML = '<div class="ns-panel-empty">Forecast unavailable right now.</div>';
+                        return;
+                    }
+
+                    const highs = daily.temperature_2m_max.map((value) => Number(value));
+                    const lows = daily.temperature_2m_min.map((value) => Number(value));
+                    const globalMin = Math.min(...lows);
+                    const globalMax = Math.max(...highs);
+                    const span = Math.max(1, globalMax - globalMin);
+
+                    forecastList.innerHTML = daily.time.map((dateString, index) => {
+                        const low = lows[index];
+                        const high = highs[index];
+                        const left = ((low - globalMin) / span) * 100;
+                        const width = Math.max(10, ((high - low) / span) * 100);
+
+                        return `
+                            <div class="ns-forecast-row">
+                                <strong>${escapeHtml(formatDayLabel(dateString, index))}</strong>
+                                <div class="ns-forecast-range"><i style="left:${left}%;width:${width}%;"></i></div>
+                                <span>${Math.round(low)}° / ${Math.round(high)}°</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                    updatedEl.textContent = '7-day outlook';
+                })
+                .catch(() => {
+                    forecastList.innerHTML = '<div class="ns-panel-empty">Forecast unavailable right now.</div>';
+                    updatedEl.textContent = 'Weather feed unavailable';
+                });
+        }
+
+        function renderMountainSpotlight(mountain) {
+            const spotlightEl = document.getElementById('detail-spotlight');
+            if (!spotlightEl) return;
+
+            const experience = mountain && mountain.experience ? mountain.experience : null;
+            if (!experience || !experience.enabled) {
+                spotlightEl.hidden = true;
+                return;
+            }
+
+            spotlightEl.hidden = false;
+            document.getElementById('detail-spotlight-title').textContent = `${mountain.name} trail`;
+            document.getElementById('detail-spotlight-subtitle').textContent = experience.subtitle || mountain.description || '';
+            document.getElementById('detail-meta-rating').textContent = Number(mountain.reviews?.average ?? mountain.rating ?? 0).toFixed(1);
+            document.getElementById('detail-meta-region').textContent = experience.region || mountain.location || 'Batangas';
+
+            const gallery = Array.isArray(experience.gallery) ? experience.gallery : [];
+            const primary = gallery[0] || {};
+            const secondary = gallery[1] || primary;
+            const primaryImage = document.getElementById('detail-gallery-primary');
+            const secondaryImage = document.getElementById('detail-gallery-secondary');
+
+            if (primaryImage && primary.image) primaryImage.src = primary.image;
+            if (secondaryImage && secondary.image) secondaryImage.src = secondary.image;
+            document.getElementById('detail-gallery-primary-label').textContent = primary.label || 'Primary view';
+            document.getElementById('detail-gallery-primary-accent').textContent = primary.accent || 'Featured scene';
+            document.getElementById('detail-gallery-secondary-label').textContent = secondary.label || 'Secondary view';
+            document.getElementById('detail-gallery-secondary-accent').textContent = secondary.accent || 'Trail scene';
+
+            document.getElementById('detail-spotlight-distance').textContent = `${experience.distanceKm ?? '--'} km`;
+            document.getElementById('detail-spotlight-elevation').textContent = `${experience.elevationGainM ?? '--'} m`;
+            document.getElementById('detail-spotlight-route').textContent = experience.routeType || '--';
+            document.getElementById('detail-spotlight-story').textContent = mountain.description || experience.subtitle || '';
+
+            const highlightList = document.getElementById('detail-highlight-list');
+            highlightList.innerHTML = (experience.highlights || []).map((highlight) => `
+                <div class="ns-highlight-item">
+                    <iconify-icon icon="lucide:check-circle-2"></iconify-icon>
+                    <span>${escapeHtml(highlight)}</span>
+                </div>
+            `).join('');
+
+            const topSights = document.getElementById('detail-top-sights');
+            topSights.innerHTML = (experience.topSights || []).map((sight) => `
+                <div class="ns-top-sight">
+                    <div class="ns-top-sight-copy">
+                        <strong>${escapeHtml(sight.name)}</strong>
+                        <span>${escapeHtml(sight.type)}</span>
+                        <p>${escapeHtml(sight.description)}</p>
+                    </div>
+                    <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+                </div>
+            `).join('');
+
+            const routeMarkers = document.getElementById('detail-route-markers');
+            routeMarkers.innerHTML = (experience.routeMarkers || []).map((marker) => `
+                <div class="ns-route-marker">
+                    <strong>${escapeHtml(marker.name)}</strong>
+                    <span>${escapeHtml(marker.detail)}</span>
+                </div>
+            `).join('');
+            renderTrailPreview(experience.trailMap || null, mountain, experience);
+
+            const conditions = experience.conditions || {};
+            document.getElementById('detail-condition-crowd').textContent = `Crowd: ${conditions.crowdLabel || '--'}`;
+            document.getElementById('detail-condition-shade').textContent = `Shade: ${conditions.shadeLabel || '--'}`;
+            document.getElementById('detail-condition-surface').textContent = `Surface: ${conditions.surfaceLabel || '--'}`;
+            document.getElementById('detail-condition-summary').textContent = conditions.summary || 'Trail notes unavailable.';
+            document.getElementById('detail-condition-badge').textContent = 'Trail guidance';
+            document.getElementById('detail-condition-tips').innerHTML = (conditions.tips || []).map((tip) => `
+                <div class="ns-condition-tip">
+                    <iconify-icon icon="lucide:leaf"></iconify-icon>
+                    <span>${escapeHtml(tip)}</span>
+                </div>
+            `).join('');
+            renderMountainWeather(mountain);
+            window.selectDetailTab('overview');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    const overlay = document.getElementById('detail-trail-simulation-overlay');
+                    if (overlay && !overlay.hidden) {
+                        closeTrailSimulation();
+                    }
+                }
+            });
+
             const wx = window.HIKER_BOOTSTRAP.weather;
             if (wx && wx.lat != null && wx.lng != null) {
                 fetch(`https://api.open-meteo.com/v1/forecast?latitude=${wx.lat}&longitude=${wx.lng}&current_weather=true`)
@@ -683,7 +1252,6 @@
                 'hiking-history': document.getElementById('view-hiking-history'),
                 'trail-plan': document.getElementById('view-trail-plan'),
                 'community-chat': document.getElementById('view-community-chat'),
-                'reviews': document.getElementById('view-reviews'),
                 'settings': document.getElementById('view-settings'),
                 'safety-alerts': document.getElementById('view-settings')
             };
@@ -717,6 +1285,14 @@
                         }
                     }, 150);
                 }
+                if (rawId === 'mountain-detail' && typeof google !== 'undefined' && google.maps && window.mountainDetailMap) {
+                    setTimeout(function() {
+                        google.maps.event.trigger(window.mountainDetailMap, 'resize');
+                        if (window.mountainDetailBounds) {
+                            window.mountainDetailMap.fitBounds(window.mountainDetailBounds, { top: 30, bottom: 30, left: 30, right: 30 });
+                        }
+                    }, 150);
+                }
             };
 
             menuLinks.forEach(link => {
@@ -729,8 +1305,14 @@
                 });
             });
 
+            document.querySelectorAll('[data-detail-tab]').forEach((button) => {
+                button.addEventListener('click', () => window.selectDetailTab(button.getAttribute('data-detail-tab')));
+            });
+
             const initialHash = (window.location.hash || '').replace(/^#/, '');
-            if (initialHash && sections[initialHash]) {
+            if (initialHash === 'mountain-detail' && currentMountain && mountainData[currentMountain]) {
+                openMountainDetail(currentMountain);
+            } else if (initialHash && sections[initialHash]) {
                 showView('#' + initialHash);
             }
 
@@ -969,10 +1551,11 @@
         window.openMountainDetail = function(id) {
             const m = mountainData[id];
             if (!m) return;
+            closeTrailSimulation();
             currentMountain = id;
             document.getElementById('detail-hero').style.backgroundImage = `url('${m.image}')`;
             document.getElementById('detail-name').textContent = m.name;
-            document.getElementById('detail-status').textContent = (m.status === 'open' ? 'Open' : 'Closed');
+            document.getElementById('detail-status').innerHTML = `<iconify-icon icon="lucide:circle" style="vertical-align:text-bottom; margin-right:2px; font-size:10px;"></iconify-icon> ${m.status === 'open' ? 'Open' : 'Closed'}`;
             document.getElementById('detail-status').className = 'ns-status-pill ' + m.status;
             document.getElementById('detail-diff').textContent = m.difficulty;
             document.getElementById('detail-full-desc').textContent = m.description || '';
@@ -984,48 +1567,133 @@
             document.getElementById('detail-jumpoff-address').textContent = m.jumpoff.address;
             document.getElementById('detail-meeting-time').textContent = m.jumpoff.meetingTime;
             document.getElementById('detail-jumpoff-notes').textContent = m.jumpoff.notes;
+            const trailBadge = document.getElementById('detail-trail-badge');
+            const trailSource = document.getElementById('detail-trail-source');
+            const experience = m.experience && m.experience.enabled ? m.experience : null;
+            const trailMap = m.experience && m.experience.trailMap ? m.experience.trailMap : null;
+            if (trailBadge) {
+                if (trailMap && Array.isArray(trailMap.path) && trailMap.path.length > 1) {
+                    trailBadge.hidden = false;
+                    trailBadge.textContent = trailMap.label || `${m.name} Trail`;
+                } else {
+                    trailBadge.hidden = true;
+                }
+            }
+            if (trailSource) {
+                trailSource.textContent = trailMap && trailMap.sourceLabel
+                    ? trailMap.sourceLabel
+                    : 'Trail data preview coming soon.';
+            }
+            syncTrailSimulationLauncher(m);
 
             // Gear tags
             const gearEl = document.getElementById('detail-gear-tags');
             gearEl.innerHTML = (m.gear || []).map(g => `<span class="ns-gear-tag">${g}</span>`).join('');
+            renderMountainSpotlight(m);
 
-            // Google Maps for Jump-off Point (Satellite / Hybrid View)
+            // Google Maps for Jump-off Point and trail line
             if (typeof google !== 'undefined' && google.maps) {
                 const mapEl = document.getElementById('detail-jumpoff-gmap');
                 const jumpoffPos = { lat: m.jumpoff.lat, lng: m.jumpoff.lng };
                 const summitPos = { lat: m.summit.lat, lng: m.summit.lng };
+                const routeEndPos = experience && experience.routeEnd
+                    ? { lat: Number(experience.routeEnd.lat), lng: Number(experience.routeEnd.lng) }
+                    : summitPos;
+                const routeEndIsDistinct = Math.abs(routeEndPos.lat - summitPos.lat) + Math.abs(routeEndPos.lng - summitPos.lng) > 0.0005;
+                const trailPath = trailMap && Array.isArray(trailMap.path)
+                    ? trailMap.path.map((point) => ({ lat: Number(point.lat), lng: Number(point.lng) }))
+                    : [];
+                const visibleTrailPath = (() => {
+                    if (!routeEndIsDistinct || trailPath.length < 2) {
+                        return trailPath;
+                    }
+
+                    let summitIndex = 0;
+                    let summitDistance = Infinity;
+                    trailPath.forEach((point, index) => {
+                        const score = Math.abs(point.lat - summitPos.lat) + Math.abs(point.lng - summitPos.lng);
+                        if (score < summitDistance) {
+                            summitDistance = score;
+                            summitIndex = index;
+                        }
+                    });
+
+                    return trailPath.slice(0, summitIndex + 1);
+                })();
 
                 const map = new google.maps.Map(mapEl, {
                     center: jumpoffPos,
                     zoom: 14,
-                    mapTypeId: 'hybrid',
+                    mapTypeId: visibleTrailPath.length > 1 ? 'terrain' : 'hybrid',
                     disableDefaultUI: false,
                     zoomControl: true,
                     mapTypeControl: true,
                     streetViewControl: false,
                     fullscreenControl: true,
+                    scaleControl: true,
                 });
 
-                // Jump-off marker (green)
+                if (visibleTrailPath.length > 1) {
+                    new google.maps.Polyline({
+                        path: visibleTrailPath,
+                        geodesic: true,
+                        strokeColor: '#facc15',
+                        strokeOpacity: 1,
+                        strokeWeight: 8,
+                        zIndex: 1,
+                        map,
+                    });
+
+                    new google.maps.Polyline({
+                        path: visibleTrailPath,
+                        geodesic: true,
+                        strokeColor: '#0ea5e9',
+                        strokeOpacity: 0.96,
+                        strokeWeight: 4,
+                        zIndex: 2,
+                        map,
+                    });
+                }
+
+                // Jump-off marker
                 new google.maps.Marker({
                     position: jumpoffPos,
-                    map: map,
-                    title: '<iconify-icon icon="lucide:map-pin" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon> ' + m.jumpoff.name + ' (Jump-off)',
-                    icon: { url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png' }
+                    map,
+                    title: `${m.jumpoff.name} (Jump-off)`,
+                    zIndex: 3,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 9,
+                        fillColor: routeEndIsDistinct ? '#2563eb' : '#f59e0b',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 3,
+                    }
                 });
 
-                // Summit marker (red)
+                // Summit marker
                 new google.maps.Marker({
                     position: summitPos,
-                    map: map,
-                    title: '<iconify-icon icon="lucide:mountain" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon> ' + m.name + ' Summit (' + m.elevation + ')',
-                    icon: { url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png' }
+                    map,
+                    title: `${m.name} Summit (${m.elevation})`,
+                    zIndex: 4,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 9,
+                        fillColor: '#dc2626',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 3,
+                    }
                 });
 
-                // Auto-fit to show both jump-off and summit
+                // Auto-fit to show the visible trail, jump-off, and summit
                 const bounds = new google.maps.LatLngBounds();
                 bounds.extend(jumpoffPos);
                 bounds.extend(summitPos);
+                visibleTrailPath.forEach((point) => bounds.extend(point));
+                window.mountainDetailMap = map;
+                window.mountainDetailBounds = bounds;
                 map.fitBounds(bounds, { top: 30, bottom: 30, left: 30, right: 30 });
             }
 
@@ -1450,41 +2118,169 @@
             } catch(e) {}
         }
 
-        // ── Star Ratings ──────────────────────────────────────────
-        window.setRating = function(category, value) {
-            ratings[category] = value;
-            const container = document.getElementById('rating-' + category);
-            if (!container) return;
-            container.querySelectorAll('.ns-num-btn').forEach(btn => {
-                const v = parseInt(btn.dataset.value);
-                btn.classList.toggle('active', v === value);
+        // ── Completed Hike Feedback ───────────────────────────────
+        function feedbackSummaryText(kind, review) {
+            const rating = Number(review?.rating || 0);
+            if (!rating) {
+                return kind === 'guide'
+                    ? 'Save one review for this guide on this hike.'
+                    : 'Save one review for this hike.';
+            }
+
+            const body = String(review?.body || '').trim();
+            const label = kind === 'guide' ? 'Guide feedback saved' : 'Mountain feedback saved';
+            if (!body) {
+                return `${label} with a ${rating}/5 rating.`;
+            }
+
+            const shortened = body.length > 110 ? `${body.slice(0, 107)}...` : body;
+
+            return `${label} with a ${rating}/5 rating. "${shortened}"`;
+        }
+
+        function updateFeedbackPanelState(panel, kind, review) {
+            if (!panel) return;
+
+            const rating = Number(review?.rating || 0);
+            const hasReview = rating >= 1 && rating <= 5;
+            const form = panel.querySelector('[data-feedback-form]');
+            const ratingInput = form?.querySelector('input[name="rating"]');
+            const textarea = form?.querySelector('textarea[name="body"]');
+            const state = panel.querySelector('[data-feedback-state]');
+            const message = panel.querySelector('[data-feedback-message]');
+            const submit = panel.querySelector('[data-feedback-submit]');
+
+            if (ratingInput && hasReview) {
+                ratingInput.value = String(rating);
+            }
+
+            if (textarea && review && typeof review.body !== 'undefined') {
+                textarea.value = review.body || '';
+            }
+
+            form?.querySelectorAll('.ns-inline-rating-btn').forEach((button) => {
+                const buttonValue = Number(button.dataset.value || 0);
+                button.classList.toggle('active', buttonValue === Number(ratingInput?.value || 5));
+            });
+
+            if (state) {
+                state.textContent = hasReview ? 'Submitted' : 'Not yet';
+                state.classList.toggle('submitted', hasReview);
+                state.classList.toggle('pending', !hasReview);
+            }
+
+            if (message) {
+                message.textContent = feedbackSummaryText(kind, review);
+                message.classList.remove('is-error');
+            }
+
+            if (submit) {
+                submit.disabled = false;
+                submit.textContent = hasReview
+                    ? `Update ${kind === 'guide' ? 'guide' : 'mountain'} feedback`
+                    : `Save ${kind === 'guide' ? 'guide' : 'mountain'} feedback`;
+            }
+        }
+
+        function syncCompletedFeedback(kind, bookingId, review) {
+            document
+                .querySelectorAll(`[data-feedback-panel="${kind}"][data-booking-id="${bookingId}"]`)
+                .forEach((panel) => updateFeedbackPanelState(panel, kind, review));
+        }
+
+        function extractFeedbackError(payload, fallback) {
+            if (payload?.errors) {
+                const message = Object.values(payload.errors).flat()[0];
+                if (typeof message === 'string' && message.trim() !== '') {
+                    return message;
+                }
+            }
+
+            if (typeof payload?.message === 'string' && payload.message.trim() !== '') {
+                return payload.message;
+            }
+
+            return fallback;
+        }
+
+        window.setInlineFeedbackRating = function(button, value) {
+            const form = button.closest('[data-feedback-form]');
+            if (!form) return;
+            const input = form.querySelector('input[name="rating"]');
+            if (!input) return;
+
+            input.value = String(value);
+            form.querySelectorAll('.ns-inline-rating-btn').forEach((item) => {
+                item.classList.toggle('active', Number(item.dataset.value || 0) === value);
             });
         };
 
-        window.submitFeedback = function(e) {
+        window.submitCompletedFeedback = function(e) {
             e.preventDefault();
-            const mountain = document.getElementById('feedback-mountain')?.value;
-            if (!mountain) { alert('Choose a mountain.'); return; }
-            const rating = ratings.experience || 5;
-            const body = document.getElementById('feedback-body')?.value || '';
-            const fd = new FormData();
-            fd.append('mountain', mountain);
-            fd.append('rating', rating);
-            fd.append('body', body);
+
+            const form = e.target;
+            const kind = form.dataset.feedbackType;
+            const bookingId = form.dataset.bookingId;
+            const submit = form.querySelector('[data-feedback-submit]');
+            const message = form.querySelector('[data-feedback-message]');
+            const url = kind === 'guide'
+                ? window.HIKER_BOOTSTRAP.routes.storeGuideReview
+                : window.HIKER_BOOTSTRAP.routes.storeReview;
+            const fd = new FormData(form);
+
             fd.append('_token', window.HIKER_BOOTSTRAP.csrf);
-            fetch(window.HIKER_BOOTSTRAP.routes.storeReview, {
+
+            if (submit) {
+                submit.disabled = true;
+                submit.textContent = 'Saving...';
+            }
+            if (message) {
+                message.textContent = 'Saving feedback...';
+                message.classList.remove('is-error');
+            }
+
+            fetch(url, {
                 method: 'POST',
-                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': window.HIKER_BOOTSTRAP.csrf, 'X-Requested-With': 'XMLHttpRequest' },
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': window.HIKER_BOOTSTRAP.csrf,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: fd
-            }).then(r => r.json()).then(d => {
-                if (d.success) {
-                    document.getElementById('feedback-step-1').style.display = 'none';
-                    document.getElementById('feedback-step-2').style.display = 'none';
-                    document.getElementById('feedback-step-3').style.display = 'flex';
-                } else {
-                    alert('Could not submit review.');
-                }
-            }).catch(() => alert('Could not submit review.'));
+            })
+                .then(async (response) => {
+                    const payload = await response.json().catch(() => ({}));
+                    return { ok: response.ok, payload };
+                })
+                .then(({ ok, payload }) => {
+                    if (!ok || !payload.success) {
+                        throw new Error(extractFeedbackError(payload, 'Could not save feedback.'));
+                    }
+
+                    const review = {
+                        rating: Number(payload.review?.rating || form.querySelector('input[name="rating"]')?.value || 5),
+                        body: String(payload.review?.body || form.querySelector('textarea[name="body"]')?.value || ''),
+                    };
+
+                    syncCompletedFeedback(kind, bookingId, review);
+                })
+                .catch((error) => {
+                    if (submit) {
+                        const wasSubmitted = form
+                            .closest('[data-feedback-panel]')
+                            ?.querySelector('[data-feedback-state]')
+                            ?.classList
+                            .contains('submitted');
+                        submit.disabled = false;
+                        submit.textContent = wasSubmitted
+                            ? `Update ${kind === 'guide' ? 'guide' : 'mountain'} feedback`
+                            : `Save ${kind === 'guide' ? 'guide' : 'mountain'} feedback`;
+                    }
+                    if (message) {
+                        message.textContent = error.message || 'Could not save feedback.';
+                        message.classList.add('is-error');
+                    }
+                });
         };
 
         window.filterMountains = function() {
@@ -1528,6 +2324,10 @@
     <script>
         // Initialize default map for tracker page on load
         function initTrackerDefaultMap() {
+            if (typeof googleMapsReadyResolve === 'function') {
+                googleMapsReadyResolve(true);
+                googleMapsReadyResolve = null;
+            }
             if (typeof ensureHikeTrackerMap !== 'function') return;
             if (ensureHikeTrackerMap() && window.hikeTracker.map) {
                 setTimeout(function() {
@@ -1537,6 +2337,6 @@
         }
     </script>
     @if (filled(config('services.google_maps.key')))
-        <script src="https://maps.googleapis.com/maps/api/js?key={{ e(config('services.google_maps.key')) }}&callback=initTrackerDefaultMap" async defer></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ e(config('services.google_maps.key')) }}&v=beta&callback=initTrackerDefaultMap" async defer></script>
     @endif
 </body>

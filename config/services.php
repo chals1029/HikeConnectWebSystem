@@ -39,4 +39,11 @@ return [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'trail_data' => [
+        'enabled' => env('TRAIL_DATA_ENABLED', true),
+        'overpass_url' => env('TRAIL_DATA_OVERPASS_URL', 'https://overpass-api.de/api/interpreter'),
+        'cache_hours' => (int) env('TRAIL_DATA_CACHE_HOURS', 12),
+        'relation_endpoint_max_km' => (float) env('TRAIL_DATA_RELATION_ENDPOINT_MAX_KM', 1.5),
+    ],
+
 ];

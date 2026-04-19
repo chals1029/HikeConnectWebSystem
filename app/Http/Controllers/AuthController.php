@@ -16,7 +16,7 @@ class AuthController extends Controller
     private const HIKER_HASH_SECTIONS = [
         'home', 'achievements', 'mountain-overview', 'mountain-detail', 'tour-guides',
         'book-hike', 'bookings', 'track-location', 'what-to-bring', 'hiking-history',
-        'trail-plan', 'community-chat', 'reviews', 'settings', 'safety-alerts',
+        'trail-plan', 'community-chat', 'settings', 'safety-alerts',
     ];
 
     protected EmailService $emailService;

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MountainReview extends Model
 {
     protected $fillable = [
-        'user_id', 'reviewer_name', 'rating', 'body', 'mountain_id',
+        'user_id', 'reviewer_name', 'rating', 'body', 'mountain_id', 'hike_booking_id',
     ];
 
     public function user(): BelongsTo
@@ -19,5 +19,10 @@ class MountainReview extends Model
     public function mountain(): BelongsTo
     {
         return $this->belongsTo(Mountain::class);
+    }
+
+    public function hikeBooking(): BelongsTo
+    {
+        return $this->belongsTo(HikeBooking::class);
     }
 }
