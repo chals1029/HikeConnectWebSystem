@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -121,5 +122,25 @@ class User extends Authenticatable
     public function claimedAchievementsCount(): int
     {
         return $this->achievements()->wherePivotNotNull('claimed_at')->count();
+    }
+
+    public function tourGuide(): HasOne
+    {
+        return $this->hasOne(TourGuide::class);
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
+    public function locationPings(): HasMany
+    {
+        return $this->hasMany(HikerLocation::class);
+    }
+
+    public function isHiker(): bool
+    {
+        return $this->role === self::ROLE_HIKER || $this->role === null;
     }
 }

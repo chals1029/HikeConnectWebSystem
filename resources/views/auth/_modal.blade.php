@@ -1204,6 +1204,7 @@
         });
     }
 
+
     var registerForm = document.getElementById('auth-register-form');
     if (registerForm) {
         registerForm.addEventListener('submit', function(e) {

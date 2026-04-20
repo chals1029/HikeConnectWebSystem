@@ -8,7 +8,9 @@ use App\Models\Mountain;
 use App\Models\MountainReview;
 use App\Models\PackingItem;
 use App\Models\TourGuide;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class HikeConnectDomainSeeder extends Seeder
 {
@@ -143,7 +145,36 @@ class HikeConnectDomainSeeder extends Seeder
             ['slug' => 'anya', 'first_name' => 'Anya', 'last_name' => 'del Rosario', 'specialty' => 'Beginner Guide', 'phone' => '0922-555-0606', 'experience_years' => 2, 'status' => 'off-duty', 'mountain_id' => $talamitam->id, 'avatar_gradient' => 'linear-gradient(135deg,#64748b,#94a3b8)', 'sort_order' => 6],
         ];
 
+        User::query()->updateOrCreate(
+            ['email' => 'admin@hikeconnect.test'],
+            [
+                'first_name' => 'Site',
+                'last_name' => 'Admin',
+                'phone' => '0917-000-0001',
+                'password' => Hash::make('password'),
+                'role' => User::ROLE_ADMIN,
+                'email_verified_at' => now(),
+            ]
+        );
+
         foreach ($guides as $g) {
+            $email = $g['slug'].'@hikeconnect.test';
+
+            $guideUser = User::query()->updateOrCreate(
+                ['email' => $email],
+                [
+                    'first_name' => $g['first_name'],
+                    'last_name' => $g['last_name'],
+                    'phone' => $g['phone'],
+                    'password' => Hash::make('password'),
+                    'role' => User::ROLE_TOUR_GUIDE,
+                    'email_verified_at' => now(),
+                ]
+            );
+
+            $g['user_id'] = $guideUser->id;
+            $g['email'] = $email;
+
             TourGuide::query()->updateOrCreate(['slug' => $g['slug']], $g);
         }
 

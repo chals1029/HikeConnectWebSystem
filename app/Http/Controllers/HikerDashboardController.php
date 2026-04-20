@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Achievement;
 use App\Models\CommunityPost;
 use App\Models\HikeBooking;
+use App\Models\HikerLocation;
 use App\Models\Mountain;
 use App\Models\MountainReview;
 use App\Models\PackingItem;
 use App\Models\TourGuide;
 use App\Services\AchievementEvaluator;
+use App\Services\AuditLogger;
 use App\Services\EmailService;
 use App\Services\TrailDataService;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +31,12 @@ class HikerDashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->isTourGuide()) {
+            return redirect()->route('tour-guide.dashboard');
+        }
         $mountains = Mountain::query()->orderBy('sort_order')->get();
         $guides = TourGuide::query()->with('mountain')->orderBy('sort_order')->get();
         $bookings = HikeBooking::query()
@@ -584,7 +592,7 @@ class HikerDashboardController extends Controller
             ]);
         }
 
-        HikeBooking::query()->create([
+        $booking = HikeBooking::query()->create([
             'user_id' => Auth::id(),
             'mountain_id' => $mountain->id,
             'tour_guide_id' => $guide->id,
@@ -592,6 +600,12 @@ class HikerDashboardController extends Controller
             'hikers_count' => $validated['hikers_count'],
             'notes' => $validated['notes'] ?? null,
             'status' => 'pending',
+        ]);
+
+        AuditLogger::log('booking.created', "Booked {$mountain->name} on {$validated['hike_on']}", Auth::user(), $booking, [
+            'mountain' => $mountain->name,
+            'guide_id' => $guide->id,
+            'hikers_count' => $validated['hikers_count'],
         ]);
 
         return response()->json(['success' => true]);
@@ -611,6 +625,7 @@ class HikerDashboardController extends Controller
         }
 
         $booking->update(['status' => 'cancelled']);
+        AuditLogger::log('booking.cancelled', "Cancelled booking #{$booking->id}", Auth::user(), $booking);
 
         return response()->json(['success' => true]);
     }
@@ -763,10 +778,48 @@ class HikerDashboardController extends Controller
         ]);
         $user->save();
 
+        AuditLogger::log('hiker.profile_updated', 'Updated profile details', $user);
+
         return response()->json([
             'success' => true,
             'full_name' => $user->full_name,
         ]);
+    }
+
+    public function recordLocation(Request $request)
+    {
+        $validated = $request->validate([
+            'lat' => ['required', 'numeric', 'between:-90,90'],
+            'lng' => ['required', 'numeric', 'between:-180,180'],
+            'accuracy_m' => ['nullable', 'numeric', 'min:0', 'max:100000'],
+            'altitude_m' => ['nullable', 'numeric'],
+            'speed_mps' => ['nullable', 'numeric', 'min:0'],
+            'mountain_id' => ['nullable', 'integer', 'exists:mountains,id'],
+            'hike_booking_id' => ['nullable', 'integer', 'exists:hike_bookings,id'],
+        ]);
+
+        $userId = Auth::id();
+        $bookingId = $validated['hike_booking_id'] ?? null;
+        if ($bookingId) {
+            $owns = HikeBooking::where('id', $bookingId)->where('user_id', $userId)->exists();
+            if (! $owns) {
+                $bookingId = null;
+            }
+        }
+
+        HikerLocation::create([
+            'user_id' => $userId,
+            'hike_booking_id' => $bookingId,
+            'mountain_id' => $validated['mountain_id'] ?? null,
+            'lat' => $validated['lat'],
+            'lng' => $validated['lng'],
+            'accuracy_m' => $validated['accuracy_m'] ?? null,
+            'altitude_m' => $validated['altitude_m'] ?? null,
+            'speed_mps' => $validated['speed_mps'] ?? null,
+            'recorded_at' => now(),
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     public function sendPasswordChangeCode(Request $request)
@@ -824,6 +877,8 @@ class HikerDashboardController extends Controller
         $user->password_change_code = null;
         $user->password_change_code_expires_at = null;
         $user->save();
+
+        AuditLogger::log('hiker.password_changed', 'Changed account password', $user);
 
         $request->session()->regenerate();
 

@@ -1,8 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HikerDashboardController;
+use App\Http\Controllers\TourGuideDashboardController;
 
 Route::get('/', function () {
     $sec = request()->query('next_section');
@@ -26,6 +28,36 @@ Route::middleware('auth')->group(function () {
     Route::post('/hikers/profile/password/send-code', [HikerDashboardController::class, 'sendPasswordChangeCode'])->name('hikers.profile.password.send-code');
     Route::post('/hikers/profile/password', [HikerDashboardController::class, 'updatePasswordWithCode'])->name('hikers.profile.password.update');
     Route::post('/hikers/achievements/{achievement}/claim', [HikerDashboardController::class, 'claimAchievement'])->name('hikers.achievements.claim');
+    Route::post('/hikers/location', [HikerDashboardController::class, 'recordLocation'])->name('hikers.location.record');
+});
+
+// Authenticated Tour Guide Dashboard
+Route::middleware(['auth', 'tour_guide'])->group(function () {
+    Route::get('/tour-guide', [TourGuideDashboardController::class, 'index'])->name('tour-guide.dashboard');
+    Route::post('/tour-guide/bookings/{booking}/approve', [TourGuideDashboardController::class, 'approveBooking'])->name('tour-guide.bookings.approve');
+    Route::post('/tour-guide/bookings/{booking}/reject', [TourGuideDashboardController::class, 'rejectBooking'])->name('tour-guide.bookings.reject');
+    Route::post('/tour-guide/bookings/{booking}/complete', [TourGuideDashboardController::class, 'completeBooking'])->name('tour-guide.bookings.complete');
+    Route::post('/tour-guide/availability', [TourGuideDashboardController::class, 'updateAvailability'])->name('tour-guide.availability');
+    Route::post('/tour-guide/profile', [TourGuideDashboardController::class, 'updateProfile'])->name('tour-guide.profile.update');
+    Route::post('/tour-guide/profile/picture', [TourGuideDashboardController::class, 'updateProfilePicture'])->name('tour-guide.profile.picture');
+});
+
+// Authenticated Admin Dashboard
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+
+    Route::post('/tour-guides', [AdminController::class, 'storeTourGuide'])->name('tour-guides.store');
+    Route::put('/tour-guides/{tourGuide}', [AdminController::class, 'updateTourGuide'])->name('tour-guides.update');
+    Route::delete('/tour-guides/{tourGuide}', [AdminController::class, 'destroyTourGuide'])->name('tour-guides.destroy');
+
+    Route::post('/admins', [AdminController::class, 'storeAdmin'])->name('admins.store');
+    Route::delete('/admins/{admin}', [AdminController::class, 'destroyAdmin'])->name('admins.destroy');
+
+    Route::get('/hikers/{hiker}', [AdminController::class, 'showHiker'])->name('hikers.show');
+    Route::delete('/hikers/{hiker}', [AdminController::class, 'suspendHiker'])->name('hikers.destroy');
+
+    Route::get('/live-locations', [AdminController::class, 'liveLocations'])->name('live-locations');
+    Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs');
 });
 
 // For unauthenticated users, keep the redirect fallback if they hit the URL directly

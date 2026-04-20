@@ -1947,6 +1947,33 @@
             }
         };
 
+        // ── Push hiker location to backend (throttled) ─────────────
+        window.hikeTracker = window.hikeTracker || {};
+        let _hikerPushAt = 0;
+        function pushHikerLocationToServer(payload) {
+            const now = Date.now();
+            if (now - _hikerPushAt < 15000) return; // throttle: 15s
+            _hikerPushAt = now;
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+                const body = new FormData();
+                body.append('lat', payload.lat);
+                body.append('lng', payload.lng);
+                if (payload.accuracy_m != null && !isNaN(payload.accuracy_m)) body.append('accuracy_m', payload.accuracy_m);
+                if (payload.altitude_m != null && !isNaN(payload.altitude_m)) body.append('altitude_m', payload.altitude_m);
+                if (payload.speed_mps != null && !isNaN(payload.speed_mps)) body.append('speed_mps', payload.speed_mps);
+                const ctxMid = window.HIKER_BOOTSTRAP?.activeMountainId;
+                const ctxBid = window.HIKER_BOOTSTRAP?.activeBookingId;
+                if (ctxMid) body.append('mountain_id', ctxMid);
+                if (ctxBid) body.append('hike_booking_id', ctxBid);
+                fetch('{{ route('hikers.location.record') }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    body,
+                }).catch(() => {});
+            } catch(_) {}
+        }
+
         function startLiveTracking() {
             const label = document.getElementById('track-btn-label');
             const clearBtn = document.getElementById('track-clear-btn');
@@ -2054,6 +2081,13 @@
                         ? '0 m'
                         : (tKm < 0.1 ? (tKm * 1000).toFixed(0) + ' m' : tKm.toFixed(2) + ' km');
                 }
+
+                pushHikerLocationToServer({
+                    lat, lng,
+                    accuracy_m: pos.coords.accuracy,
+                    altitude_m: pos.coords.altitude,
+                    speed_mps: pos.coords.speed,
+                });
             };
 
             const onErr = (err) => {
