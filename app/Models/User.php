@@ -139,6 +139,16 @@ class User extends Authenticatable
         return $this->hasMany(HikerLocation::class);
     }
 
+    public function sosAlerts(): HasMany
+    {
+        return $this->hasMany(SosAlert::class);
+    }
+
+    public function experienceFeedbacks(): HasMany
+    {
+        return $this->hasMany(UserExperienceFeedback::class);
+    }
+
     public function isHiker(): bool
     {
         return $this->role === self::ROLE_HIKER || $this->role === null;

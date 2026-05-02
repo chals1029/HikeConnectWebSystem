@@ -25,6 +25,16 @@
         </div>
     </div>
 
+    <div id="detail-safety-alert" class="card" style="{{ $d && $d->hasSafetyWarning() ? '' : 'display:none;' }}margin-top:14px;border-color:rgba(239,68,68,0.35);background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(245,158,11,0.06));">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+            <iconify-icon icon="lucide:triangle-alert" style="font-size:24px;color:#b91c1c;flex-shrink:0;"></iconify-icon>
+            <div>
+                <strong id="detail-safety-title" style="display:block;color:#991b1b;margin-bottom:4px;">{{ $d?->safety_status_label ?? 'Trail Safety Alert' }}</strong>
+                <p id="detail-safety-note" style="font-size:13px;color:var(--muted);line-height:1.6;margin:0;">{{ $d?->safety_note ?: 'Please check trail conditions before booking or starting your hike.' }}</p>
+            </div>
+        </div>
+    </div>
+
     <section class="card ns-detail-spotlight" id="detail-spotlight" hidden>
         <div class="ns-detail-spotlight-head">
             <div class="ns-detail-spotlight-copy">
@@ -544,7 +554,7 @@
                     </button>
                     <button type="button" class="ns-action-btn" onclick="clearHikeTrail()" id="track-clear-btn" title="Clear the blue trail from the map" style="display:none;">Clear trail</button>
                 </div>
-                <p id="tracker-hint" style="font-size:12px;color:var(--muted);margin:8px 0 0;">Uses GPS. For best results allow location access and keep the tab open. Tracking uses more battery while active.</p>
+                <p id="tracker-hint" style="font-size:12px;color:var(--muted);margin:8px 0 0;">Uses real GPS only. The orange pins are trail jump-off points, not your location. Your blue marker appears only after an accurate browser location fix.</p>
                 <div class="ns-tracker-stats">
                     <div class="ns-tracker-stat">
                         <span>From jump-off</span>
@@ -575,6 +585,24 @@
         </div>
 
         <div class="ns-tracker-sidebar">
+            <div class="card" style="border-color:rgba(239,68,68,0.35);background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(245,158,11,0.06));">
+                <h3 style="display:flex;align-items:center;gap:8px;color:#b91c1c;">
+                    <iconify-icon icon="lucide:siren" style="font-size:20px;"></iconify-icon>
+                    Emergency SOS
+                </h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.5;margin:8px 0 12px;">
+                    Use only if you need urgent help. This sends your last GPS point, active hike, and message to Admin and your assigned Tour Guide.
+                </p>
+                <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">
+                    Optional message
+                    <textarea id="sos-message" maxlength="1000" placeholder="Example: Injured ankle near the trail marker..." style="width:100%;min-height:74px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel);color:var(--text);font:inherit;font-size:13px;line-height:1.4;"></textarea>
+                </label>
+                <button type="button" id="sos-btn" onclick="triggerEmergencySos()" style="width:100%;display:inline-flex;justify-content:center;align-items:center;gap:8px;border:none;border-radius:12px;padding:12px 16px;background:linear-gradient(135deg,#dc2626,#f97316);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 10px 22px rgba(220,38,38,0.25);">
+                    <iconify-icon icon="lucide:radio-tower" style="font-size:18px;"></iconify-icon>
+                    Send Emergency SOS
+                </button>
+                <p id="sos-status" style="font-size:12px;color:var(--muted);min-height:18px;margin:10px 0 0;line-height:1.4;"></p>
+            </div>
             <div class="card">
                 <h3><iconify-icon icon="lucide:shield" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon> Safety Info</h3>
                 <div class="ns-safety-list">
@@ -603,6 +631,166 @@
                     </div>
                     <p style="font-size:12px;color:var(--muted);margin-top:8px;">Good Signal</p>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ==================== SAFETY ALERTS ====================== --}}
+<div class="view-section" id="view-safety-alerts">
+    @php
+        $openSosCount = $hikerSosAlerts->where('status', \App\Models\SosAlert::STATUS_OPEN)->count();
+        $ackSosCount = $hikerSosAlerts->where('status', \App\Models\SosAlert::STATUS_ACKNOWLEDGED)->count();
+        $closedSosCount = $hikerSosAlerts->whereIn('status', [\App\Models\SosAlert::STATUS_RESOLVED, \App\Models\SosAlert::STATUS_FALSE_ALARM])->count();
+    @endphp
+
+    <div class="ns-page-header">
+        <div>
+            <h2>Safety Alerts</h2>
+            <p style="color:var(--muted);font-size:14px;margin-top:4px;">Check mountain safety advisories and track the status of your Emergency SOS alerts.</p>
+        </div>
+    </div>
+
+    <div class="hc-kpi-ribbon">
+        <div class="kpi">
+            <div class="l">Open SOS</div>
+            <div class="v" style="color:#b91c1c;">{{ $openSosCount }}</div>
+            <div class="h">Waiting for response</div>
+        </div>
+        <div class="kpi">
+            <div class="l">Acknowledged</div>
+            <div class="v">{{ $ackSosCount }}</div>
+            <div class="h">Responder has seen it</div>
+        </div>
+        <div class="kpi">
+            <div class="l">Closed SOS</div>
+            <div class="v">{{ $closedSosCount }}</div>
+            <div class="h">Resolved or false alarm</div>
+        </div>
+        <div class="kpi">
+            <div class="l">Trail advisories</div>
+            <div class="v">{{ $safetyMountains->count() }}</div>
+            <div class="h">Mountains with warnings</div>
+        </div>
+    </div>
+
+    <div class="hc-row-2">
+        <div class="hc-panel">
+            <div class="hc-panel-head">
+                <h3><iconify-icon icon="lucide:triangle-alert"></iconify-icon> Trail safety advisories</h3>
+                <span class="hc-pill">{{ $safetyMountains->count() }} active</span>
+            </div>
+
+            @if($safetyMountains->isEmpty())
+                <div class="hc-empty"><iconify-icon icon="lucide:shield-check"></iconify-icon> No active trail advisories. Still check weather before hiking.</div>
+            @else
+                <div class="hc-lb-list">
+                    @foreach($safetyMountains as $mountain)
+                        @php
+                            $status = $mountain->safety_status ?? \App\Models\Mountain::SAFETY_OPEN;
+                            $tone = match($status) {
+                                \App\Models\Mountain::SAFETY_CAUTION => ['#fef3c7', '#92400e', 'lucide:alert-triangle'],
+                                \App\Models\Mountain::SAFETY_BAD_WEATHER => ['#dbeafe', '#1d4ed8', 'lucide:cloud-rain'],
+                                default => ['#fee2e2', '#991b1b', 'lucide:octagon-alert'],
+                            };
+                        @endphp
+                        <div class="hc-lb-row safety-alert-card" style="grid-template-columns:auto 1fr auto;border-color:{{ $tone[1] }}33;background:linear-gradient(135deg,{{ $tone[0] }},var(--panel));">
+                            <div class="hc-lb-rank" style="background:{{ $tone[0] }};color:{{ $tone[1] }};border-color:{{ $tone[1] }}33;">
+                                <iconify-icon icon="{{ $tone[2] }}"></iconify-icon>
+                            </div>
+                            <div class="hc-lb-info">
+                                <div class="hc-lb-name">{{ $mountain->name }}</div>
+                                <div class="hc-lb-meta">
+                                    <span><iconify-icon icon="lucide:map-pin"></iconify-icon> {{ $mountain->location }}</span>
+                                    <span style="color:{{ $tone[1] }};font-weight:800;"><iconify-icon icon="lucide:shield-alert"></iconify-icon> {{ $mountain->safety_status_label }}</span>
+                                </div>
+                                <div style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:6px;">{{ $mountain->safety_note ?: 'Please check trail conditions before booking or starting your hike.' }}</div>
+                            </div>
+                            <button class="ns-action-btn" type="button" onclick="openMountainDetail('{{ $mountain->slug }}')">View trail</button>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <div class="hc-panel">
+            <div class="hc-panel-head">
+                <h3><iconify-icon icon="lucide:siren"></iconify-icon> My SOS history</h3>
+                <span class="hc-pill">{{ $hikerSosAlerts->count() }} recent</span>
+            </div>
+
+            @if($hikerSosAlerts->isEmpty())
+                <div class="hc-empty"><iconify-icon icon="lucide:radio-tower"></iconify-icon> No SOS alerts sent yet. Use the SOS button in Track Location only during emergencies.</div>
+            @else
+                <div class="hc-feed" style="max-height:none;">
+                    @foreach($hikerSosAlerts as $alert)
+                        @php
+                            $statusTone = match($alert->status) {
+                                \App\Models\SosAlert::STATUS_OPEN => 't-cancel',
+                                \App\Models\SosAlert::STATUS_ACKNOWLEDGED => 't-update',
+                                \App\Models\SosAlert::STATUS_FALSE_ALARM => 't-login',
+                                default => 't-approve',
+                            };
+                            $mountain = $alert->mountain ?? $alert->hikeBooking?->mountain;
+                            $mapUrl = ($alert->lat !== null && $alert->lng !== null)
+                                ? 'https://www.google.com/maps?q='.$alert->lat.','.$alert->lng
+                                : null;
+                        @endphp
+                        <div class="hc-feed-row safety-alert-card" style="grid-template-columns:auto 1fr auto;align-items:stretch;">
+                            <span class="hc-feed-tag {{ $statusTone }}">{{ str_replace('_', ' ', $alert->status) }}</span>
+                            <div class="hc-feed-body">
+                                <div class="hc-feed-desc">
+                                    SOS sent
+                                    @if($mountain) at <strong>{{ $mountain->name }}</strong>@endif
+                                </div>
+                                <div class="hc-feed-meta" style="line-height:1.7;">
+                                    @if($alert->tourGuide)
+                                        <span><strong>Guide:</strong> {{ $alert->tourGuide->full_name }}</span>
+                                    @endif
+                                    @if($alert->lat !== null && $alert->lng !== null)
+                                        &middot; <span><strong>GPS:</strong> {{ number_format($alert->lat, 5) }}, {{ number_format($alert->lng, 5) }}</span>
+                                    @endif
+                                    @if($alert->message)
+                                        <div style="margin-top:6px;color:var(--text);">{{ $alert->message }}</div>
+                                    @endif
+                                    @if($alert->acknowledgedBy)
+                                        <div>Acknowledged by {{ $alert->acknowledgedBy->full_name }} {{ $alert->acknowledged_at?->diffForHumans() }}</div>
+                                    @endif
+                                    @if($alert->resolvedBy)
+                                        <div>Closed by {{ $alert->resolvedBy->full_name }} {{ $alert->resolved_at?->diffForHumans() }}</div>
+                                    @endif
+                                </div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:120px;">
+                                <div class="hc-feed-time">{{ $alert->created_at?->diffForHumans() }}</div>
+                                @if($mapUrl)
+                                    <a href="{{ $mapUrl }}" target="_blank" rel="noopener" class="ns-action-btn" style="text-decoration:none;">Open map</a>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <div class="hc-panel">
+        <div class="hc-panel-head">
+            <h3><iconify-icon icon="lucide:shield"></iconify-icon> Safety checklist</h3>
+            <a href="#track-location">Open tracker →</a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+            <div style="padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--line);">
+                <strong style="display:block;color:var(--text);margin-bottom:6px;">Start live tracking</strong>
+                <p style="font-size:13px;color:var(--muted);line-height:1.6;margin:0;">Admins can see your latest known position if signal drops.</p>
+            </div>
+            <div style="padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--line);">
+                <strong style="display:block;color:var(--text);margin-bottom:6px;">Use SOS only for emergencies</strong>
+                <p style="font-size:13px;color:var(--muted);line-height:1.6;margin:0;">SOS sends your GPS point, active booking, message, and guide assignment.</p>
+            </div>
+            <div style="padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--line);">
+                <strong style="display:block;color:var(--text);margin-bottom:6px;">Local rescue contact</strong>
+                <p style="font-size:13px;color:var(--muted);line-height:1.6;margin:0;">{{ $safetyEmergency !== '' ? $safetyEmergency : 'No emergency contact configured yet.' }}</p>
             </div>
         </div>
     </div>

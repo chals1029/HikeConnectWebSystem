@@ -407,6 +407,34 @@
         justify-content: center;
     }
     .auth-toggle-pw:hover { color: #fff; }
+    .auth-toggle-pw svg { overflow: visible; }
+    .auth-toggle-pw .eye-pupil {
+        transform-origin: 12px 12px;
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .auth-toggle-pw .eye-slash {
+        opacity: 0;
+        stroke-dasharray: 18;
+        stroke-dashoffset: 18;
+        transition: opacity 0.18s ease, stroke-dashoffset 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .auth-toggle-pw.is-showing {
+        color: #fff;
+    }
+    .auth-toggle-pw.is-showing .eye-pupil {
+        transform: scale(1.35);
+    }
+    .auth-toggle-pw.is-showing .eye-slash {
+        opacity: 1;
+        stroke-dashoffset: 0;
+    }
+    .auth-toggle-pw.is-animating svg {
+        animation: authEyeBlink 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes authEyeBlink {
+        0%, 100% { transform: scaleY(1); }
+        45% { transform: scaleY(0.68); }
+    }
     .auth-forgot {
         text-align: right;
         margin-top: -0.05rem;
@@ -600,6 +628,60 @@
         padding-left: 1rem;
         padding-right: 2.65rem;
     }
+    .auth-password-meter {
+        margin-top: 0.45rem;
+        text-align: left;
+    }
+    .auth-password-meter__head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.7rem;
+        color: #9ca3af;
+        margin-bottom: 0.35rem;
+    }
+    .auth-password-meter__label {
+        color: #9ca3af;
+    }
+    .auth-password-meter__value {
+        color: #6b7280;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+    .auth-password-meter__track {
+        width: 100%;
+        height: 0.36rem;
+        border-radius: 999px;
+        background: #1f2937;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+    }
+    .auth-password-meter__fill {
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+        transition: width 0.2s ease, background-color 0.2s ease;
+        background: #6b7280;
+    }
+    .auth-password-meter__hint {
+        margin-top: 0.3rem;
+        font-size: 0.72rem;
+        color: #6b7280;
+        line-height: 1.35;
+    }
+    .auth-password-meter.is-weak .auth-password-meter__value,
+    .auth-password-meter.is-weak .auth-password-meter__hint {
+        color: #f87171;
+    }
+    .auth-password-meter.is-medium .auth-password-meter__value,
+    .auth-password-meter.is-medium .auth-password-meter__hint {
+        color: #fbbf24;
+    }
+    .auth-password-meter.is-strong .auth-password-meter__value,
+    .auth-password-meter.is-strong .auth-password-meter__hint {
+        color: #34d399;
+    }
     .auth-field-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -629,10 +711,116 @@
         accent-color: #A68B67;
         cursor: pointer;
     }
+    .auth-phone-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        border-radius: 999px;
+        border: 1px solid #2a2a2a;
+        background: #1a1a1a;
+        overflow: hidden;
+    }
+    .auth-phone-prefix {
+        flex-shrink: 0;
+        padding: 0.65rem 0.9rem;
+        color: #e5e7eb;
+        font-size: 0.875rem;
+        border-right: 1px solid #2a2a2a;
+        background: #151515;
+    }
+    .auth-phone-wrap input {
+        width: 100%;
+        min-width: 0;
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.9rem !important;
+        color: #f5f5f5;
+        font-size: 0.875rem;
+        outline: none;
+    }
+    .auth-phone-wrap:focus-within {
+        border-color: rgba(166, 139, 103, 0.45);
+        box-shadow: 0 0 0 3px rgba(166, 139, 103, 0.12);
+    }
+    .auth-channel-choice {
+        margin-bottom: 0.8rem;
+        text-align: left;
+        border: 1px solid #2a2a2a;
+        border-radius: 0.65rem;
+        background: #171717;
+        padding: 0.55rem 0.65rem;
+    }
+    .auth-channel-choice legend {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-bottom: 0.4rem;
+    }
+    .auth-channel-choice label {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 0.35rem;
+        font-size: 0.8125rem;
+        color: #e5e7eb;
+        cursor: pointer;
+    }
+    .auth-channel-choice label:last-child {
+        margin-bottom: 0;
+    }
+    .auth-channel-choice input[type="radio"] {
+        accent-color: #A68B67;
+    }
+    .auth-send-code-row {
+        margin-bottom: 0.85rem;
+        text-align: left;
+    }
+    .auth-send-code-btn {
+        width: 100%;
+        border: 1px solid rgba(166, 139, 103, 0.45);
+        background: rgba(166, 139, 103, 0.12);
+        color: #f5f5f5;
+        border-radius: 999px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        padding: 0.58rem 0.95rem;
+        cursor: pointer;
+    }
+    .auth-send-code-btn:hover {
+        background: rgba(166, 139, 103, 0.2);
+    }
+    .auth-send-code-status {
+        margin-top: 0.35rem;
+        font-size: 0.74rem;
+        color: #9ca3af;
+        line-height: 1.35;
+    }
+    .auth-verify-note {
+        margin-bottom: 0.7rem;
+        text-align: left;
+        font-size: 0.74rem;
+        line-height: 1.45;
+        color: #9ca3af;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.55rem;
+        padding: 0.48rem 0.62rem;
+    }
+    .auth-verify-note strong {
+        color: #e5e7eb;
+    }
     @media (prefers-reduced-motion: reduce) {
         .auth-modal__inner { transition: none; }
         .auth-slide { transition: none; }
         .auth-progress-fill.is-animating { animation: none; width: 100%; }
+        .auth-toggle-pw,
+        .auth-toggle-pw .eye-pupil,
+        .auth-toggle-pw .eye-slash {
+            transition: none;
+        }
+        .auth-toggle-pw.is-animating svg { animation: none; }
     }
 </style>
 
@@ -693,7 +881,7 @@
                                     <label for="auth-password">Password</label>
                                     <div class="auth-input-wrap">
                                         <input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
-                                        <button type="button" class="auth-toggle-pw" data-target="auth-password" aria-label="Show password">…</button>
+                                        <button type="button" class="auth-toggle-pw" data-target="auth-password" aria-label="Show password" aria-pressed="false">…</button>
                                     </div>
                                 </div>
                                 <div class="auth-forgot"><button type="button" class="js-auth-show-forgot">Forgot password?</button></div>
@@ -703,16 +891,16 @@
 
                         <div class="auth-login-view" data-login-view="forgot-flow" role="tabpanel">
                             <h2 id="auth-forgot-title">Forgot password</h2>
-                            <p class="auth-sub">Enter your email, tap <strong style="color:#e5e7eb;font-weight:600">Send</strong>, then enter the code we send (demo).</p>
-                            <p class="auth-forgot-demo">Demo only — no real email. Any 6-digit code works.</p>
+                            <p class="auth-sub" id="auth-forgot-subtext">Enter your email, tap <strong style="color:#e5e7eb;font-weight:600">Send</strong>, then enter the code.</p>
+                            <p class="auth-forgot-demo" id="auth-forgot-format-hint"></p>
                             <p class="auth-sub auth-forgot-sent" id="auth-forgot-code-sent" aria-live="polite"></p>
 
                             <div id="auth-forgot-card">
                                 <div class="auth-field">
-                                    <label for="auth-forgot-email">Email</label>
+                                    <label for="auth-forgot-identifier" id="auth-forgot-identifier-label">Email</label>
                                     <div class="auth-inline-row">
                                         <div class="auth-input-wrap">
-                                            <input id="auth-forgot-email" type="email" autocomplete="email" placeholder="you@example.com" required>
+                                            <input id="auth-forgot-identifier" type="email" autocomplete="email" placeholder="you@example.com" required>
                                         </div>
                                         <button type="button" class="auth-inline-btn js-forgot-send-code">Send</button>
                                     </div>
@@ -731,6 +919,7 @@
                                 </div>
                             </div>
 
+                            <div class="auth-back-row"><button type="button" class="auth-back-link js-forgot-toggle-channel">Use phone number instead</button></div>
                             <div class="auth-back-row"><button type="button" class="auth-back-link js-forgot-to-login">← Back to log in</button></div>
                         </div>
 
@@ -741,14 +930,14 @@
                                 <label for="auth-forgot-new-pw">New password</label>
                                 <div class="auth-input-wrap">
                                     <input id="auth-forgot-new-pw" type="password" autocomplete="new-password" placeholder="••••••••" required minlength="8">
-                                    <button type="button" class="auth-toggle-pw" data-target="auth-forgot-new-pw" aria-label="Show password">…</button>
+                                    <button type="button" class="auth-toggle-pw" data-target="auth-forgot-new-pw" aria-label="Show password" aria-pressed="false">…</button>
                                 </div>
                             </div>
                             <div class="auth-field">
                                 <label for="auth-forgot-new-pw2">Confirm password</label>
                                 <div class="auth-input-wrap">
                                     <input id="auth-forgot-new-pw2" type="password" autocomplete="new-password" placeholder="••••••••" required minlength="8">
-                                    <button type="button" class="auth-toggle-pw" data-target="auth-forgot-new-pw2" aria-label="Show password">…</button>
+                                    <button type="button" class="auth-toggle-pw" data-target="auth-forgot-new-pw2" aria-label="Show password" aria-pressed="false">…</button>
                                 </div>
                             </div>
                             <p class="auth-forgot-demo" id="auth-forgot-pw-hint" style="display:none;color:#f87171;">Passwords must match.</p>
@@ -760,7 +949,7 @@
                             <div class="auth-success-block">
                                 <div class="auth-success-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
                                 <h2 id="auth-forgot-done-title">Password updated</h2>
-                                <p>You’re all set. Your password was reset (demo — nothing was saved).</p>
+                                <p>You’re all set. Your password has been reset.</p>
                                 <button type="button" class="auth-submit js-forgot-to-login">Back to log in</button>
                             </div>
                         </div>
@@ -826,15 +1015,27 @@
                                 </div>
                                 <div class="auth-field">
                                     <label for="auth-reg-phone">Phone number</label>
-                                    <div class="auth-input-wrap">
-                                        <input id="auth-reg-phone" name="phone" type="tel" autocomplete="tel" placeholder="09123456789" inputmode="numeric" required>
+                                    <input type="hidden" name="phone" id="auth-reg-phone" value="+63">
+                                    <div class="auth-phone-wrap">
+                                        <span class="auth-phone-prefix">+63</span>
+                                        <input id="auth-reg-phone-local" type="tel" autocomplete="tel-national" placeholder="9XXXXXXXXX" pattern="^9\d{9}$" maxlength="10" inputmode="numeric" title="Enter 10 digits starting with 9" required>
                                     </div>
                                 </div>
                                 <div class="auth-field">
                                     <label for="auth-reg-password">Password</label>
                                     <div class="auth-input-wrap">
                                         <input id="auth-reg-password" name="password" type="password" autocomplete="new-password" placeholder="••••••••" required minlength="8">
-                                        <button type="button" class="auth-toggle-pw" data-target="auth-reg-password" aria-label="Show password">…</button>
+                                        <button type="button" class="auth-toggle-pw" data-target="auth-reg-password" aria-label="Show password" aria-pressed="false">…</button>
+                                    </div>
+                                    <div class="auth-password-meter" id="auth-password-meter" aria-live="polite">
+                                        <div class="auth-password-meter__head">
+                                            <span class="auth-password-meter__label">Password strength:</span>
+                                            <span class="auth-password-meter__value" id="auth-password-meter-value">Enter password</span>
+                                        </div>
+                                        <div class="auth-password-meter__track" aria-hidden="true">
+                                            <div class="auth-password-meter__fill" id="auth-password-meter-fill"></div>
+                                        </div>
+                                        <p class="auth-password-meter__hint" id="auth-password-meter-hint">Use 8+ chars with letters, numbers, and symbols.</p>
                                     </div>
                                 </div>
                                 <label class="auth-checkbox-row">
@@ -847,22 +1048,43 @@
                         
                         <div class="auth-login-view" data-login-view="register-verify" role="tabpanel">
                             <button type="button" class="auth-close js-auth-close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-                            <h2>Verify your email</h2>
-                            <p class="auth-sub" style="margin-bottom:0.5rem">We sent a 6-digit code to <strong id="verify-email-display" style="color:#fff"></strong>.</p>
-                            <p class="auth-sub">Please enter it below to complete registration.</p>
+                            <h2>Verify your account</h2>
+                            <p class="auth-sub" style="margin-bottom:0.5rem">Choose where to send your 6-digit code.</p>
+                            <p class="auth-sub">Destination: <strong id="verify-destination-display" style="color:#fff"></strong></p>
 
                             <div class="auth-errors" id="verify-errors" style="display:none;" role="alert"><ul></ul></div>
+
+                            <fieldset class="auth-channel-choice">
+                                <legend>Send code via</legend>
+                                <label>
+                                    <input type="radio" name="verify_channel_pick" value="email" checked>
+                                    <span>Email (<span id="verify-email-display"></span>)</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="verify_channel_pick" value="sms">
+                                    <span>Phone (<span id="verify-phone-display"></span>)</span>
+                                </label>
+                            </fieldset>
+                            <div class="auth-send-code-row">
+                                <button type="button" class="auth-send-code-btn" id="btn-send-verify-code">Send code</button>
+                                <p class="auth-send-code-status" id="verify-send-status"></p>
+                            </div>
+                            <p class="auth-verify-note" id="verify-channel-note">
+                                <strong>Recommendation:</strong> Use email for faster verification. SMS may be delayed by carrier traffic, network signal, or OTP filtering.
+                            </p>
 
                             <form id="auth-verify-form">
                                 @csrf
                                 <input type="hidden" name="email" id="verify-email-input">
+                                <input type="hidden" name="phone" id="verify-phone-input">
+                                <input type="hidden" name="channel" id="verify-channel-input" value="email">
                                 <div class="auth-field">
                                     <label for="auth-verify-code">Verification code</label>
                                     <div class="auth-input-wrap">
                                         <input id="auth-verify-code" name="code" class="auth-code-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" autocomplete="one-time-code" required>
                                     </div>
                                 </div>
-                                <button type="submit" class="auth-submit" id="btn-verify-submit" style="margin-top:0.75rem">Verify & Login</button>
+                                <button type="submit" class="auth-submit" id="btn-verify-submit" style="margin-top:0.75rem" disabled>Verify & Login</button>
                             </form>
                         </div>
                     </div>
@@ -902,7 +1124,7 @@
             sent.classList.remove('is-visible');
             sent.textContent = '';
         }
-        var fe = document.getElementById('auth-forgot-email');
+        var fe = document.getElementById('auth-forgot-identifier');
         var fc = document.getElementById('auth-forgot-code');
         var np = document.getElementById('auth-forgot-new-pw');
         var np2 = document.getElementById('auth-forgot-new-pw2');
@@ -912,6 +1134,7 @@
         if (np2) np2.value = '';
         var hint = document.getElementById('auth-forgot-pw-hint');
         if (hint) hint.style.display = 'none';
+        applyForgotChannel('email');
     }
 
     function resetLoginViews() {
@@ -929,6 +1152,43 @@
         return show + d;
     }
 
+    function maskPhone(phone) {
+        var digits = (phone || '').replace(/\D/g, '');
+        if (digits.length < 8) return phone || '';
+        var tail = digits.slice(-4);
+        return '••••••' + tail;
+    }
+
+    var forgotChannel = 'email';
+    function applyForgotChannel(channel) {
+        forgotChannel = channel === 'sms' ? 'sms' : 'email';
+        var input = document.getElementById('auth-forgot-identifier');
+        var label = document.getElementById('auth-forgot-identifier-label');
+        var sub = document.getElementById('auth-forgot-subtext');
+        var hint = document.getElementById('auth-forgot-format-hint');
+        var toggleBtn = modal.querySelector('.js-forgot-toggle-channel');
+        if (!input || !label || !sub || !hint || !toggleBtn) return;
+
+        input.value = '';
+        if (forgotChannel === 'sms') {
+            label.textContent = 'Phone number';
+            input.type = 'tel';
+            input.autocomplete = 'tel';
+            input.placeholder = '+639123456789';
+            sub.innerHTML = 'Enter your phone number, tap <strong style="color:#e5e7eb;font-weight:600">Send</strong>, then enter the SMS code.';
+            hint.textContent = 'Use PH format: +639XXXXXXXXX';
+            toggleBtn.textContent = 'Use email instead';
+        } else {
+            label.textContent = 'Email';
+            input.type = 'email';
+            input.autocomplete = 'email';
+            input.placeholder = 'you@example.com';
+            sub.innerHTML = 'Enter your email, tap <strong style="color:#e5e7eb;font-weight:600">Send</strong>, then enter the code.';
+            hint.textContent = '';
+            toggleBtn.textContent = 'Use phone number instead';
+        }
+    }
+
     function openModal(mode) {
         modal.setAttribute('aria-hidden', 'false');
         modal.setAttribute('data-mode', mode === 'register' ? 'register' : 'login');
@@ -943,6 +1203,7 @@
         modal.setAttribute('data-mode', 'login');
         document.body.style.overflow = '';
         stopSlideshowTimers();
+        clearVerifyCooldown();
         resetLoginViews();
     }
 
@@ -1043,13 +1304,21 @@
     modal.querySelectorAll('.auth-toggle-pw').forEach(function (btn) {
         var id = btn.getAttribute('data-target');
         if (!id) return;
-        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle class="eye-pupil" cx="12" cy="12" r="3"/><path class="eye-slash" d="M4 4l16 16" stroke-linecap="round"/></svg>';
         btn.addEventListener('click', function () {
             var input = document.getElementById(id);
             if (!input) return;
             var show = input.type === 'password';
             input.type = show ? 'text' : 'password';
+            btn.classList.toggle('is-showing', show);
+            btn.classList.remove('is-animating');
+            void btn.offsetWidth;
+            btn.classList.add('is-animating');
             btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+        });
+        btn.addEventListener('animationend', function () {
+            btn.classList.remove('is-animating');
         });
     });
 
@@ -1063,18 +1332,72 @@
     var btnSend = modal.querySelector('.js-forgot-send-code');
     if (btnSend) {
         btnSend.addEventListener('click', function () {
-            var inp = document.getElementById('auth-forgot-email');
-            if (!inp || !inp.checkValidity()) {
-                if (inp) inp.reportValidity();
+            var inp = document.getElementById('auth-forgot-identifier');
+            var value = inp ? inp.value.trim() : '';
+            if (!inp) return;
+            if (forgotChannel === 'sms' && !/^\+639\d{9}$/.test(value)) {
+                inp.setCustomValidity('Use format +639XXXXXXXXX.');
+                inp.reportValidity();
+                inp.setCustomValidity('');
                 return;
             }
-            var sent = document.getElementById('auth-forgot-code-sent');
-            if (sent) {
-                sent.textContent = 'Code sent to ' + maskEmail(inp.value.trim()) + ' (demo).';
-                sent.classList.add('is-visible');
+            if (forgotChannel === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                inp.setCustomValidity('Enter a valid email address.');
+                inp.reportValidity();
+                inp.setCustomValidity('');
+                return;
             }
-            var cb = document.getElementById('auth-forgot-code-block');
-            if (cb) cb.classList.add('is-open');
+
+            btnSend.disabled = true;
+            var oldText = btnSend.textContent;
+            btnSend.textContent = 'Sending...';
+
+            var tokenInput = modal.querySelector('#auth-login-form input[name="_token"]');
+            var fd = new FormData();
+            fd.append('_token', tokenInput ? tokenInput.value : '');
+            fd.append('channel', forgotChannel);
+            if (forgotChannel === 'sms') {
+                fd.append('phone', value);
+            } else {
+                fd.append('email', value);
+            }
+
+            fetch(@json(url('/forgot-password/send-code')), {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: fd
+            }).then(function (r) {
+                return r.json().then(function (data) {
+                    return { status: r.status, body: data };
+                });
+            }).then(function (res) {
+                btnSend.disabled = false;
+                btnSend.textContent = oldText;
+                var sent = document.getElementById('auth-forgot-code-sent');
+                if (res.status === 200 && res.body.success) {
+                    if (sent) {
+                        sent.textContent = forgotChannel === 'sms'
+                            ? ('Code sent to ' + maskPhone(value) + '.')
+                            : ('Code sent to ' + maskEmail(value) + '.');
+                        sent.classList.add('is-visible');
+                    }
+                    var cb = document.getElementById('auth-forgot-code-block');
+                    if (cb) cb.classList.add('is-open');
+                    return;
+                }
+                if (sent) {
+                    sent.textContent = res.body.message || 'Could not send code.';
+                    sent.classList.add('is-visible');
+                }
+            }).catch(function () {
+                btnSend.disabled = false;
+                btnSend.textContent = oldText;
+                var sent = document.getElementById('auth-forgot-code-sent');
+                if (sent) {
+                    sent.textContent = 'Could not send code right now.';
+                    sent.classList.add('is-visible');
+                }
+            });
         });
     }
     var btnVerify = modal.querySelector('.js-forgot-verify-code');
@@ -1092,13 +1415,21 @@
             showLoginView('forgot-reset');
         });
     }
+    var btnForgotToggle = modal.querySelector('.js-forgot-toggle-channel');
+    if (btnForgotToggle) {
+        btnForgotToggle.addEventListener('click', function () {
+            applyForgotChannel(forgotChannel === 'email' ? 'sms' : 'email');
+        });
+    }
     var btnSavePw = modal.querySelector('.js-forgot-save-password');
     if (btnSavePw) {
         btnSavePw.addEventListener('click', function () {
             var a = document.getElementById('auth-forgot-new-pw');
             var b = document.getElementById('auth-forgot-new-pw2');
+            var identifierInput = document.getElementById('auth-forgot-identifier');
+            var codeInput = document.getElementById('auth-forgot-code');
             var hint = document.getElementById('auth-forgot-pw-hint');
-            if (!a || !b) return;
+            if (!a || !b || !identifierInput || !codeInput) return;
             if (!a.checkValidity() || !b.checkValidity()) {
                 a.reportValidity();
                 return;
@@ -1107,8 +1438,72 @@
                 if (hint) hint.style.display = 'block';
                 return;
             }
+            var identifierValue = identifierInput.value.trim();
+            var codeValue = codeInput.value.replace(/\s/g, '');
+            if (forgotChannel === 'sms' && !/^\+639\d{9}$/.test(identifierValue)) {
+                identifierInput.setCustomValidity('Use format +639XXXXXXXXX.');
+                identifierInput.reportValidity();
+                identifierInput.setCustomValidity('');
+                return;
+            }
+            if (forgotChannel === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifierValue)) {
+                identifierInput.setCustomValidity('Enter a valid email address.');
+                identifierInput.reportValidity();
+                identifierInput.setCustomValidity('');
+                return;
+            }
+            if (!/^\d{6}$/.test(codeValue)) {
+                codeInput.setCustomValidity('Enter the 6-digit code.');
+                codeInput.reportValidity();
+                codeInput.setCustomValidity('');
+                return;
+            }
+
             if (hint) hint.style.display = 'none';
-            showLoginView('forgot-done');
+            btnSavePw.disabled = true;
+            var oldText = btnSavePw.textContent;
+            btnSavePw.textContent = 'Updating...';
+
+            var tokenInput = modal.querySelector('#auth-login-form input[name="_token"]');
+            var fd = new FormData();
+            fd.append('_token', tokenInput ? tokenInput.value : '');
+            fd.append('channel', forgotChannel);
+            if (forgotChannel === 'sms') {
+                fd.append('phone', identifierValue);
+            } else {
+                fd.append('email', identifierValue);
+            }
+            fd.append('code', codeValue);
+            fd.append('password', a.value);
+            fd.append('password_confirmation', b.value);
+
+            fetch(@json(url('/forgot-password/reset')), {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: fd
+            }).then(function (r) {
+                return r.json().then(function (data) {
+                    return { status: r.status, body: data };
+                });
+            }).then(function (res) {
+                btnSavePw.disabled = false;
+                btnSavePw.textContent = oldText;
+                if (res.status === 200 && res.body.success) {
+                    showLoginView('forgot-done');
+                    return;
+                }
+                if (hint) {
+                    hint.textContent = res.body.message || 'Could not update password.';
+                    hint.style.display = 'block';
+                }
+            }).catch(function () {
+                btnSavePw.disabled = false;
+                btnSavePw.textContent = oldText;
+                if (hint) {
+                    hint.textContent = 'Could not update password right now.';
+                    hint.style.display = 'block';
+                }
+            });
         });
     }
     modal.querySelectorAll('.js-forgot-to-login').forEach(function (btn) {
@@ -1198,6 +1593,86 @@
 
     var cbConfirm = document.getElementById('auth-reg-confirm');
     var btnReg = document.getElementById('btn-register-submit');
+    var registerPasswordInput = document.getElementById('auth-reg-password');
+    var passwordMeter = document.getElementById('auth-password-meter');
+    var passwordMeterValue = document.getElementById('auth-password-meter-value');
+    var passwordMeterFill = document.getElementById('auth-password-meter-fill');
+    var passwordMeterHint = document.getElementById('auth-password-meter-hint');
+
+    function scorePassword(value) {
+        var hasLower = /[a-z]/.test(value);
+        var hasUpper = /[A-Z]/.test(value);
+        var hasDigit = /\d/.test(value);
+        var hasSymbol = /[^A-Za-z0-9]/.test(value);
+        var longEnough = value.length >= 8;
+        var veryLong = value.length >= 12;
+        var variety = 0;
+        if (hasLower) variety++;
+        if (hasUpper) variety++;
+        if (hasDigit) variety++;
+        if (hasSymbol) variety++;
+
+        var score = 0;
+        if (longEnough) score += 1;
+        score += Math.min(variety, 3);
+        if (veryLong && variety >= 3) score += 1;
+
+        return {
+            score: Math.max(0, Math.min(score, 5)),
+            hasLower: hasLower,
+            hasUpper: hasUpper,
+            hasDigit: hasDigit,
+            hasSymbol: hasSymbol,
+            longEnough: longEnough
+        };
+    }
+
+    function renderPasswordMeter() {
+        if (!registerPasswordInput || !passwordMeter || !passwordMeterValue || !passwordMeterFill || !passwordMeterHint) return;
+
+        var value = registerPasswordInput.value || '';
+        var details = scorePassword(value);
+
+        passwordMeter.classList.remove('is-weak', 'is-medium', 'is-strong');
+
+        if (!value.length) {
+            passwordMeterValue.textContent = 'Enter password';
+            passwordMeterHint.textContent = 'Use 8+ chars with letters, numbers, and symbols.';
+            passwordMeterFill.style.width = '0%';
+            passwordMeterFill.style.backgroundColor = '#6b7280';
+            return;
+        }
+
+        var percent = details.score * 20;
+        passwordMeterFill.style.width = percent + '%';
+
+        if (!details.longEnough || details.score <= 2) {
+            passwordMeter.classList.add('is-weak');
+            passwordMeterValue.textContent = 'Weak';
+            passwordMeterHint.textContent = 'Add at least 8 chars and mix letters, numbers, and symbols.';
+            passwordMeterFill.style.backgroundColor = '#ef4444';
+            return;
+        }
+
+        if (details.score <= 3) {
+            passwordMeter.classList.add('is-medium');
+            passwordMeterValue.textContent = 'Medium';
+            passwordMeterHint.textContent = 'Good start. Add uppercase letters or symbols to make it stronger.';
+            passwordMeterFill.style.backgroundColor = '#f59e0b';
+            return;
+        }
+
+        passwordMeter.classList.add('is-strong');
+        passwordMeterValue.textContent = 'Strong';
+        passwordMeterHint.textContent = 'Great password strength.';
+        passwordMeterFill.style.backgroundColor = '#10b981';
+    }
+
+    if (registerPasswordInput) {
+        registerPasswordInput.addEventListener('input', renderPasswordMeter);
+        renderPasswordMeter();
+    }
+
     if (cbConfirm && btnReg) {
         cbConfirm.addEventListener('change', function() {
             btnReg.disabled = !this.checked;
@@ -1206,11 +1681,167 @@
 
 
     var registerForm = document.getElementById('auth-register-form');
+    var registerPhoneFullInput = document.getElementById('auth-reg-phone');
+    var registerPhoneLocalInput = document.getElementById('auth-reg-phone-local');
+    var btnSendVerifyCode = document.getElementById('btn-send-verify-code');
+    var verifySendStatus = document.getElementById('verify-send-status');
+    var verifyChannelInput = document.getElementById('verify-channel-input');
+    var verifyDestinationDisplay = document.getElementById('verify-destination-display');
+    var verifyEmailInput = document.getElementById('verify-email-input');
+    var verifyPhoneInput = document.getElementById('verify-phone-input');
+    var verifyCodeInput = document.getElementById('auth-verify-code');
+    var btnVerifySubmit = document.getElementById('btn-verify-submit');
+    var verifyEmailDisplay = document.getElementById('verify-email-display');
+    var verifyPhoneDisplay = document.getElementById('verify-phone-display');
+    var verifyChannelNote = document.getElementById('verify-channel-note');
+    var verifyChannelRadios = modal.querySelectorAll('input[name="verify_channel_pick"]');
+    var hasSentVerificationCode = false;
+    var verifyCooldownTimer = null;
+    var verifyCooldownRemaining = 0;
+
+    function clearVerifyCooldown() {
+        if (verifyCooldownTimer) {
+            clearInterval(verifyCooldownTimer);
+            verifyCooldownTimer = null;
+        }
+        verifyCooldownRemaining = 0;
+        if (btnSendVerifyCode) {
+            btnSendVerifyCode.disabled = false;
+            btnSendVerifyCode.textContent = 'Send code';
+        }
+    }
+
+    function startVerifyCooldown(seconds) {
+        clearVerifyCooldown();
+        verifyCooldownRemaining = Number(seconds) || 60;
+        if (!btnSendVerifyCode) return;
+        btnSendVerifyCode.disabled = true;
+        btnSendVerifyCode.textContent = 'Send again in ' + verifyCooldownRemaining + 's';
+        verifyCooldownTimer = setInterval(function () {
+            verifyCooldownRemaining -= 1;
+            if (verifyCooldownRemaining <= 0) {
+                clearVerifyCooldown();
+                return;
+            }
+            btnSendVerifyCode.textContent = 'Send again in ' + verifyCooldownRemaining + 's';
+        }, 1000);
+    }
+
+    function refreshVerifySubmitState() {
+        if (!btnVerifySubmit) return;
+        var codeValue = verifyCodeInput ? verifyCodeInput.value.replace(/\s/g, '') : '';
+        var codeLooksValid = /^\d{6}$/.test(codeValue);
+        btnVerifySubmit.disabled = !(hasSentVerificationCode && codeLooksValid);
+    }
+
+    if (verifyCodeInput) {
+        verifyCodeInput.addEventListener('input', refreshVerifySubmitState);
+    }
+
+    function selectedVerifyChannel() {
+        var checked = modal.querySelector('input[name="verify_channel_pick"]:checked');
+        return checked ? checked.value : 'email';
+    }
+
+    function syncVerifyChannelUI() {
+        var channel = selectedVerifyChannel();
+        if (verifyChannelInput) verifyChannelInput.value = channel;
+        if (verifyDestinationDisplay) {
+            verifyDestinationDisplay.textContent = channel === 'sms'
+                ? (verifyPhoneDisplay ? verifyPhoneDisplay.textContent : '')
+                : (verifyEmailDisplay ? verifyEmailDisplay.textContent : '');
+        }
+        if (verifyChannelNote) {
+            verifyChannelNote.innerHTML = channel === 'sms'
+                ? '<strong>SMS note:</strong> Delivery can take longer due to carrier routing, weak signal, or temporary network congestion. If delayed, switch to email for faster verification.'
+                : '<strong>Recommendation:</strong> Email is usually the fastest for verification. Use SMS as backup when needed.';
+        }
+        if (verifySendStatus && verifySendStatus.textContent) {
+            verifySendStatus.textContent = '';
+        }
+        refreshVerifySubmitState();
+    }
+
+    verifyChannelRadios.forEach(function (radio) {
+        radio.addEventListener('change', syncVerifyChannelUI);
+    });
+
+    if (btnSendVerifyCode) {
+        btnSendVerifyCode.addEventListener('click', function () {
+            if (!verifyEmailInput || !verifyEmailInput.value) return;
+
+            var channel = selectedVerifyChannel();
+            if (verifyChannelInput) verifyChannelInput.value = channel;
+
+            btnSendVerifyCode.disabled = true;
+            var original = btnSendVerifyCode.textContent;
+            btnSendVerifyCode.textContent = 'Sending...';
+            if (verifySendStatus) verifySendStatus.textContent = '';
+
+            var fd = new FormData();
+            fd.append('_token', modal.querySelector('#auth-verify-form input[name="_token"]').value);
+            fd.append('email', verifyEmailInput.value);
+            fd.append('channel', channel);
+
+            fetch(@json(url('/verification/send-code')), {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: fd
+            }).then(r => r.json().then(data => ({status: r.status, body: data})))
+              .then(function (res) {
+                  if (res.status === 200 && res.body.success) {
+                      hasSentVerificationCode = true;
+                      refreshVerifySubmitState();
+                      if (verifySendStatus) verifySendStatus.textContent = res.body.message || 'Code sent.';
+                      startVerifyCooldown(res.body.cooldown_seconds || 60);
+                      return;
+                  }
+                  btnSendVerifyCode.disabled = false;
+                  btnSendVerifyCode.textContent = original;
+                  if (res.status === 429 && res.body && typeof res.body.seconds_remaining !== 'undefined') {
+                      if (verifySendStatus) verifySendStatus.textContent = res.body.message || 'Please wait before sending again.';
+                      startVerifyCooldown(res.body.seconds_remaining);
+                      return;
+                  }
+                  refreshVerifySubmitState();
+                  handleFormErrors('auth-verify-form', res.body || {message: 'Could not send code.'});
+              }).catch(function () {
+                  btnSendVerifyCode.disabled = false;
+                  btnSendVerifyCode.textContent = original;
+                  refreshVerifySubmitState();
+                  if (verifySendStatus) verifySendStatus.textContent = 'Could not send code right now.';
+              });
+        });
+    }
+
+    if (registerPhoneLocalInput) {
+        registerPhoneLocalInput.addEventListener('input', function () {
+            var digits = registerPhoneLocalInput.value.replace(/\D/g, '').slice(0, 10);
+            registerPhoneLocalInput.value = digits;
+        });
+    }
+
     if (registerForm) {
         registerForm.addEventListener('submit', function(e) {
             e.preventDefault();
             var errContainer = document.getElementById('register-errors');
             if (errContainer) errContainer.style.display = 'none';
+
+            if (!registerPhoneLocalInput || !registerPhoneFullInput) {
+                handleFormErrors('auth-register-form', { message: 'Phone number input is not ready. Please refresh and try again.' });
+                return;
+            }
+
+            var localDigits = registerPhoneLocalInput.value.replace(/\D/g, '').slice(0, 10);
+            registerPhoneLocalInput.value = localDigits;
+            if (!/^9\d{9}$/.test(localDigits)) {
+                registerPhoneLocalInput.setCustomValidity('Enter a valid PH mobile number starting with 9.');
+                registerPhoneLocalInput.reportValidity();
+                registerPhoneLocalInput.setCustomValidity('');
+                return;
+            }
+
+            registerPhoneFullInput.value = '+63' + localDigits;
 
             var originalText = btnReg.textContent;
             btnReg.textContent = 'Sending code...';
@@ -1226,8 +1857,15 @@
                   btnReg.textContent = originalText;
                   btnReg.disabled = false;
                   if (res.status === 200 && res.body.success) {
-                      document.getElementById('verify-email-display').textContent = res.body.email;
-                      document.getElementById('verify-email-input').value = res.body.email;
+                      if (verifyEmailDisplay) verifyEmailDisplay.textContent = maskEmail(res.body.email || '');
+                      if (verifyPhoneDisplay) verifyPhoneDisplay.textContent = maskPhone(res.body.phone || '');
+                      if (verifyEmailInput) verifyEmailInput.value = res.body.email || '';
+                      if (verifyPhoneInput) verifyPhoneInput.value = res.body.phone || '';
+                      if (verifyCodeInput) verifyCodeInput.value = '';
+                      hasSentVerificationCode = false;
+                      clearVerifyCooldown();
+                      syncVerifyChannelUI();
+                      refreshVerifySubmitState();
                       showLoginView('register-verify');
                   } else {
                       handleFormErrors('auth-register-form', res.body);

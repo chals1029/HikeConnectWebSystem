@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HikerDashboardController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\TourGuideDashboardController;
 
 Route::get('/', function () {
@@ -29,6 +30,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/hikers/profile/password', [HikerDashboardController::class, 'updatePasswordWithCode'])->name('hikers.profile.password.update');
     Route::post('/hikers/achievements/{achievement}/claim', [HikerDashboardController::class, 'claimAchievement'])->name('hikers.achievements.claim');
     Route::post('/hikers/location', [HikerDashboardController::class, 'recordLocation'])->name('hikers.location.record');
+    Route::post('/hikers/sos', [HikerDashboardController::class, 'triggerSos'])->name('hikers.sos.trigger');
+    Route::post('/hikers/experience-feedback', [HikerDashboardController::class, 'storeExperienceFeedback'])->name('hikers.experience-feedback.store');
 });
 
 // Authenticated Tour Guide Dashboard
@@ -40,6 +43,8 @@ Route::middleware(['auth', 'tour_guide'])->group(function () {
     Route::post('/tour-guide/availability', [TourGuideDashboardController::class, 'updateAvailability'])->name('tour-guide.availability');
     Route::post('/tour-guide/profile', [TourGuideDashboardController::class, 'updateProfile'])->name('tour-guide.profile.update');
     Route::post('/tour-guide/profile/picture', [TourGuideDashboardController::class, 'updateProfilePicture'])->name('tour-guide.profile.picture');
+    Route::get('/tour-guide/sos-alerts', [TourGuideDashboardController::class, 'sosAlerts'])->name('tour-guide.sos-alerts.index');
+    Route::patch('/tour-guide/sos-alerts/{alert}/acknowledge', [TourGuideDashboardController::class, 'acknowledgeSosAlert'])->name('tour-guide.sos-alerts.acknowledge');
 });
 
 // Authenticated Admin Dashboard
@@ -55,8 +60,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/hikers/{hiker}', [AdminController::class, 'showHiker'])->name('hikers.show');
     Route::delete('/hikers/{hiker}', [AdminController::class, 'suspendHiker'])->name('hikers.destroy');
+    Route::patch('/mountains/{mountain}/safety', [AdminController::class, 'updateMountainSafety'])->name('mountains.safety.update');
 
     Route::get('/live-locations', [AdminController::class, 'liveLocations'])->name('live-locations');
+    Route::get('/sos-alerts', [AdminController::class, 'sosAlerts'])->name('sos-alerts.index');
+    Route::patch('/sos-alerts/{alert}', [AdminController::class, 'updateSosAlert'])->name('sos-alerts.update');
     Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs');
 });
 
@@ -74,5 +82,9 @@ Route::middleware('guest')->group(function () {
 // Authentication Routes
 Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
 Route::post('/register', [AuthController::class, 'register'])->name('register.attempt');
+Route::post('/verification/send-code', [AuthController::class, 'sendVerificationCode'])->name('verification.send-code');
 Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verify.attempt');
+Route::post('/forgot-password/send-code', [AuthController::class, 'sendForgotPasswordCode'])->name('forgot-password.send-code');
+Route::post('/forgot-password/reset', [AuthController::class, 'resetForgotPassword'])->name('forgot-password.reset');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'store'])->name('newsletter.subscribe');

@@ -16,6 +16,7 @@
 /* Reuse hiker shell (sidebar / layout / cards / typography / theme) */
 @import './hikers-dashboard.css';
 @import './hikers-dashboard-extra.css';
+@import './dashboard-overview.css';
 
 /* ============================================================
  * Tour-guide-specific additions on top of the hiker shell

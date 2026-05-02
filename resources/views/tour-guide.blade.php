@@ -47,7 +47,7 @@
 
                 <div class="search-box">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" placeholder="Search bookings..." aria-label="Search">
+                    <input type="text" id="tour-guide-global-search" placeholder="Search guide side..." aria-label="Search tour guide side">
                 </div>
 
                 <div class="menu-title">Menu</div>
@@ -59,6 +59,11 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path></svg>
                     <span class="menu-text">Bookings</span>
                     @if($pending->count() > 0)<span class="menu-badge">{{ $pending->count() }}</span>@endif
+                </a>
+                <a href="#safety" class="menu-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+                    <span class="menu-text">Safety Alerts</span>
+                    @if($sosAlerts->where('status', \App\Models\SosAlert::STATUS_OPEN)->count() > 0)<span class="menu-badge" style="background:#fee2e2;color:#991b1b;">{{ $sosAlerts->where('status', \App\Models\SosAlert::STATUS_OPEN)->count() }}</span>@endif
                 </a>
                 <a href="#hikers" class="menu-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -137,97 +142,215 @@
                 </button>
             </div>
 
+            @if(session('guide_status'))
+                <div class="dashboard-card" style="margin-bottom:16px;border:1px solid #d1fae5;background:linear-gradient(180deg,#ecfdf5,var(--panel));">
+                    <strong style="color:#047857;">{{ session('guide_status') }}</strong>
+                </div>
+            @endif
+
             {{-- ============== OVERVIEW ============== --}}
             <div class="view-section active" id="view-dashboard">
-                <header class="dashboard-header">
-                    <div class="tg-topbar">
-                        <div>
-                            <h2>Welcome back, {{ $guide->first_name }}! <iconify-icon icon="lucide:compass" style="color:#10b981;font-size:24px;vertical-align:text-bottom;margin-left:4px;"></iconify-icon></h2>
-                            <p>{{ $guide->specialty }} &middot; {{ $guide->experience_years }} {{ Str::plural('year', $guide->experience_years) }} guiding @if($guide->mountain) &middot; {{ $guide->mountain->name }} @endif</p>
-                        </div>
-                        <form id="availability-form" class="tg-availability" data-status="{{ $guide->status }}">
-                            @csrf
-                            <span class="tg-availability-dot"></span>
-                            <span class="tg-availability-label">Status</span>
-                            <select id="tgAvail" name="status">
-                                @foreach ($statusOptions as $val => $label)
-                                    <option value="{{ $val }}" @selected($guide->status === $val)>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </form>
-                    </div>
-                </header>
+                @php
+                    $today      = today();
+                    $todayHikes = collect($approved)->merge($pending)->filter(fn ($b) => $b->hike_on && $b->hike_on->isSameDay($today));
+                    $weekStart  = $today->copy()->startOfWeek();
+                    $weekHikes  = collect($completed)->merge($approved)->merge($pending)
+                                    ->filter(fn ($b) => $b->hike_on && $b->hike_on->gte($weekStart) && $b->hike_on->lte($today->copy()->endOfWeek()));
+                    $rating     = $stats['rating'];
+                    $ratingFull = (int) floor($rating ?? 0);
+                    $ratingHalf = ($rating !== null) && (($rating - $ratingFull) >= 0.25) && (($rating - $ratingFull) < 0.75);
+                    $ratingEmpty= 5 - $ratingFull - ($ratingHalf ? 1 : 0);
+                @endphp
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon green">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path></svg>
+                {{-- HERO --}}
+                <section class="hc-hero">
+                    <div class="hc-hero-row">
+                        <div>
+                            <span class="hc-hero-eyebrow">
+                                <iconify-icon icon="lucide:compass"></iconify-icon>
+                                Tour Guide &middot; {{ now()->format('l, M j, Y') }}
+                            </span>
+                            <h1>Welcome back, <span class="hc-hero-name">{{ $guide->first_name }}</span></h1>
+                            <p>
+                                {{ $guide->specialty }} &middot; {{ $guide->experience_years }} {{ Str::plural('year', $guide->experience_years) }} guiding
+                                @if($guide->mountain) &middot; based at {{ $guide->mountain->name }} @endif
+                            </p>
+                            @if($rating !== null)
+                                <div class="hc-hero-rating">
+                                    <span class="stars" aria-hidden="true">
+                                        {{ str_repeat('★', $ratingFull) }}@if($ratingHalf)½@endif{{ str_repeat('☆', $ratingEmpty) }}
+                                    </span>
+                                    <span>{{ number_format($rating, 1) }} / 5 &middot; {{ $stats['rating_count'] }} {{ Str::plural('review', $stats['rating_count']) }}</span>
+                                </div>
+                            @endif
                         </div>
-                        <div class="stat-info">
-                            <h4>Total Bookings</h4>
-                            <div class="stat-value">{{ $stats['total_bookings'] }}</div>
+                        <div class="hc-hero-cta">
+                            @if($stats['pending'] > 0)
+                                <a href="#bookings" class="hc-chip is-amber">
+                                    <iconify-icon icon="lucide:clock-alert"></iconify-icon>
+                                    <strong>{{ $stats['pending'] }}</strong>
+                                    pending
+                                </a>
+                            @endif
+                            @if($todayHikes->isNotEmpty())
+                                <a href="#bookings" class="hc-chip is-live">
+                                    <strong>{{ $todayHikes->count() }}</strong>
+                                    {{ Str::plural('hike', $todayHikes->count()) }} today
+                                </a>
+                            @endif
+                            <form id="availability-form" class="hc-hero-status" data-status="{{ $guide->status }}">
+                                @csrf
+                                <span class="hc-dot"></span>
+                                <select id="tgAvail" name="status" aria-label="Availability status">
+                                    @foreach ($statusOptions as $val => $label)
+                                        <option value="{{ $val }}" @selected($guide->status === $val)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </form>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon orange">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </section>
+
+                {{-- TODAY ON THE TRAILS --}}
+                <section class="hc-today" aria-label="Today on the trails">
+                    <div class="hc-today-info">
+                        <div class="hc-today-title">
+                            <iconify-icon icon="lucide:sunrise"></iconify-icon>
+                            Today on the trails
                         </div>
-                        <div class="stat-info">
-                            <h4>Pending Approvals</h4>
-                            <div class="stat-value"><a href="#bookings" style="color:inherit;text-decoration:none;">{{ $stats['pending'] }}</a></div>
-                        </div>
+                        <h3 class="hc-today-h3">
+                            @if($todayHikes->isNotEmpty())
+                                {{ $todayHikes->count() }} {{ Str::plural('hike', $todayHikes->count()) }} on your roster today
+                            @elseif($upcoming)
+                                Next hike: {{ $upcoming->hike_on->format('M j') }} &middot; {{ $upcoming->mountain?->name ?? 'Mountain' }}
+                            @else
+                                No hikes scheduled — enjoy the rest day
+                            @endif
+                        </h3>
+                        <p class="hc-today-sub">
+                            @if($todayHikes->isNotEmpty())
+                                {{ (int) $todayHikes->sum('hikers_count') }} {{ Str::plural('hiker', (int) $todayHikes->sum('hikers_count')) }} relying on you today &middot; {{ $stats['pending'] }} {{ Str::plural('request', $stats['pending']) }} waiting for approval
+                            @else
+                                {{ $stats['pending'] }} {{ Str::plural('request', $stats['pending']) }} pending &middot; {{ $weekHikes->count() }} {{ Str::plural('hike', $weekHikes->count()) }} this week
+                            @endif
+                        </p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon blue">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                        </div>
-                        <div class="stat-info">
-                            <h4>Completed Hikes</h4>
-                            <div class="stat-value">{{ $stats['completed'] }}</div>
-                        </div>
+                    <div class="hc-today-stat">
+                        <div class="v live">{{ $todayHikes->count() }}</div>
+                        <div class="l">Today's hikes</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon purple">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <div class="hc-today-stat">
+                        <div class="v">{{ $stats['total_hikers_guided'] }}</div>
+                        <div class="l">Hikers guided</div>
+                    </div>
+                </section>
+
+                {{-- STAT TILES --}}
+                <div class="hc-stats">
+                    <div class="hc-stat tone-forest">
+                        <div class="hc-stat-head">
+                            <div class="hc-stat-icon"><iconify-icon icon="lucide:calendar-days"></iconify-icon></div>
+                            <span class="hc-stat-trend is-flat">All-time</span>
                         </div>
-                        <div class="stat-info">
-                            <h4>Average Rating</h4>
-                            <div class="stat-value">{{ $stats['rating'] !== null ? $stats['rating'].' / 5' : '—' }}</div>
+                        <h4 class="hc-stat-label">Total bookings</h4>
+                        <div class="hc-stat-value">{{ $stats['total_bookings'] }}</div>
+                        <div class="hc-stat-foot"><span>{{ $weekHikes->count() }} this week</span><strong>Roster</strong></div>
+                    </div>
+
+                    <div class="hc-stat tone-amber">
+                        <div class="hc-stat-head">
+                            <div class="hc-stat-icon"><iconify-icon icon="lucide:clock-alert"></iconify-icon></div>
+                            @if($stats['pending'] > 0)
+                                <span class="hc-stat-trend"><iconify-icon icon="lucide:dot"></iconify-icon> Action needed</span>
+                            @else
+                                <span class="hc-stat-trend is-flat"><iconify-icon icon="lucide:check"></iconify-icon> All clear</span>
+                            @endif
+                        </div>
+                        <h4 class="hc-stat-label">Pending approvals</h4>
+                        <div class="hc-stat-value"><a href="#bookings">{{ $stats['pending'] }}</a></div>
+                        <div class="hc-stat-foot"><span>tap to review</span><strong>Bookings →</strong></div>
+                    </div>
+
+                    <div class="hc-stat tone-leaf">
+                        <div class="hc-stat-head">
+                            <div class="hc-stat-icon"><iconify-icon icon="lucide:flag"></iconify-icon></div>
+                            <span class="hc-stat-trend is-flat">Lifetime</span>
+                        </div>
+                        <h4 class="hc-stat-label">Completed hikes</h4>
+                        <div class="hc-stat-value">{{ $stats['completed'] }}</div>
+                        <div class="hc-stat-foot"><span>{{ $stats['unique_hikers'] }} unique {{ Str::plural('hiker', $stats['unique_hikers']) }}</span><strong>Track record</strong></div>
+                    </div>
+
+                    <div class="hc-stat tone-sunrise">
+                        <div class="hc-stat-head">
+                            <div class="hc-stat-icon"><iconify-icon icon="lucide:star"></iconify-icon></div>
+                            <span class="hc-stat-trend is-flat">{{ $stats['rating_count'] }} {{ Str::plural('review', $stats['rating_count']) }}</span>
+                        </div>
+                        <h4 class="hc-stat-label">Average rating</h4>
+                        <div class="hc-stat-value">{{ $rating !== null ? number_format($rating, 1) : '—' }}<span class="hc-stat-suffix">/ 5</span></div>
+                        <div class="hc-stat-foot">
+                            <span style="color:#f59e0b;letter-spacing:1px;">{{ str_repeat('★', $ratingFull) }}<span style="opacity:0.4;">{{ str_repeat('★', 5 - $ratingFull) }}</span></span>
+                            <strong>Reviews →</strong>
                         </div>
                     </div>
                 </div>
 
-                <div class="dashboard-main-grid">
-                    <div class="dashboard-card">
-                        <div class="dashboard-card-header">
-                            <h3>Pending Approvals</h3>
-                            <a href="#bookings">View all</a>
+                {{-- NEXT HIKE + PENDING APPROVALS --}}
+                <div class="hc-row-2">
+                    <div class="hc-panel">
+                        <div class="hc-panel-head">
+                            <h3><iconify-icon icon="lucide:list-checks"></iconify-icon> Pending approvals</h3>
+                            <a href="#bookings">View all →</a>
                         </div>
-                        @include('tour-guide-partials.bookings-table', ['rows' => $pending->take(5), 'showActions' => 'pending'])
+                        @if($pending->isEmpty())
+                            <div class="hc-empty">
+                                <iconify-icon icon="lucide:check-circle-2"></iconify-icon>
+                                You're all caught up. New booking requests will land here.
+                            </div>
+                        @else
+                            @include('tour-guide-partials.bookings-table', ['rows' => $pending->take(5), 'showActions' => 'pending'])
+                        @endif
                     </div>
 
-                    <div class="dashboard-card">
-                        <div class="dashboard-card-header">
-                            <h3>Next Hike</h3>
+                    <div class="hc-panel">
+                        <div class="hc-panel-head">
+                            <h3><iconify-icon icon="lucide:mountain-snow"></iconify-icon> Next hike</h3>
+                            @if($upcoming)
+                                <span class="hc-pill">{{ $upcoming->hike_on->diffForHumans() }}</span>
+                            @endif
                         </div>
                         @if ($upcoming)
-                            <div class="upcoming-hike">
-                                <span class="upcoming-hike-date">{{ $upcoming->hike_on->format('D, M j, Y') }}</span>
-                                <h4>{{ $upcoming->mountain?->name ?? 'Mountain' }}</h4>
-                                <div class="upcoming-hike-meta">
+                            <div class="hc-nexthike">
+                                <span class="hc-nexthike-eyebrow">
+                                    <iconify-icon icon="lucide:calendar"></iconify-icon>
+                                    {{ $upcoming->hike_on->format('D, M j, Y') }}
+                                </span>
+                                <h3>{{ $upcoming->mountain?->name ?? 'Mountain' }}</h3>
+                                <div class="hc-nexthike-meta">
                                     <span><iconify-icon icon="lucide:users"></iconify-icon> {{ $upcoming->hikers_count }} {{ Str::plural('hiker', $upcoming->hikers_count) }}</span>
-                                    <span><iconify-icon icon="lucide:circle-dot"></iconify-icon> {{ ucfirst($upcoming->status) }}</span>
+                                    <span><iconify-icon icon="lucide:badge-check"></iconify-icon> {{ ucfirst($upcoming->status) }}</span>
+                                    @if($upcoming->mountain?->location)
+                                        <span><iconify-icon icon="lucide:map-pin"></iconify-icon> {{ $upcoming->mountain->location }}</span>
+                                    @endif
                                 </div>
-                                <p class="tg-upcoming-meta" style="margin-bottom:14px;">
+                                <p class="hc-nexthike-booker">
                                     Booked by <strong>{{ $upcoming->user?->full_name ?? 'a hiker' }}</strong>@if($upcoming->user?->phone) &middot; {{ $upcoming->user->phone }}@endif
                                 </p>
                                 @if ($upcoming->notes)
-                                    <div class="tg-row-note" style="margin-top:0;margin-bottom:14px;">{{ $upcoming->notes }}</div>
+                                    <div class="hc-nexthike-note">
+                                        <iconify-icon icon="lucide:sticky-note" style="color:var(--hc-amber);font-size:14px;vertical-align:text-bottom;margin-right:4px;"></iconify-icon>
+                                        {{ $upcoming->notes }}
+                                    </div>
                                 @endif
-                                <a href="#bookings" class="upcoming-btn">Manage in Bookings →</a>
+                                <a href="#bookings" class="hc-nexthike-cta">
+                                    Manage in Bookings <iconify-icon icon="lucide:arrow-right"></iconify-icon>
+                                </a>
                             </div>
                         @else
-                            <div class="tg-empty">No upcoming hikes scheduled. New booking requests will appear here.</div>
+                            <div class="hc-empty">
+                                <iconify-icon icon="lucide:tent"></iconify-icon>
+                                No upcoming hikes scheduled. New booking requests will appear here.
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -270,6 +393,107 @@
                         <span class="tg-pill">{{ $cancelled->count() }}</span>
                     </div>
                     @include('tour-guide-partials.bookings-table', ['rows' => $cancelled, 'showActions' => 'none'])
+                </div>
+            </div>
+
+            {{-- ============== SAFETY ALERTS ============== --}}
+            <div class="view-section" id="view-safety">
+                <header class="dashboard-header">
+                    <h2>Safety Alerts</h2>
+                    <p>Emergency SOS alerts from hikers assigned to you. Acknowledge open alerts as soon as you see them.</p>
+                </header>
+
+                @php
+                    $guideOpenSos = $sosAlerts->where('status', \App\Models\SosAlert::STATUS_OPEN)->count();
+                    $guideAckSos = $sosAlerts->where('status', \App\Models\SosAlert::STATUS_ACKNOWLEDGED)->count();
+                    $guideClosedSos = $sosAlerts->whereIn('status', [\App\Models\SosAlert::STATUS_RESOLVED, \App\Models\SosAlert::STATUS_FALSE_ALARM])->count();
+                @endphp
+
+                <div class="hc-kpi-ribbon">
+                    <div class="kpi">
+                        <div class="l">Open SOS</div>
+                        <div class="v" style="color:#b91c1c;">{{ $guideOpenSos }}</div>
+                        <div class="h">Need your response</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="l">Acknowledged</div>
+                        <div class="v">{{ $guideAckSos }}</div>
+                        <div class="h">Responder aware</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="l">Closed</div>
+                        <div class="v">{{ $guideClosedSos }}</div>
+                        <div class="h">Handled by admin/guide</div>
+                    </div>
+                </div>
+
+                <div class="hc-panel">
+                    <div class="hc-panel-head">
+                        <h3><iconify-icon icon="lucide:siren"></iconify-icon> Assigned SOS incidents</h3>
+                        <span class="hc-pill">{{ $sosAlerts->count() }} recent</span>
+                    </div>
+
+                    @if($sosAlerts->isEmpty())
+                        <div class="hc-empty"><iconify-icon icon="lucide:shield-check"></iconify-icon> No SOS alerts assigned to you.</div>
+                    @else
+                        <div class="hc-feed" style="max-height:none;">
+                            @foreach($sosAlerts as $alert)
+                                @php
+                                    $tone = match($alert->status) {
+                                        \App\Models\SosAlert::STATUS_OPEN => 't-cancel',
+                                        \App\Models\SosAlert::STATUS_ACKNOWLEDGED => 't-update',
+                                        \App\Models\SosAlert::STATUS_FALSE_ALARM => 't-login',
+                                        default => 't-approve',
+                                    };
+                                    $mountain = $alert->mountain ?? $alert->hikeBooking?->mountain;
+                                    $mapUrl = ($alert->lat !== null && $alert->lng !== null)
+                                        ? 'https://www.google.com/maps?q='.$alert->lat.','.$alert->lng
+                                        : null;
+                                @endphp
+                                <div class="hc-feed-row tg-sos-row" style="grid-template-columns:auto 1fr auto;align-items:stretch;border-color:{{ $alert->status === \App\Models\SosAlert::STATUS_OPEN ? 'rgba(239,68,68,0.35)' : 'transparent' }};">
+                                    <span class="hc-feed-tag {{ $tone }}">{{ str_replace('_', ' ', $alert->status) }}</span>
+                                    <div class="hc-feed-body">
+                                        <div class="hc-feed-desc">
+                                            <strong>{{ $alert->user?->full_name ?? 'Unknown hiker' }}</strong>
+                                            needs help
+                                            @if($mountain) at <strong>{{ $mountain->name }}</strong>@endif
+                                        </div>
+                                        <div class="hc-feed-meta" style="line-height:1.7;">
+                                            @if($alert->user?->phone)<span><strong>Phone:</strong> {{ $alert->user->phone }}</span>@endif
+                                            @if($alert->hikeBooking)
+                                                &middot; <span><strong>Booking:</strong> #{{ $alert->hikeBooking->id }} on {{ $alert->hikeBooking->hike_on?->format('M j, Y') }}</span>
+                                            @endif
+                                            @if($alert->lat !== null && $alert->lng !== null)
+                                                &middot; <span><strong>GPS:</strong> {{ number_format($alert->lat, 5) }}, {{ number_format($alert->lng, 5) }}</span>
+                                                @if($alert->accuracy_m !== null) <span>(±{{ round($alert->accuracy_m) }}m)</span>@endif
+                                            @endif
+                                            @if($alert->message)
+                                                <div style="margin-top:6px;color:var(--text);">{{ $alert->message }}</div>
+                                            @endif
+                                            @if($alert->acknowledgedBy)
+                                                <div>Acknowledged by {{ $alert->acknowledgedBy->full_name }} {{ $alert->acknowledged_at?->diffForHumans() }}</div>
+                                            @endif
+                                            @if($alert->resolvedBy)
+                                                <div>Closed by {{ $alert->resolvedBy->full_name }} {{ $alert->resolved_at?->diffForHumans() }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:150px;">
+                                        <div class="hc-feed-time">{{ $alert->created_at?->diffForHumans() }}</div>
+                                        @if($mapUrl)
+                                            <a href="{{ $mapUrl }}" target="_blank" rel="noopener" class="tg-btn" style="text-decoration:none;">Open map</a>
+                                        @endif
+                                        @if($alert->status === \App\Models\SosAlert::STATUS_OPEN)
+                                            <form method="POST" action="{{ route('tour-guide.sos-alerts.acknowledge', $alert) }}">
+                                                @csrf @method('PATCH')
+                                                <button type="submit" class="tg-btn">Acknowledge</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -500,6 +724,7 @@
             const sections = {
                 'home':     document.getElementById('view-dashboard'),
                 'bookings': document.getElementById('view-bookings'),
+                'safety':   document.getElementById('view-safety'),
                 'hikers':   document.getElementById('view-hikers'),
                 'reviews':  document.getElementById('view-reviews'),
                 'profile':  document.getElementById('view-profile'),
@@ -546,6 +771,53 @@
 
             const initialHash = (window.location.hash || '').replace(/^#/, '');
             if (initialHash && sections[initialHash]) showView('#' + initialHash);
+
+            function initGlobalSearch() {
+                const input = document.getElementById('tour-guide-global-search');
+                if (!input) return;
+
+                const itemSelector = [
+                    '.stat-card', '.dashboard-card', '.tg-table tbody tr', '.tg-review',
+                    '.tg-sos-row', '.menu-item', '.group-item'
+                ].join(',');
+
+                function resetSectionFilters() {
+                    document.querySelectorAll(itemSelector).forEach((item) => {
+                        item.style.display = '';
+                    });
+                }
+
+                input.addEventListener('input', () => {
+                    const query = input.value.trim().toLowerCase();
+                    resetSectionFilters();
+                    if (!query) return;
+
+                    const matches = Object.entries(sections)
+                        .filter(([, section]) => section)
+                        .map(([key, section]) => {
+                            const menu = Array.from(menuLinks).find((link) => {
+                                const href = link.getAttribute('href') || '';
+                                return (key === 'home' && href === '#') || href === '#' + key;
+                            });
+                            const haystack = ((menu?.textContent || '') + ' ' + section.textContent).toLowerCase();
+
+                            return { key, section, score: haystack.includes(query) ? haystack.indexOf(query) : -1 };
+                        })
+                        .filter((result) => result.score >= 0)
+                        .sort((a, b) => a.score - b.score);
+
+                    if (!matches.length) return;
+
+                    showView('#' + matches[0].key);
+                    const activeSection = matches[0].section;
+                    activeSection.querySelectorAll(itemSelector).forEach((item) => {
+                        const text = item.textContent.toLowerCase();
+                        item.style.display = text.includes(query) ? '' : 'none';
+                    });
+                });
+            }
+
+            initGlobalSearch();
 
             // ====== Theme toggle (light/dark) ======
             const root = document.documentElement;

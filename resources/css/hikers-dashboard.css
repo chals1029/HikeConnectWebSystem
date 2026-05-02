@@ -90,8 +90,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            padding: 4px 8px 24px;
+            gap: 8px;
+            padding: 4px 0 24px;
         }
 
         .layout.collapsed .sidebar-top {
@@ -113,6 +113,7 @@
             cursor: pointer;
             color: var(--muted);
             transition: all 0.2s ease;
+            flex: 0 0 32px;
         }
 
         .sidebar-toggle:hover {
@@ -177,6 +178,7 @@
             align-items: center;
             gap: 0.625rem;
             text-decoration: none;
+            min-width: 0;
         }
 
         .brand-logo {
@@ -187,10 +189,11 @@
         }
 
         .brand .brand-name {
-            font-size: 1.5rem;
+            font-size: clamp(1.25rem, 2vw, 1.38rem);
             font-weight: 700;
             letter-spacing: -0.02em;
             white-space: nowrap;
+            min-width: 0;
         }
 
         .brand .brand-name__hike {
@@ -784,7 +787,7 @@
             margin: 0;
             flex: 1;
             min-width: 0;
-            padding-right: 12px;
+            padding-right: 4px;
         }
 
         .mobile-header .brand-logo {
@@ -859,8 +862,8 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                gap: 16px;
-                padding: 16px 20px;
+                gap: 8px;
+                padding: 14px 16px;
                 background: var(--panel);
                 border-bottom: 1px solid var(--line);
                 position: sticky;
@@ -890,5 +893,20 @@
 
             .search-box {
                 margin: 0 0 12px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .mobile-header .brand-logo {
+                height: 1.6rem;
+            }
+
+            .mobile-header .brand .brand-name {
+                font-size: 1rem;
+            }
+
+            .mobile-toggle {
+                width: 34px;
+                height: 34px;
             }
         }

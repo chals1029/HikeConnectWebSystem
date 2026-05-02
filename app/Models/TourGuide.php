@@ -29,6 +29,11 @@ class TourGuide extends Model
         return $this->hasMany(HikeBooking::class);
     }
 
+    public function sosAlerts(): HasMany
+    {
+        return $this->hasMany(SosAlert::class);
+    }
+
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";

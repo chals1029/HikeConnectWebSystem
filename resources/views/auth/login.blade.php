@@ -259,6 +259,36 @@
         .login-toggle-pw:hover {
             color: #fff;
         }
+        .login-toggle-pw svg {
+            overflow: visible;
+        }
+        .login-toggle-pw .eye-pupil {
+            transform-origin: 12px 12px;
+            transition: transform 0.22s var(--ease);
+        }
+        .login-toggle-pw .eye-slash {
+            opacity: 0;
+            stroke-dasharray: 18;
+            stroke-dashoffset: 18;
+            transition: opacity 0.18s ease, stroke-dashoffset 0.28s var(--ease);
+        }
+        .login-toggle-pw.is-showing {
+            color: #fff;
+        }
+        .login-toggle-pw.is-showing .eye-pupil {
+            transform: scale(1.35);
+        }
+        .login-toggle-pw.is-showing .eye-slash {
+            opacity: 1;
+            stroke-dashoffset: 0;
+        }
+        .login-toggle-pw.is-animating svg {
+            animation: loginEyeBlink 0.28s var(--ease);
+        }
+        @keyframes loginEyeBlink {
+            0%, 100% { transform: scaleY(1); }
+            45% { transform: scaleY(0.68); }
+        }
         .login-forgot {
             text-align: right;
             margin-top: -0.25rem;
@@ -334,6 +364,14 @@
         @media (prefers-reduced-motion: reduce) {
             .login-slide {
                 transition: none;
+            }
+            .login-toggle-pw,
+            .login-toggle-pw .eye-pupil,
+            .login-toggle-pw .eye-slash {
+                transition: none;
+            }
+            .login-toggle-pw.is-animating svg {
+                animation: none;
             }
         }
     </style>
@@ -423,7 +461,8 @@
                             <button type="button" class="login-toggle-pw" aria-label="Show password" aria-pressed="false">
                                 <svg class="icon-eye" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                    <circle cx="12" cy="12" r="3"/>
+                                    <circle class="eye-pupil" cx="12" cy="12" r="3"/>
+                                    <path class="eye-slash" d="M4 4l16 16" stroke-linecap="round"/>
                                 </svg>
                             </button>
                         </div>
@@ -491,8 +530,15 @@
                 toggle.addEventListener('click', function () {
                     var show = pw.type === 'password';
                     pw.type = show ? 'text' : 'password';
+                    toggle.classList.toggle('is-showing', show);
+                    toggle.classList.remove('is-animating');
+                    void toggle.offsetWidth;
+                    toggle.classList.add('is-animating');
                     toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
                     toggle.setAttribute('aria-pressed', show ? 'true' : 'false');
+                });
+                toggle.addEventListener('animationend', function () {
+                    toggle.classList.remove('is-animating');
                 });
             }
         })();

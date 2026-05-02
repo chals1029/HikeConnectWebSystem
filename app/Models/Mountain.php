@@ -7,9 +7,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Mountain extends Model
 {
+    public const SAFETY_OPEN = 'open';
+    public const SAFETY_CAUTION = 'caution';
+    public const SAFETY_CLOSED = 'closed';
+    public const SAFETY_BAD_WEATHER = 'bad_weather';
+    public const SAFETY_HIGH_RISK = 'high_risk';
+
+    public const SAFETY_STATUSES = [
+        self::SAFETY_OPEN => 'Open',
+        self::SAFETY_CAUTION => 'Caution',
+        self::SAFETY_CLOSED => 'Closed',
+        self::SAFETY_BAD_WEATHER => 'Bad Weather',
+        self::SAFETY_HIGH_RISK => 'High Risk',
+    ];
+
     protected $fillable = [
         'slug', 'name', 'short_description', 'location', 'difficulty', 'rating', 'image_path',
-        'status', 'elevation_label', 'elevation_meters', 'duration_label', 'trail_type_label',
+        'status', 'safety_status', 'safety_note', 'elevation_label', 'elevation_meters', 'duration_label', 'trail_type_label',
         'best_time_label', 'full_description', 'jumpoff_name', 'jumpoff_address',
         'jumpoff_meeting_time', 'jumpoff_notes', 'jumpoff_lat', 'jumpoff_lng',
         'summit_lat', 'summit_lng', 'open_meteo_lat', 'open_meteo_lng', 'gear',
@@ -42,6 +56,11 @@ class Mountain extends Model
         return $this->hasMany(HikeBooking::class);
     }
 
+    public function sosAlerts(): HasMany
+    {
+        return $this->hasMany(SosAlert::class);
+    }
+
     public function meteoLat(): float
     {
         return (float) ($this->open_meteo_lat ?? $this->jumpoff_lat);
@@ -50,5 +69,15 @@ class Mountain extends Model
     public function meteoLng(): float
     {
         return (float) ($this->open_meteo_lng ?? $this->jumpoff_lng);
+    }
+
+    public function getSafetyStatusLabelAttribute(): string
+    {
+        return self::SAFETY_STATUSES[$this->safety_status ?? self::SAFETY_OPEN] ?? ucfirst((string) $this->safety_status);
+    }
+
+    public function hasSafetyWarning(): bool
+    {
+        return ($this->safety_status ?? self::SAFETY_OPEN) !== self::SAFETY_OPEN;
     }
 }

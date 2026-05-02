@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class HikeBooking extends Model
@@ -39,6 +40,11 @@ class HikeBooking extends Model
     public function mountainReview(): HasOne
     {
         return $this->hasOne(MountainReview::class);
+    }
+
+    public function sosAlerts(): HasMany
+    {
+        return $this->hasMany(SosAlert::class);
     }
 
     public function getUiTabAttribute(): string

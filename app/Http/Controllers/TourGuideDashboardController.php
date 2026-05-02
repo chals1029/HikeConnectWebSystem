@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\HikeBooking;
 use App\Models\Mountain;
+use App\Models\SosAlert;
 use App\Models\TourGuide;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
@@ -64,6 +65,21 @@ class TourGuideDashboardController extends Controller
             ->take(20)
             ->values();
 
+        $sosAlerts = SosAlert::query()
+            ->where('tour_guide_id', $guide->id)
+            ->with([
+                'user:id,first_name,last_name,email,phone,profile_picture_path',
+                'mountain:id,name,location,emergency_contact',
+                'hikeBooking:id,hike_on,status,hikers_count,mountain_id',
+                'hikeBooking.mountain:id,name,location',
+                'acknowledgedBy:id,first_name,last_name',
+                'resolvedBy:id,first_name,last_name',
+            ])
+            ->orderByRaw("CASE WHEN status = 'open' THEN 0 WHEN status = 'acknowledged' THEN 1 ELSE 2 END")
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
         return view('tour-guide', compact(
             'user',
             'guide',
@@ -76,6 +92,7 @@ class TourGuideDashboardController extends Controller
             'upcoming',
             'stats',
             'guideReviews',
+            'sosAlerts',
         ));
     }
 
@@ -213,6 +230,44 @@ class TourGuideDashboardController extends Controller
             'success' => true,
             'url' => $user->profile_picture_url,
         ]);
+    }
+
+    public function sosAlerts()
+    {
+        $guide = $this->resolveGuide(Auth::user());
+
+        $alerts = SosAlert::query()
+            ->where('tour_guide_id', $guide->id)
+            ->with(['user:id,first_name,last_name,email,phone', 'mountain:id,name,location'])
+            ->whereIn('status', [SosAlert::STATUS_OPEN, SosAlert::STATUS_ACKNOWLEDGED])
+            ->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        return response()->json(['success' => true, 'alerts' => $alerts]);
+    }
+
+    public function acknowledgeSosAlert(SosAlert $alert)
+    {
+        $guide = $this->resolveGuide(Auth::user());
+        if ($alert->tour_guide_id !== $guide->id) {
+            abort(403);
+        }
+
+        if ($alert->status === SosAlert::STATUS_OPEN) {
+            $alert->forceFill([
+                'status' => SosAlert::STATUS_ACKNOWLEDGED,
+                'acknowledged_by' => Auth::id(),
+                'acknowledged_at' => now(),
+            ])->save();
+
+            AuditLogger::log('guide.sos_acknowledged', "Acknowledged SOS alert #{$alert->id}", $alert->user_id, $alert, [
+                'guide_id' => $guide->id,
+            ]);
+        }
+
+        return back()->with('guide_status', 'SOS alert acknowledged.');
     }
 
     private function resolveGuide($user): TourGuide

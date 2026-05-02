@@ -37,7 +37,7 @@
 
                 <div class="search-box">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" placeholder="Search..." aria-label="Search">
+                    <input type="text" id="hiker-global-search" placeholder="Search hiker side..." aria-label="Search hiker side">
                 </div>
 
                 <div class="menu-title">Menu</div>
@@ -71,6 +71,11 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     <span class="menu-text">Hiking History</span>
                 </a>
+                <a href="#leaderboard" class="menu-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+                    <span class="menu-text">Leaderboard</span>
+                    @if(($myRank ?? null) && $myRank <= 3)<span class="menu-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#78350f;">#{{ $myRank }}</span>@elseif($myRank)<span class="menu-badge">#{{ $myRank }}</span>@endif
+                </a>
                 <a href="#track-location" class="menu-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     <span class="menu-text">Track Location</span>
@@ -91,6 +96,8 @@
                 <a href="#safety-alerts" class="menu-item">
                     <svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     <span class="menu-text">Safety Alerts</span>
+                    @php $hikerSafetyBadge = $hikerSosAlerts->where('status', \App\Models\SosAlert::STATUS_OPEN)->count() + $safetyMountains->count(); @endphp
+                    @if($hikerSafetyBadge > 0)<span class="menu-badge" style="background:#fee2e2;color:#991b1b;">{{ $hikerSafetyBadge }}</span>@endif
                 </a>
 
                 <div class="group-title">Group</div>
@@ -154,115 +161,305 @@
             </div>
 
             <div class="view-section active" id="view-dashboard">
-                <header class="dashboard-header">
-                    <h2>Welcome back, <span id="dashboard-welcome-first-name">{{ $user->first_name ?? 'Hiker' }}</span>! <iconify-icon icon="lucide:sparkles" style="color: #10b981; font-size: 24px; vertical-align: text-bottom; margin-left: 4px;"></iconify-icon></h2>
-                    <p>Ready for your next adventure? Check out your stats and upcoming plans.</p>
-                </header>
+                @php
+                    $champion       = $leaderboard->first();
+                    $previewLeaders = $leaderboard->take(5);
+                    $upcomingDate   = $upcoming
+                        ? ($upcoming->hike_on->isToday()
+                            ? 'Today'
+                            : ($upcoming->hike_on->isTomorrow() ? 'Tomorrow' : $upcoming->hike_on->format('M j, Y')))
+                        : null;
+                    $hikerInitials = strtoupper(
+                        substr((string) ($user->first_name ?? 'H'), 0, 1).
+                        substr((string) ($user->last_name ?? 'C'), 0, 1)
+                    );
+                    $favoriteMountain = $completedHistory->first()?->mountain;
+                @endphp
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon green">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m8 3 4 8 5-5 5 15H2L8 3z"></path></svg>
+                {{-- HERO --}}
+                <section class="hc-hero">
+                    <div class="hc-hero-row">
+                        <div>
+                            <span class="hc-hero-eyebrow">
+                                <iconify-icon icon="lucide:mountain"></iconify-icon>
+                                Hiker journal &middot; {{ now()->format('l, M j, Y') }}
+                            </span>
+                            <h1>Welcome back, <span class="hc-hero-name" id="dashboard-welcome-first-name">{{ $user->first_name ?? 'Hiker' }}</span></h1>
+                            <p>The trails are calling. Here's your next adventure, your stats, and how you stack up against the community.</p>
                         </div>
-                        <div class="stat-info">
-                            <h4>Hikes Completed</h4>
-                            <div class="stat-value">{{ $stats['hikes_completed'] }}</div>
+                        <div class="hc-hero-cta">
+                            @if($upcoming)
+                                <a href="#trail-plan" class="hc-chip is-live">
+                                    <strong>{{ $upcomingDate }}</strong>
+                                    {{ $upcoming->mountain->name }}
+                                </a>
+                            @else
+                                <a href="#book-hike" class="hc-chip is-amber">
+                                    <iconify-icon icon="lucide:map"></iconify-icon>
+                                    <strong>Book</strong> your next hike
+                                </a>
+                            @endif
+                            <a href="#leaderboard" class="hc-chip">
+                                <iconify-icon icon="lucide:trophy"></iconify-icon>
+                                @if($myRank)
+                                    Ranked <strong>#{{ $myRank }}</strong> of {{ $totalHikers }}
+                                @else
+                                    Leaderboard
+                                @endif
+                            </a>
+                            <a href="#achievements" class="hc-chip">
+                                <iconify-icon icon="lucide:award"></iconify-icon>
+                                <strong>{{ $stats['badges'] }}</strong> {{ Str::plural('badge', $stats['badges']) }}
+                            </a>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon blue">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </section>
+
+                {{-- TODAY ON THE TRAILS --}}
+                <section class="hc-today" aria-label="Today on the trails">
+                    <div class="hc-today-info">
+                        <div class="hc-today-title">
+                            <iconify-icon icon="lucide:mountain-snow"></iconify-icon>
+                            Today on the trails
                         </div>
-                        <div class="stat-info">
-                            <h4>Total Hiking Hours</h4>
-                            <div class="stat-value">{{ $stats['total_hours'] }}h</div>
+                        <h3 class="hc-today-h3">
+                            @if($upcoming)
+                                {{ $upcomingDate }} &middot; {{ $upcoming->mountain->name }}
+                            @elseif($stats['hikes_completed'] > 0)
+                                {{ $stats['hikes_completed'] }} {{ Str::plural('summit', $stats['hikes_completed']) }} conquered
+                            @else
+                                Your first summit awaits
+                            @endif
+                        </h3>
+                        <p class="hc-today-sub">
+                            @if($upcoming)
+                                Meet at {{ $upcoming->mountain->jumpoff_meeting_time }} &middot; {{ $upcoming->mountain->location }}
+                            @elseif($favoriteMountain)
+                                Last climbed {{ $favoriteMountain->name }} &middot; {{ $stats['total_hours'] }}h logged so far
+                            @else
+                                Book a tour guide and start logging your first adventure today.
+                            @endif
+                        </p>
+                    </div>
+                    <div class="hc-today-stat">
+                        <div class="v live">{{ $stats['hikes_completed'] }}</div>
+                        <div class="l">Summits</div>
+                    </div>
+                    <div class="hc-today-stat">
+                        <div class="v">{{ number_format($stats['total_elevation']) }}<small style="font-size:14px;color:var(--muted);font-weight:700;">m</small></div>
+                        <div class="l">Elevation gained</div>
+                    </div>
+                </section>
+
+                {{-- STAT TILES --}}
+                <div class="hc-stats">
+                    <div class="hc-stat tone-forest">
+                        <div class="hc-stat-head">
+                            <div class="hc-stat-icon"><iconify-icon icon="lucide:flag-triangle-right"></iconify-icon></div>
+                            @if($myRank)
+                                <span class="hc-stat-trend"><iconify-icon icon="lucide:trophy"></iconify-icon> #{{ $myRank }}</span>
+                            @else
+                                <span class="hc-stat-trend is-flat"><iconify-icon icon="lucide:dot"></iconify-icon> New</span>
+                            @endif
+                        </div>
+                        <h4 class="hc-stat-label">Hikes completed</h4>
+                        <div class="hc-stat-value">{{ $stats['hikes_completed'] }}</div>
+                        <div class="hc-stat-foot">
+                            <span>{{ $bookings->whereIn('status', ['pending','approved'])->count() }} upcoming</span>
+                            <strong>Total</strong>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon orange">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+
+                    <div class="hc-stat tone-peak">
+                        <div class="hc-stat-head">
+                            <div class="hc-stat-icon"><iconify-icon icon="lucide:clock"></iconify-icon></div>
+                            <span class="hc-stat-trend is-flat"><iconify-icon icon="lucide:hourglass"></iconify-icon> Logged</span>
                         </div>
-                        <div class="stat-info">
-                            <h4>Total Elevation</h4>
-                            <div class="stat-value">{{ number_format($stats['total_elevation']) }}m</div>
-                        </div>
+                        <h4 class="hc-stat-label">Hours on trail</h4>
+                        <div class="hc-stat-value">{{ $stats['total_hours'] }}<span class="hc-stat-suffix">h</span></div>
+                        <div class="hc-stat-foot"><span>Across all summits</span><strong>Time</strong></div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon purple">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+
+                    <div class="hc-stat tone-amber">
+                        <div class="hc-stat-head">
+                            <div class="hc-stat-icon"><iconify-icon icon="lucide:bar-chart-3"></iconify-icon></div>
+                            <span class="hc-stat-trend is-flat"><iconify-icon icon="lucide:trending-up"></iconify-icon> Climb</span>
                         </div>
-                        <div class="stat-info">
-                            <h4>Badges claimed</h4>
-                            <div class="stat-value"><a href="#achievements" id="stat-badges-count-link" style="color:inherit;text-decoration:none;">{{ $stats['badges'] }}</a></div>
+                        <h4 class="hc-stat-label">Elevation gained</h4>
+                        <div class="hc-stat-value">{{ number_format($stats['total_elevation']) }}<span class="hc-stat-suffix">m</span></div>
+                        <div class="hc-stat-foot"><span>Vertical lifetime</span><strong>Peaks</strong></div>
+                    </div>
+
+                    <div class="hc-stat tone-sunrise">
+                        <div class="hc-stat-head">
+                            <div class="hc-stat-icon"><iconify-icon icon="lucide:award"></iconify-icon></div>
+                            <span class="hc-stat-trend"><iconify-icon icon="lucide:medal"></iconify-icon> Earned</span>
                         </div>
+                        <h4 class="hc-stat-label">Badges claimed</h4>
+                        <div class="hc-stat-value"><a href="#achievements" id="stat-badges-count-link" style="color:inherit;text-decoration:none;">{{ $stats['badges'] }}</a></div>
+                        <div class="hc-stat-foot"><span>Tap to view all →</span><strong>Trophies</strong></div>
                     </div>
                 </div>
 
-                <div class="dashboard-main-grid">
-                    <div class="dashboard-card">
-                        <div class="dashboard-card-header">
-                            <h3>Recent Community Activity</h3>
-                            <a href="#community-chat">View All</a>
-                        </div>
-                        <div class="activity-list">
-                            @forelse($communityPosts->take(3) as $post)
-                            <div class="activity-item">
-                                <div class="activity-icon">
-                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                </div>
-                                <div class="activity-details">
-                                    <h5>{{ $post->author_name }} @if($post->mountain)<span style="color:var(--muted);font-weight:500">· {{ $post->mountain->name }}</span>@endif</h5>
-                                    <p>{{ \Illuminate\Support\Str::limit($post->body, 90) }}</p>
-                                    <div class="activity-time">{{ $post->created_at->diffForHumans() }}</div>
-                                </div>
-                            </div>
-                            @empty
-                            <p style="padding:12px;color:var(--muted);font-size:14px;">No community posts yet. Share your first adventure in Community Chat.</p>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <div class="dashboard-side-grid">
-                        <div class="dashboard-card" style="margin-bottom: 20px;">
+                {{-- UPCOMING + LEADERBOARD PREVIEW --}}
+                <div class="hc-row-2">
+                    <div class="hc-panel">
+                        <div class="hc-panel-head">
+                            <h3><iconify-icon icon="lucide:calendar-clock"></iconify-icon> Next adventure</h3>
                             @if($upcoming)
-                            <div class="upcoming-hike">
-                                <span class="upcoming-hike-date">{{ $upcoming->hike_on->isToday() ? 'Today' : ($upcoming->hike_on->isTomorrow() ? 'Tomorrow' : $upcoming->hike_on->format('M j, Y')) }}</span>
-                                <h4>{{ $upcoming->mountain->name }}</h4>
-                                <div class="upcoming-hike-meta">
-                                    <span>
-                                        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                        {{ $upcoming->mountain->jumpoff_meeting_time }}
-                                    </span>
-                                    <span>
-                                        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                                        {{ $upcoming->mountain->location }}
-                                    </span>
-                                </div>
-                                <a href="#trail-plan" class="upcoming-btn">View Trail Plan</a>
-                            </div>
+                                <a href="#trail-plan">View trail plan →</a>
                             @else
-                            <div class="upcoming-hike">
-                                <span class="upcoming-hike-date">Next adventure</span>
-                                <h4>No upcoming hike</h4>
-                                <p style="font-size:13px;color:var(--muted);margin:8px 0 12px;">Book a mountain and guide to see your schedule here.</p>
-                                <a href="#book-hike" class="upcoming-btn">Book a Hike</a>
-                            </div>
+                                <a href="#book-hike">Book a hike →</a>
                             @endif
                         </div>
-                        
-                        <div class="dashboard-card">
-                            <div class="dashboard-card-header">
-                                <h3>Weather Alert</h3>
-                            </div>
-                            <div style="background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 16px;">
-                                <div style="font-size: 32px;"><iconify-icon icon="lucide:sun" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon></div>
-                                <div>
-                                    <div style="font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px;">Clear Skies Ahead</div>
-                                    <div style="font-size: 12px; color: var(--muted);">Great conditions expected for your next hike at {{ $upcoming?->mountain->name ?? $trailMountain?->name ?? 'your trail' }}.</div>
+                        @if($upcoming)
+                            <div class="hc-nexthike">
+                                <div class="hc-nexthike-eyebrow">
+                                    <iconify-icon icon="lucide:calendar-check"></iconify-icon>
+                                    {{ $upcomingDate }}
                                 </div>
+                                <h3>{{ $upcoming->mountain->name }}</h3>
+                                <div class="hc-nexthike-meta">
+                                    <span><iconify-icon icon="lucide:clock"></iconify-icon> {{ $upcoming->mountain->jumpoff_meeting_time }}</span>
+                                    <span><iconify-icon icon="lucide:map-pin"></iconify-icon> {{ $upcoming->mountain->location }}</span>
+                                    @if($upcoming->mountain->difficulty)
+                                        <span><iconify-icon icon="lucide:trending-up"></iconify-icon> {{ ucfirst($upcoming->mountain->difficulty) }}</span>
+                                    @endif
+                                </div>
+                                @if($upcoming->tourGuide)
+                                    <div class="hc-nexthike-booker">
+                                        Guided by <strong>{{ $upcoming->tourGuide->full_name }}</strong>
+                                        @if($upcoming->tourGuide->specialty) &middot; {{ $upcoming->tourGuide->specialty }} @endif
+                                    </div>
+                                @endif
+                                <div class="hc-nexthike-note">
+                                    <iconify-icon icon="lucide:sun" style="color:#f59e0b;vertical-align:text-bottom;margin-right:4px;"></iconify-icon>
+                                    Clear skies expected — perfect conditions for the climb.
+                                </div>
+                                <a href="#trail-plan" class="hc-nexthike-cta">
+                                    Open trail plan
+                                    <iconify-icon icon="lucide:arrow-right"></iconify-icon>
+                                </a>
                             </div>
-                        </div>
+                        @else
+                            <div class="hc-nexthike">
+                                <div class="hc-nexthike-eyebrow">
+                                    <iconify-icon icon="lucide:sparkles"></iconify-icon>
+                                    Ready when you are
+                                </div>
+                                <h3>No upcoming hike</h3>
+                                <div class="hc-nexthike-meta">
+                                    <span><iconify-icon icon="lucide:mountain"></iconify-icon> {{ $mountains->count() }} {{ Str::plural('mountain', $mountains->count()) }} mapped</span>
+                                    <span><iconify-icon icon="lucide:users"></iconify-icon> {{ $guides->count() }} {{ Str::plural('guide', $guides->count()) }} available</span>
+                                </div>
+                                <div class="hc-nexthike-note">
+                                    <iconify-icon icon="lucide:info" style="color:var(--hc-forest);vertical-align:text-bottom;margin-right:4px;"></iconify-icon>
+                                    Pick a trail and a tour guide to schedule your first adventure.
+                                </div>
+                                <a href="#book-hike" class="hc-nexthike-cta">
+                                    Book a hike
+                                    <iconify-icon icon="lucide:arrow-right"></iconify-icon>
+                                </a>
+                            </div>
+                        @endif
                     </div>
+
+                    <div class="hc-panel">
+                        <div class="hc-panel-head">
+                            <h3><iconify-icon icon="lucide:trophy"></iconify-icon> Leaderboard</h3>
+                            <a href="#leaderboard">See full board →</a>
+                        </div>
+                        @if($leaderboard->isEmpty())
+                            <div class="hc-empty"><iconify-icon icon="lucide:users"></iconify-icon> No hikers ranked yet.</div>
+                        @else
+                            <div class="hc-lb-preview">
+                                @foreach($previewLeaders as $row)
+                                    @php
+                                        $rank = $row['rank'];
+                                        $isMe = $row['id'] === $user->id;
+                                        $rowCls = $isMe ? 'is-me' : '';
+                                        if ($rank === 1) $rowCls .= ' is-top1';
+                                        elseif ($rank === 2) $rowCls .= ' is-top2';
+                                        elseif ($rank === 3) $rowCls .= ' is-top3';
+                                    @endphp
+                                    <div class="hc-lb-row {{ trim($rowCls) }}">
+                                        <div class="hc-lb-rank">{{ $rank }}</div>
+                                        <div class="hc-lb-avatar" style="{{ $row['profile_picture'] ? 'background-image:url('.$row['profile_picture'].')' : '' }}">
+                                            {{ $row['profile_picture'] ? '' : $row['initials'] }}
+                                        </div>
+                                        <div class="hc-lb-info">
+                                            <div class="hc-lb-name">
+                                                {{ $row['full_name'] }}
+                                                @if($isMe)<span class="me-pill">You</span>@endif
+                                            </div>
+                                            <div class="hc-lb-meta">
+                                                <span><iconify-icon icon="lucide:clock"></iconify-icon> {{ $row['total_hours'] }}h</span>
+                                                <span><iconify-icon icon="lucide:trending-up"></iconify-icon> {{ number_format($row['total_elevation']) }}m</span>
+                                            </div>
+                                        </div>
+                                        <div class="hc-lb-count">
+                                            {{ $row['hikes_completed'] }}
+                                            <small>{{ Str::plural('hike', $row['hikes_completed']) }}</small>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            @if($myRank && $myRank > 5)
+                                <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);">
+                                    <div class="hc-lb-row is-me">
+                                        <div class="hc-lb-rank">{{ $myRank }}</div>
+                                        <div class="hc-lb-avatar" style="{{ $myLeaderRow['profile_picture'] ? 'background-image:url('.$myLeaderRow['profile_picture'].')' : '' }}">
+                                            {{ $myLeaderRow['profile_picture'] ? '' : $myLeaderRow['initials'] }}
+                                        </div>
+                                        <div class="hc-lb-info">
+                                            <div class="hc-lb-name">
+                                                {{ $myLeaderRow['full_name'] }}
+                                                <span class="me-pill">You</span>
+                                            </div>
+                                            <div class="hc-lb-meta">
+                                                <span><iconify-icon icon="lucide:clock"></iconify-icon> {{ $myLeaderRow['total_hours'] }}h</span>
+                                                <span><iconify-icon icon="lucide:trending-up"></iconify-icon> {{ number_format($myLeaderRow['total_elevation']) }}m</span>
+                                            </div>
+                                        </div>
+                                        <div class="hc-lb-count">
+                                            {{ $myLeaderRow['hikes_completed'] }}
+                                            <small>{{ Str::plural('hike', $myLeaderRow['hikes_completed']) }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+                </div>
+
+                {{-- COMMUNITY PULSE --}}
+                <div class="hc-panel">
+                    <div class="hc-panel-head">
+                        <h3><iconify-icon icon="lucide:waypoints"></iconify-icon> Recent community activity</h3>
+                        <a href="#community-chat">View all →</a>
+                    </div>
+                    @if($communityPosts->isEmpty())
+                        <div class="hc-empty"><iconify-icon icon="lucide:message-square"></iconify-icon> No community posts yet. Share your first adventure in Community Chat.</div>
+                    @else
+                        <div class="hc-feed">
+                            @foreach($communityPosts->take(5) as $post)
+                                <div class="hc-feed-row">
+                                    <span class="hc-feed-tag t-create">
+                                        <iconify-icon icon="lucide:message-square" style="vertical-align:text-bottom;margin-right:3px;"></iconify-icon>
+                                        Post
+                                    </span>
+                                    <div class="hc-feed-body">
+                                        <div class="hc-feed-desc">
+                                            <strong>{{ $post->author_name }}</strong>
+                                            @if($post->mountain) &middot; <span style="color:var(--muted);">{{ $post->mountain->name }}</span>@endif
+                                        </div>
+                                        <div class="hc-feed-meta">{{ \Illuminate\Support\Str::limit($post->body, 100) }}</div>
+                                    </div>
+                                    <div class="hc-feed-time">{{ $post->created_at->diffForHumans() }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -338,6 +535,12 @@
                         <article class="mountain-card {{ $idx === 0 ? 'selected' : '' }}" data-mountain="{{ $m->slug }}">
                             <div class="mountain-thumb" style="background-image: url('{{ asset($m->image_path) }}');">
                                 <span class="thumb-status {{ $m->status }}"><iconify-icon icon="lucide:circle" style="vertical-align:text-bottom; margin-right:2px; font-size:10px;"></iconify-icon> {{ $m->status === 'open' ? 'Open' : 'Closed' }}</span>
+                                @if($m->hasSafetyWarning())
+                                    <span class="thumb-chip" style="left:10px;right:auto;top:44px;background:{{ $m->safety_status === \App\Models\Mountain::SAFETY_BAD_WEATHER ? '#dbeafe' : '#fee2e2' }};color:{{ $m->safety_status === \App\Models\Mountain::SAFETY_BAD_WEATHER ? '#1d4ed8' : '#991b1b' }};">
+                                        <iconify-icon icon="lucide:triangle-alert" style="vertical-align:text-bottom;margin-right:2px;"></iconify-icon>
+                                        {{ $m->safety_status_label }}
+                                    </span>
+                                @endif
                                 <span class="thumb-chip weather-chip">--°C</span>
                                 <span class="thumb-difficulty">{{ $m->difficulty }}</span>
                             </div>
@@ -354,6 +557,316 @@
                         @endforeach
                     </div>
                 </section>
+            </div>
+
+            {{-- ============== LEADERBOARD ============== --}}
+            <div class="view-section" id="view-leaderboard">
+                @php
+                    $champ        = $leaderboard->first();
+                    $second       = $leaderboard->get(1);
+                    $third        = $leaderboard->get(2);
+                    $topTen       = $leaderboard->take(10);
+                    $maxHikes     = max(1, (int) ($leaderboard->max('hikes_completed') ?? 1));
+                    $myRow        = $myLeaderRow;
+                    $rankAbove    = ($myRank && $myRank > 1) ? $leaderboard->get($myRank - 2) : null;
+                    $hikesToBeat  = ($rankAbove && $myRow)
+                        ? max(0, ((int) $rankAbove['hikes_completed']) - ((int) $myRow['hikes_completed']) + 1)
+                        : 0;
+                @endphp
+
+                {{-- HERO --}}
+                <section class="hc-hero">
+                    <div class="hc-hero-row">
+                        <div>
+                            <span class="hc-hero-eyebrow">
+                                <iconify-icon icon="lucide:trophy"></iconify-icon>
+                                Hall of Summits &middot; updated {{ now()->format('M j, Y') }}
+                            </span>
+                            <h1>The <span class="hc-hero-name">leaderboard</span></h1>
+                            <p>Every completed hike earns its place. Keep climbing — your rank moves with each summit you bag.</p>
+                        </div>
+                        <div class="hc-hero-cta">
+                            <a class="hc-chip is-live">
+                                <strong>{{ $totalHikers }}</strong>
+                                {{ Str::plural('hiker', $totalHikers) }} ranked
+                            </a>
+                            @if($myRank)
+                                <a class="hc-chip is-amber">
+                                    <iconify-icon icon="lucide:medal"></iconify-icon>
+                                    You're <strong>#{{ $myRank }}</strong>
+                                </a>
+                            @endif
+                            @if($champ)
+                                <a class="hc-chip">
+                                    <iconify-icon icon="lucide:flag"></iconify-icon>
+                                    Top: <strong>{{ $champ['hikes_completed'] }}</strong> {{ Str::plural('hike', $champ['hikes_completed']) }}
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </section>
+
+                @if(! $champ || (int) $champ['hikes_completed'] === 0)
+                    {{-- No completed hikes yet --}}
+                    <div class="hc-panel">
+                        <div class="hc-empty" style="padding:48px 24px;">
+                            <iconify-icon icon="lucide:trophy"></iconify-icon>
+                            <strong style="font-size:16px;color:var(--text);display:block;margin-bottom:6px;">No summits logged yet</strong>
+                            Be the first to complete a hike and claim the top spot of the Hall of Summits.
+                            <div style="margin-top:14px;">
+                                <a href="#book-hike" class="hc-nexthike-cta" style="display:inline-flex;">
+                                    <iconify-icon icon="lucide:map"></iconify-icon> Book a hike
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    {{-- CHAMPION CARD (TOP 1) --}}
+                    <section class="hc-champ" aria-label="Top hiker">
+                        <div class="hc-champ-avatar {{ $champ['profile_picture'] ? 'has-img' : '' }}" style="{{ $champ['profile_picture'] ? 'background-image:url('.$champ['profile_picture'].')' : '' }}">
+                            <span class="hc-champ-crown"><iconify-icon icon="lucide:crown"></iconify-icon></span>
+                            {!! $champ['profile_picture'] ? '' : $champ['initials'] !!}
+                        </div>
+                        <div>
+                            <span class="hc-champ-eyebrow">
+                                <iconify-icon icon="lucide:trophy"></iconify-icon>
+                                Top hiker &middot; #1 of {{ $totalHikers }}
+                            </span>
+                            <h2 class="hc-champ-name">{{ $champ['full_name'] }}</h2>
+                            <p class="hc-champ-tag">
+                                Conquered <strong>{{ $champ['hikes_completed'] }}</strong> {{ Str::plural('summit', $champ['hikes_completed']) }} —
+                                {{ $champ['total_hours'] }}h of trail time and {{ number_format($champ['total_elevation']) }}m of vertical climb.
+                            </p>
+                            <div class="hc-champ-stats">
+                                <div class="ks">
+                                    <div class="v">{{ $champ['hikes_completed'] }}</div>
+                                    <div class="l">Hikes</div>
+                                </div>
+                                <div class="ks">
+                                    <div class="v">{{ $champ['total_hours'] }}<small style="font-size:14px;font-weight:700;">h</small></div>
+                                    <div class="l">Hours</div>
+                                </div>
+                                <div class="ks">
+                                    <div class="v">{{ number_format($champ['total_elevation']) }}<small style="font-size:14px;font-weight:700;">m</small></div>
+                                    <div class="l">Elevation</div>
+                                </div>
+                            </div>
+                            @if($champ['joined_at'])
+                                <span class="hc-champ-meta">
+                                    <iconify-icon icon="lucide:calendar"></iconify-icon>
+                                    Hiking since {{ \Illuminate\Support\Carbon::parse($champ['joined_at'])->format('M Y') }}
+                                </span>
+                            @endif
+                        </div>
+                    </section>
+
+                    {{-- PODIUM (2 - 1 - 3) --}}
+                    @if($second || $third)
+                        <section class="hc-podium" aria-label="Top 3 hikers">
+                            {{-- 2nd --}}
+                            @if($second)
+                                <div class="hc-podium-card is-2">
+                                    <div class="hc-podium-medal">2</div>
+                                    <div class="hc-podium-avatar" style="{{ $second['profile_picture'] ? 'background-image:url('.$second['profile_picture'].')' : '' }}">
+                                        {{ $second['profile_picture'] ? '' : $second['initials'] }}
+                                    </div>
+                                    <div class="hc-podium-name">{{ $second['full_name'] }}</div>
+                                    <div class="hc-podium-sub">Silver summit</div>
+                                    <div class="hc-podium-count">{{ $second['hikes_completed'] }} <small>{{ Str::plural('hike', $second['hikes_completed']) }}</small></div>
+                                    <div class="hc-podium-base"></div>
+                                </div>
+                            @else
+                                <div class="hc-podium-card is-2" style="opacity:0.55;">
+                                    <div class="hc-podium-medal">2</div>
+                                    <div class="hc-podium-avatar">??</div>
+                                    <div class="hc-podium-name">Open spot</div>
+                                    <div class="hc-podium-sub">Silver summit</div>
+                                    <div class="hc-podium-count">—</div>
+                                    <div class="hc-podium-base"></div>
+                                </div>
+                            @endif
+
+                            {{-- 1st (center, taller) --}}
+                            <div class="hc-podium-card is-1">
+                                <div class="hc-podium-medal">1</div>
+                                <div class="hc-podium-avatar" style="{{ $champ['profile_picture'] ? 'background-image:url('.$champ['profile_picture'].')' : '' }}">
+                                    {{ $champ['profile_picture'] ? '' : $champ['initials'] }}
+                                </div>
+                                <div class="hc-podium-name">{{ $champ['full_name'] }}</div>
+                                <div class="hc-podium-sub"><iconify-icon icon="lucide:crown" style="vertical-align:text-bottom;"></iconify-icon> Champion</div>
+                                <div class="hc-podium-count">{{ $champ['hikes_completed'] }} <small>{{ Str::plural('hike', $champ['hikes_completed']) }}</small></div>
+                                <div class="hc-podium-base"></div>
+                            </div>
+
+                            {{-- 3rd --}}
+                            @if($third)
+                                <div class="hc-podium-card is-3">
+                                    <div class="hc-podium-medal">3</div>
+                                    <div class="hc-podium-avatar" style="{{ $third['profile_picture'] ? 'background-image:url('.$third['profile_picture'].')' : '' }}">
+                                        {{ $third['profile_picture'] ? '' : $third['initials'] }}
+                                    </div>
+                                    <div class="hc-podium-name">{{ $third['full_name'] }}</div>
+                                    <div class="hc-podium-sub">Bronze summit</div>
+                                    <div class="hc-podium-count">{{ $third['hikes_completed'] }} <small>{{ Str::plural('hike', $third['hikes_completed']) }}</small></div>
+                                    <div class="hc-podium-base"></div>
+                                </div>
+                            @else
+                                <div class="hc-podium-card is-3" style="opacity:0.55;">
+                                    <div class="hc-podium-medal">3</div>
+                                    <div class="hc-podium-avatar">??</div>
+                                    <div class="hc-podium-name">Open spot</div>
+                                    <div class="hc-podium-sub">Bronze summit</div>
+                                    <div class="hc-podium-count">—</div>
+                                    <div class="hc-podium-base"></div>
+                                </div>
+                            @endif
+                        </section>
+                    @endif
+
+                    {{-- YOUR RANK CARD --}}
+                    @if($myRank && $myRow)
+                        <section class="hc-yourrank" aria-label="Your rank">
+                            <div class="hc-yourrank-rank">
+                                <small style="display:block;margin-bottom:4px;">Rank</small>
+                                #{{ $myRank }}
+                            </div>
+                            <div class="hc-yourrank-info">
+                                <div class="hc-yourrank-eyebrow">Your standing</div>
+                                <h4>
+                                    @if($myRank === 1)
+                                        You're the champion! Stay on top.
+                                    @elseif($myRank <= 3)
+                                        On the podium &mdash; one more push for #1.
+                                    @elseif($hikesToBeat > 0)
+                                        {{ $hikesToBeat }} more {{ Str::plural('hike', $hikesToBeat) }} to climb to #{{ max(1, $myRank - 1) }}
+                                    @elseif(($myRow['hikes_completed'] ?? 0) === 0)
+                                        Your first summit will put you on the board.
+                                    @else
+                                        Keep climbing — every summit moves you up.
+                                    @endif
+                                </h4>
+                                <p>
+                                    Ranked out of {{ $totalHikers }} {{ Str::plural('hiker', $totalHikers) }} &middot;
+                                    {{ $myRow['hikes_completed'] }} {{ Str::plural('summit', $myRow['hikes_completed']) }} logged
+                                </p>
+                            </div>
+                            <div class="hc-yourrank-stats">
+                                <div class="ks">
+                                    <div class="v">{{ $myRow['hikes_completed'] }}</div>
+                                    <div class="l">Hikes</div>
+                                </div>
+                                <div class="ks">
+                                    <div class="v">{{ $myRow['total_hours'] }}h</div>
+                                    <div class="l">Hours</div>
+                                </div>
+                                <div class="ks">
+                                    <div class="v">{{ number_format($myRow['total_elevation']) }}m</div>
+                                    <div class="l">Climbed</div>
+                                </div>
+                            </div>
+                        </section>
+                    @endif
+
+                    {{-- TOP 10 LIST --}}
+                    <div class="hc-panel">
+                        <div class="hc-panel-head">
+                            <h3><iconify-icon icon="lucide:list-ordered"></iconify-icon> Top 10 hikers</h3>
+                            <span class="hc-pill">By summits</span>
+                        </div>
+                        <div class="hc-lb-list">
+                            @foreach($topTen as $row)
+                                @php
+                                    $rank = $row['rank'];
+                                    $isMe = $row['id'] === $user->id;
+                                    $rowCls = $isMe ? 'is-me' : '';
+                                    if ($rank === 1) $rowCls .= ' is-top1';
+                                    elseif ($rank === 2) $rowCls .= ' is-top2';
+                                    elseif ($rank === 3) $rowCls .= ' is-top3';
+                                    $pct = max(8, round(($row['hikes_completed'] / $maxHikes) * 100));
+                                @endphp
+                                <div class="hc-lb-row {{ trim($rowCls) }}">
+                                    <div class="hc-lb-rank">{{ $rank }}</div>
+                                    <div class="hc-lb-avatar" style="{{ $row['profile_picture'] ? 'background-image:url('.$row['profile_picture'].')' : '' }}">
+                                        {{ $row['profile_picture'] ? '' : $row['initials'] }}
+                                    </div>
+                                    <div class="hc-lb-info">
+                                        <div class="hc-lb-name">
+                                            {{ $row['full_name'] }}
+                                            @if($isMe)<span class="me-pill">You</span>@endif
+                                            @if($rank === 1)<iconify-icon icon="lucide:crown" style="color:#f59e0b;font-size:14px;vertical-align:text-bottom;" title="Champion"></iconify-icon>@endif
+                                        </div>
+                                        <div class="hc-lb-meta">
+                                            <span><iconify-icon icon="lucide:clock"></iconify-icon> {{ $row['total_hours'] }}h on trail</span>
+                                            <span><iconify-icon icon="lucide:trending-up"></iconify-icon> {{ number_format($row['total_elevation']) }}m climbed</span>
+                                            @if($row['joined_at'])
+                                                <span><iconify-icon icon="lucide:calendar"></iconify-icon> Hiking since {{ \Illuminate\Support\Carbon::parse($row['joined_at'])->format('M Y') }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="hc-rank-meter" style="margin-top:6px;"><span style="width:{{ $pct }}%;"></span></div>
+                                    </div>
+                                    <div class="hc-lb-count">
+                                        {{ $row['hikes_completed'] }}
+                                        <small>{{ Str::plural('hike', $row['hikes_completed']) }}</small>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        @if($myRank && $myRank > 10 && $myRow)
+                            <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);">
+                                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Your position</div>
+                                <div class="hc-lb-row is-me">
+                                    <div class="hc-lb-rank">{{ $myRank }}</div>
+                                    <div class="hc-lb-avatar" style="{{ $myRow['profile_picture'] ? 'background-image:url('.$myRow['profile_picture'].')' : '' }}">
+                                        {{ $myRow['profile_picture'] ? '' : $myRow['initials'] }}
+                                    </div>
+                                    <div class="hc-lb-info">
+                                        <div class="hc-lb-name">
+                                            {{ $myRow['full_name'] }}
+                                            <span class="me-pill">You</span>
+                                        </div>
+                                        <div class="hc-lb-meta">
+                                            <span><iconify-icon icon="lucide:clock"></iconify-icon> {{ $myRow['total_hours'] }}h on trail</span>
+                                            <span><iconify-icon icon="lucide:trending-up"></iconify-icon> {{ number_format($myRow['total_elevation']) }}m climbed</span>
+                                        </div>
+                                    </div>
+                                    <div class="hc-lb-count">
+                                        {{ $myRow['hikes_completed'] }}
+                                        <small>{{ Str::plural('hike', $myRow['hikes_completed']) }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- HOW RANKING WORKS --}}
+                    <div class="hc-panel" style="margin-top:18px;">
+                        <div class="hc-panel-head">
+                            <h3><iconify-icon icon="lucide:info"></iconify-icon> How ranking works</h3>
+                            <span class="hc-pill">Fair play</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+                            <div style="padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--line);">
+                                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--hc-forest);margin-bottom:6px;display:inline-flex;align-items:center;gap:6px;">
+                                    <iconify-icon icon="lucide:flag-triangle-right"></iconify-icon> 1. Summits
+                                </div>
+                                <div style="font-size:13px;color:var(--text);font-weight:600;">Every completed hike counts as one summit. Most summits = highest rank.</div>
+                            </div>
+                            <div style="padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--line);">
+                                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--hc-forest);margin-bottom:6px;display:inline-flex;align-items:center;gap:6px;">
+                                    <iconify-icon icon="lucide:clock"></iconify-icon> 2. Hours
+                                </div>
+                                <div style="font-size:13px;color:var(--text);font-weight:600;">Tied on summits? More hours logged on trail wins the tiebreaker.</div>
+                            </div>
+                            <div style="padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--line);">
+                                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--hc-forest);margin-bottom:6px;display:inline-flex;align-items:center;gap:6px;">
+                                    <iconify-icon icon="lucide:trending-up"></iconify-icon> 3. Elevation
+                                </div>
+                                <div style="font-size:13px;color:var(--text);font-weight:600;">Still tied? Total vertical climb across all summits decides the order.</div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="view-section" id="view-trail-plan">
@@ -543,28 +1056,140 @@
     {{-- === Include New Section Styles === --}}
     @include('hikers._new-styles')
 
+    <style>
+        .hc-review-overlay[hidden] { display: none !important; }
+        .hc-review-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 12000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(7, 17, 15, 0.56);
+            backdrop-filter: blur(4px);
+        }
+        .hc-review-modal {
+            width: min(440px, 96vw);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #1f222a;
+            color: #f5f5f5;
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+            padding: 1.25rem 1.25rem 1rem;
+            position: relative;
+        }
+        .hc-review-close {
+            position: absolute;
+            top: .5rem;
+            right: .55rem;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 1.25rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .hc-review-close:hover { color: #fff; }
+        .hc-review-title {
+            margin: 0 0 .35rem;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: -0.02em;
+        }
+        .hc-review-sub {
+            margin: 0 0 1.05rem;
+            text-align: center;
+            color: #d1d5db;
+            font-size: 1.125rem;
+        }
+        .hc-review-choices {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .hc-review-choice {
+            width: 78px;
+            height: 78px;
+            border-radius: 999px;
+            border: 2px solid transparent;
+            background: #d1d5db;
+            color: #3f3f46;
+            font-size: 2.3rem;
+            cursor: pointer;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+        .hc-review-choice:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+        }
+        .hc-review-choice.is-selected {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+        }
+        .hc-review-feedback {
+            min-height: 1rem;
+            margin: 0 0 .7rem;
+            text-align: center;
+            color: #a7f3d0;
+            font-size: .82rem;
+        }
+        .hc-review-footer {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            color: #d1d5db;
+            font-size: .82rem;
+        }
+        .hc-review-footer input { accent-color: #10b981; }
+    </style>
+
+    <div id="hiker-experience-review" class="hc-review-overlay" hidden aria-hidden="true">
+        <div class="hc-review-modal" role="dialog" aria-modal="true" aria-labelledby="hc-review-title">
+            <button type="button" class="hc-review-close" id="hc-review-close" aria-label="Close">×</button>
+            <h2 id="hc-review-title" class="hc-review-title">How's the call go?</h2>
+            <p class="hc-review-sub">Tell us about your call experience.</p>
+            <div class="hc-review-choices" role="group" aria-label="Experience rating">
+                <button type="button" class="hc-review-choice" data-review-score="bad" aria-label="Bad experience">☹</button>
+                <button type="button" class="hc-review-choice" data-review-score="okay" aria-label="Okay experience">😐</button>
+                <button type="button" class="hc-review-choice" data-review-score="great" aria-label="Great experience">😄</button>
+            </div>
+            <p id="hc-review-feedback" class="hc-review-feedback"></p>
+            <label class="hc-review-footer">
+                <input type="checkbox" id="hc-review-hide">
+                <span>Don't show again</span>
+            </label>
+        </div>
+    </div>
+
     @php
         $__hikerBootstrap = [
             'csrf' => csrf_token(),
             'userId' => $user->id,
             'hasGoogleMapsKey' => filled(config('services.google_maps.key')),
-            'mapsFallbackCenter' => ['lat' => 13.94, 'lng' => 120.92],
+            'mapsFallbackCenter' => ['lat' => 12.8797, 'lng' => 121.7740],
             'weather' => ($weatherLat !== null && $weatherLng !== null)
                 ? ['lat' => $weatherLat, 'lng' => $weatherLng]
                 : null,
             'jumpoffMarkers' => $jumpoffMarkers,
             'defaultJumpoff' => $defaultJumpoff,
+            'activeMountainId' => $upcoming?->mountain_id ?? $trailMountain?->id,
+            'activeBookingId' => $upcoming?->id,
             'routes' => [
                 'storeBooking' => url('/hikers/bookings'),
                 'storeReview' => url('/hikers/reviews'),
                 'storeGuideReview' => url('/hikers/guide-reviews'),
                 'storeCommunityPost' => url('/hikers/community-posts'),
+                'triggerSos' => url('/hikers/sos'),
                 'cancelBookingPrefix' => url('/hikers/bookings'),
                 'updateProfilePicture' => url('/hikers/profile/picture'),
                 'updateProfile' => url('/hikers/profile'),
                 'sendPasswordChangeCode' => url('/hikers/profile/password/send-code'),
                 'updatePasswordWithCode' => url('/hikers/profile/password'),
                 'achievementClaimBase' => url('/hikers/achievements'),
+                'storeExperienceFeedback' => url('/hikers/experience-feedback'),
             ],
         ];
     @endphp
@@ -1219,7 +1844,95 @@
             window.selectDetailTab('overview');
         }
 
+        function initExperienceReviewPopup() {
+            const overlay = document.getElementById('hiker-experience-review');
+            if (!overlay) return;
+            const params = new URLSearchParams(window.location.search);
+            const isFirstLogin = params.get('first_login') === '1';
+            if (isFirstLogin) {
+                params.delete('first_login');
+                const next = window.location.pathname
+                    + (params.toString() ? '?' + params.toString() : '')
+                    + window.location.hash;
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, '', next);
+                }
+                return;
+            }
+
+            const hideKey = 'hikeconnect_experience_review_hide';
+            const scoreKey = 'hikeconnect_experience_review_last_score';
+            const closeBtn = document.getElementById('hc-review-close');
+            const hideToggle = document.getElementById('hc-review-hide');
+            const feedback = document.getElementById('hc-review-feedback');
+            const choices = overlay.querySelectorAll('.hc-review-choice');
+            const endpoint = window.HIKER_BOOTSTRAP?.routes?.storeExperienceFeedback;
+
+            if (localStorage.getItem(hideKey) === '1') return;
+
+            const closePopup = () => {
+                if (hideToggle && hideToggle.checked) {
+                    localStorage.setItem(hideKey, '1');
+                }
+                overlay.hidden = true;
+                overlay.setAttribute('aria-hidden', 'true');
+            };
+
+            setTimeout(() => {
+                overlay.hidden = false;
+                overlay.setAttribute('aria-hidden', 'false');
+            }, 700);
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closePopup);
+            }
+
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) closePopup();
+            });
+
+            const sendFeedback = (score) => {
+                if (!endpoint) {
+                    return Promise.resolve(false);
+                }
+
+                const fd = new FormData();
+                fd.append('_token', window.HIKER_BOOTSTRAP.csrf);
+                fd.append('score', score);
+                fd.append('dont_show_again', hideToggle && hideToggle.checked ? '1' : '0');
+                fd.append('context', 'hiker_dashboard_login');
+
+                return fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': window.HIKER_BOOTSTRAP.csrf,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: fd,
+                })
+                    .then((response) => response.ok)
+                    .catch(() => false);
+            };
+
+            choices.forEach((button) => {
+                button.addEventListener('click', async () => {
+                    choices.forEach((b) => b.classList.remove('is-selected'));
+                    button.classList.add('is-selected');
+                    const score = button.getAttribute('data-review-score') || 'okay';
+                    localStorage.setItem(scoreKey, score);
+                    if (feedback) feedback.textContent = 'Saving your feedback...';
+                    const saved = await sendFeedback(score);
+                    if (feedback) feedback.textContent = saved
+                        ? 'Thanks! Your experience was recorded.'
+                        : 'Saved locally. We will retry next login.';
+                    setTimeout(closePopup, 700);
+                });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            initExperienceReviewPopup();
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
                     const overlay = document.getElementById('detail-trail-simulation-overlay');
@@ -1250,10 +1963,11 @@
                 'track-location': document.getElementById('view-track-location'),
                 'what-to-bring': document.getElementById('view-what-to-bring'),
                 'hiking-history': document.getElementById('view-hiking-history'),
+                'leaderboard': document.getElementById('view-leaderboard'),
                 'trail-plan': document.getElementById('view-trail-plan'),
                 'community-chat': document.getElementById('view-community-chat'),
                 'settings': document.getElementById('view-settings'),
-                'safety-alerts': document.getElementById('view-settings')
+                'safety-alerts': document.getElementById('view-safety-alerts')
             };
 
             window.showView = function(targetId) {
@@ -1277,9 +1991,11 @@
                 if (rawId === 'track-location' && typeof google !== 'undefined' && google.maps && window.hikeTracker && window.hikeTracker.map) {
                     setTimeout(function() {
                         google.maps.event.trigger(window.hikeTracker.map, 'resize');
-                        const dj = window.HIKER_BOOTSTRAP.defaultJumpoff;
                         const fb = window.HIKER_BOOTSTRAP.mapsFallbackCenter;
-                        const c = (dj && dj.lat != null && dj.lng != null) ? dj : fb;
+                        const livePosition = window.hikeTracker.userMarker?.getPosition?.();
+                        const c = livePosition
+                            ? { lat: livePosition.lat(), lng: livePosition.lng() }
+                            : fb;
                         if (c && c.lat != null && c.lng != null) {
                             window.hikeTracker.map.setCenter({ lat: c.lat, lng: c.lng });
                         }
@@ -1304,6 +2020,54 @@
                     }
                 });
             });
+
+            function initGlobalSearch() {
+                const input = document.getElementById('hiker-global-search');
+                if (!input) return;
+
+                const itemSelector = [
+                    '.stat-card', '.dashboard-card', '.achievement-card', '.mountain-card', '.ns-guide-card',
+                    '.ns-booking-card', '.ns-post-card', '.ns-checklist-category', '.ns-history-item', '.safety-alert-card',
+                    '.menu-item', '.group-item'
+                ].join(',');
+
+                function resetSectionFilters() {
+                    document.querySelectorAll(itemSelector).forEach((item) => {
+                        item.style.display = '';
+                    });
+                }
+
+                input.addEventListener('input', () => {
+                    const query = input.value.trim().toLowerCase();
+                    resetSectionFilters();
+                    if (!query) return;
+
+                    const matches = Object.entries(sections)
+                        .filter(([, section]) => section)
+                        .map(([key, section]) => {
+                            const menu = Array.from(menuLinks).find((link) => {
+                                const href = link.getAttribute('href') || '';
+                                return (key === 'home' && href === '#') || href === '#' + key;
+                            });
+                            const haystack = ((menu?.textContent || '') + ' ' + section.textContent).toLowerCase();
+
+                            return { key, section, score: haystack.includes(query) ? haystack.indexOf(query) : -1 };
+                        })
+                        .filter((result) => result.score >= 0)
+                        .sort((a, b) => a.score - b.score);
+
+                    if (!matches.length) return;
+
+                    showView('#' + matches[0].key);
+                    const activeSection = matches[0].section;
+                    activeSection.querySelectorAll(itemSelector).forEach((item) => {
+                        const text = item.textContent.toLowerCase();
+                        item.style.display = text.includes(query) ? '' : 'none';
+                    });
+                });
+            }
+
+            initGlobalSearch();
 
             document.querySelectorAll('[data-detail-tab]').forEach((button) => {
                 button.addEventListener('click', () => window.selectDetailTab(button.getAttribute('data-detail-tab')));
@@ -1559,6 +2323,19 @@
             document.getElementById('detail-status').className = 'ns-status-pill ' + m.status;
             document.getElementById('detail-diff').textContent = m.difficulty;
             document.getElementById('detail-full-desc').textContent = m.description || '';
+            const safetyBox = document.getElementById('detail-safety-alert');
+            const safetyTitle = document.getElementById('detail-safety-title');
+            const safetyNote = document.getElementById('detail-safety-note');
+            const safetyStatus = m.safetyStatus || 'open';
+            if (safetyBox && safetyTitle && safetyNote) {
+                if (safetyStatus !== 'open') {
+                    safetyBox.style.display = '';
+                    safetyTitle.textContent = m.safetyStatusLabel || 'Trail Safety Alert';
+                    safetyNote.textContent = m.safetyNote || 'Please check trail conditions before booking or starting your hike.';
+                } else {
+                    safetyBox.style.display = 'none';
+                }
+            }
             document.getElementById('detail-elevation').textContent = m.elevation;
             document.getElementById('detail-duration').textContent = m.duration;
             document.getElementById('detail-trail-type').textContent = m.trailType;
@@ -1791,12 +2568,17 @@
             if (mountain || date || guide) {
                 const mData = mountainData[mountain];
                 const gData = guideData[String(guide)];
+                const safetyWarning = mData && mData.safetyStatus && mData.safetyStatus !== 'open'
+                    ? `<div class="ns-preview-row" style="background:#fef2f2;border-color:#fecaca;"><span style="color:#991b1b;">Trail safety</span><strong style="color:#991b1b;">${escapeHtml(mData.safetyStatusLabel || 'Safety Alert')}</strong></div>
+                       <div style="font-size:12px;color:#7f1d1d;line-height:1.5;margin-top:6px;">${escapeHtml(mData.safetyNote || 'Please check trail conditions before booking or starting your hike.')}</div>`
+                    : '';
                 preview.innerHTML = `<div class="ns-preview-filled">
                     <div class="ns-preview-row"><span>Mountain</span><strong>${mData ? mData.name : '—'}</strong></div>
                     <div class="ns-preview-row"><span>Date</span><strong>${date || '—'}</strong></div>
                     <div class="ns-preview-row"><span>Hikers</span><strong>${hikers || '1'}</strong></div>
                     <div class="ns-preview-row"><span>Guide</span><strong>${gData ? gData.name : '—'}</strong></div>
                     <div class="ns-preview-row"><span>Jump-off</span><strong>${mData ? mData.jumpoff.name : '—'}</strong></div>
+                    ${safetyWarning}
                     <div class="ns-preview-row"><span>Status</span><strong style="color:#f59e0b;"><iconify-icon icon="lucide:circle" style="vertical-align:text-bottom; margin-right:2px; font-size:10px;"></iconify-icon> Pending</strong></div>
                 </div>`;
             } else {
@@ -1883,7 +2665,9 @@
             path: [],
             watchId: null,
             isTracking: false,
+            hasLiveFix: false,
         };
+        const MAX_TRACKING_ACCURACY_M = 500;
 
         function hikeTrailLengthKm(path) {
             if (!path || path.length < 2) return 0;
@@ -1914,12 +2698,10 @@
             if (window.hikeTracker.map) return true;
             const mapEl = document.getElementById('tracker-gmap');
             if (!mapEl || typeof google === 'undefined' || !google.maps || !window.HIKER_BOOTSTRAP) return false;
-            const dj = window.HIKER_BOOTSTRAP.defaultJumpoff;
-            const fb = window.HIKER_BOOTSTRAP.mapsFallbackCenter || { lat: 13.94, lng: 120.92 };
-            const center = (dj && dj.lat != null && dj.lng != null) ? { lat: dj.lat, lng: dj.lng } : fb;
+            const fb = window.HIKER_BOOTSTRAP.mapsFallbackCenter || { lat: 12.8797, lng: 121.7740 };
             const map = new google.maps.Map(mapEl, {
-                center,
-                zoom: 14,
+                center: fb,
+                zoom: 6,
                 mapTypeId: 'terrain',
                 disableDefaultUI: false,
                 zoomControl: true,
@@ -1932,8 +2714,8 @@
                 new google.maps.Marker({
                     position: { lat: j.lat, lng: j.lng },
                     map,
-                    title: j.title,
-                    icon: { url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png' }
+                    title: j.title + ' (jump-off, not your location)',
+                    icon: { url: 'https://maps.google.com/mapfiles/ms/icons/orange-dot.png' }
                 });
             });
             return true;
@@ -1974,6 +2756,90 @@
             } catch(_) {}
         }
 
+        window.triggerEmergencySos = function() {
+            const btn = document.getElementById('sos-btn');
+            const statusEl = document.getElementById('sos-status');
+            const messageEl = document.getElementById('sos-message');
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+            const lastFix = window.hikeTracker?.lastFix || null;
+
+            if (!csrf) {
+                if (statusEl) statusEl.textContent = 'Could not verify your session. Please refresh and try again.';
+                return;
+            }
+
+            const confirmed = window.confirm('Send Emergency SOS to Admin and your assigned Tour Guide? Use this only if you need urgent help.');
+            if (!confirmed) return;
+
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.75';
+                btn.style.cursor = 'wait';
+            }
+            if (statusEl) {
+                statusEl.style.color = 'var(--muted)';
+                statusEl.textContent = lastFix ? 'Sending SOS with your last GPS fix...' : 'Sending SOS. If GPS is available, allow location access for better accuracy.';
+            }
+
+            const send = (coords = null) => {
+                const body = new FormData();
+                const point = coords || lastFix;
+                if (point) {
+                    body.append('lat', point.lat);
+                    body.append('lng', point.lng);
+                    if (point.accuracy_m != null && !isNaN(point.accuracy_m)) body.append('accuracy_m', point.accuracy_m);
+                }
+                const ctxMid = window.HIKER_BOOTSTRAP?.activeMountainId;
+                const ctxBid = window.HIKER_BOOTSTRAP?.activeBookingId;
+                if (ctxMid) body.append('mountain_id', ctxMid);
+                if (ctxBid) body.append('hike_booking_id', ctxBid);
+                if (messageEl && messageEl.value.trim()) body.append('message', messageEl.value.trim());
+
+                fetch(window.HIKER_BOOTSTRAP?.routes?.triggerSos || '/hikers/sos', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    body,
+                })
+                    .then(async (r) => {
+                        const data = await r.json().catch(() => ({}));
+                        if (!r.ok || !data.success) {
+                            throw new Error(data.message || 'Could not send SOS. Please try again.');
+                        }
+                        if (statusEl) {
+                            statusEl.style.color = data.email_sent === false ? '#b45309' : '#047857';
+                            statusEl.textContent = data.message || 'SOS sent to Admin and your Tour Guide.';
+                        }
+                    })
+                    .catch((err) => {
+                        if (statusEl) {
+                            statusEl.style.color = '#b91c1c';
+                            statusEl.textContent = err.message || 'Could not send SOS. Try again or call local rescue directly.';
+                        }
+                    })
+                    .finally(() => {
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.style.opacity = '';
+                            btn.style.cursor = '';
+                        }
+                    });
+            };
+
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => send({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        accuracy_m: pos.coords.accuracy,
+                    }),
+                    () => send(lastFix),
+                    { enableHighAccuracy: true, maximumAge: 8000, timeout: 10000 }
+                );
+            } else {
+                send(lastFix);
+            }
+        };
+
         function startLiveTracking() {
             const label = document.getElementById('track-btn-label');
             const clearBtn = document.getElementById('track-clear-btn');
@@ -2009,6 +2875,7 @@
                     window.hikeTracker.userMarker.setMap(null);
                     window.hikeTracker.userMarker = null;
                 }
+                window.hikeTracker.hasLiveFix = false;
             }
 
             window.hikeTracker.isTracking = true;
@@ -2016,6 +2883,12 @@
             if (btn) btn.setAttribute('aria-pressed', 'true');
             if (label) label.textContent = 'Stop tracking';
             if (clearBtn) clearBtn.style.display = '';
+            if (statusEl) statusEl.textContent = 'Waiting for GPS fix';
+            if (distEl) distEl.textContent = '-- km';
+            if (trailEl) trailEl.textContent = '-- km';
+            if (altEl) altEl.textContent = '-- m';
+            if (accEl) accEl.textContent = '--';
+            if (lastEl) lastEl.textContent = '--';
 
             const dj = window.HIKER_BOOTSTRAP.defaultJumpoff;
             const jm = (window.HIKER_BOOTSTRAP.jumpoffMarkers || [])[0];
@@ -2029,6 +2902,12 @@
                 const lng = pos.coords.longitude;
                 const acc = pos.coords.accuracy;
                 const map = window.hikeTracker.map;
+                window.hikeTracker.lastFix = {
+                    lat,
+                    lng,
+                    accuracy_m: acc,
+                    at: Date.now(),
+                };
 
                 if (altEl) {
                     altEl.textContent = (pos.coords.altitude != null && !isNaN(pos.coords.altitude))
@@ -2038,6 +2917,13 @@
                     accEl.textContent = (acc != null && !isNaN(acc)) ? ('±' + Math.round(acc) + ' m') : '—';
                 }
                 if (lastEl) lastEl.textContent = new Date().toLocaleTimeString();
+
+                if (acc != null && !isNaN(acc) && acc > MAX_TRACKING_ACCURACY_M) {
+                    if (statusEl) {
+                        statusEl.textContent = 'Low accuracy - move outdoors and wait';
+                    }
+                    return;
+                }
 
                 if (jumpoffRef && jumpoffRef.lat != null && jumpoffRef.lng != null && distEl) {
                     const d = haversine(lat, lng, jumpoffRef.lat, jumpoffRef.lng);
@@ -2050,6 +2936,7 @@
                 }
 
                 hikeAppendTrackPoint(lat, lng);
+                window.hikeTracker.hasLiveFix = true;
 
                 if (!window.hikeTracker.polyline && window.hikeTracker.path.length > 0) {
                     window.hikeTracker.polyline = new google.maps.Polyline({
@@ -2074,6 +2961,8 @@
                 } else {
                     window.hikeTracker.userMarker.setPosition({ lat, lng });
                 }
+                map.setCenter({ lat, lng });
+                if (map.getZoom() < 16) map.setZoom(16);
 
                 const tKm = hikeTrailLengthKm(window.hikeTracker.path);
                 if (trailEl) {
@@ -2118,8 +3007,13 @@
 
         window.clearHikeTrail = function() {
             window.hikeTracker.path = [];
+            window.hikeTracker.hasLiveFix = false;
             if (window.hikeTracker.polyline) {
                 window.hikeTracker.polyline.setPath([]);
+            }
+            if (window.hikeTracker.userMarker) {
+                window.hikeTracker.userMarker.setMap(null);
+                window.hikeTracker.userMarker = null;
             }
             const trailEl = document.getElementById('tracker-trail-km');
             if (trailEl) trailEl.textContent = '-- km';

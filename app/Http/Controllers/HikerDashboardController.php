@@ -9,10 +9,14 @@ use App\Models\HikerLocation;
 use App\Models\Mountain;
 use App\Models\MountainReview;
 use App\Models\PackingItem;
+use App\Models\SosAlert;
 use App\Models\TourGuide;
+use App\Models\User;
+use App\Models\UserExperienceFeedback;
 use App\Services\AchievementEvaluator;
 use App\Services\AuditLogger;
 use App\Services\EmailService;
+use App\Services\MountainTrailProfileService;
 use App\Services\TrailDataService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -26,6 +30,7 @@ class HikerDashboardController extends Controller
     public function __construct(
         protected EmailService $emailService,
         protected TrailDataService $trailDataService,
+        protected MountainTrailProfileService $trailProfileService,
     ) {}
 
     public function index()
@@ -132,6 +137,29 @@ class HikerDashboardController extends Controller
 
         $mountainDifficulties = $mountains->pluck('difficulty')->filter()->unique()->sort()->values();
         $communityPostTotal = CommunityPost::query()->count();
+        $safetyMountains = $mountains
+            ->filter(fn (Mountain $m) => $m->hasSafetyWarning())
+            ->values();
+        $hikerSosAlerts = SosAlert::query()
+            ->where('user_id', $user->id)
+            ->with([
+                'mountain:id,name,location,emergency_contact',
+                'hikeBooking:id,hike_on,status,mountain_id,tour_guide_id',
+                'hikeBooking.mountain:id,name,location,emergency_contact',
+                'tourGuide:id,first_name,last_name,email,phone',
+                'acknowledgedBy:id,first_name,last_name',
+                'resolvedBy:id,first_name,last_name',
+            ])
+            ->orderByRaw("CASE WHEN status = 'open' THEN 0 WHEN status = 'acknowledged' THEN 1 ELSE 2 END")
+            ->orderByDesc('created_at')
+            ->limit(30)
+            ->get();
+
+        // ----------------------------------------------------------------
+        // Hiker leaderboard — rank by completed hikes, tie-break with
+        // total logged hours then total elevation gained.
+        // ----------------------------------------------------------------
+        [$leaderboard, $myRank, $myLeaderRow, $totalHikers] = $this->buildHikerLeaderboard($user);
 
         return view('hikers', compact(
             'user',
@@ -153,8 +181,87 @@ class HikerDashboardController extends Controller
             'safetyEmergency',
             'mountainDifficulties',
             'communityPostTotal',
+            'safetyMountains',
+            'hikerSosAlerts',
             'achievementsUi',
+            'leaderboard',
+            'myRank',
+            'myLeaderRow',
+            'totalHikers',
         ));
+    }
+
+    /**
+     * Build the hiker leaderboard, the current user's rank entry, and the
+     * total number of hikers that participate in the ranking.
+     *
+     * @return array{0: \Illuminate\Support\Collection<int, array<string, mixed>>, 1: ?int, 2: ?array<string, mixed>, 3: int}
+     */
+    private function buildHikerLeaderboard(User $user): array
+    {
+        $rows = DB::table('users as u')
+            ->leftJoin('hike_bookings as b', function ($j) {
+                $j->on('b.user_id', '=', 'u.id')->where('b.status', 'completed');
+            })
+            ->leftJoin('mountains as m', 'm.id', '=', 'b.mountain_id')
+            ->where(function ($q) {
+                $q->where('u.role', User::ROLE_HIKER)->orWhereNull('u.role');
+            })
+            ->groupBy('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at')
+            ->select('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at')
+            ->selectRaw('COUNT(b.id) as hikes_completed')
+            ->selectRaw('COALESCE(SUM(COALESCE(b.duration_hours, 4)), 0) as total_hours')
+            ->selectRaw('COALESCE(SUM(COALESCE(m.elevation_meters, 0)), 0) as total_elevation')
+            ->orderByDesc('hikes_completed')
+            ->orderByDesc('total_hours')
+            ->orderByDesc('total_elevation')
+            ->orderBy('u.id')
+            ->get();
+
+        $entries = $rows->values()->map(function ($r, $idx) {
+            $first = (string) ($r->first_name ?? '');
+            $last  = (string) ($r->last_name ?? '');
+            $full  = trim($first.' '.$last);
+            $initials = strtoupper(
+                ($first !== '' ? substr($first, 0, 1) : '').
+                ($last  !== '' ? substr($last,  0, 1) : '')
+            );
+            if ($initials === '') {
+                $initials = 'HC';
+            }
+
+            $picUrl = null;
+            if (! empty($r->profile_picture_path)) {
+                $relative = 'storage/'.ltrim(str_replace('\\', '/', $r->profile_picture_path), '/');
+                $picUrl = asset($relative);
+            }
+
+            return [
+                'rank'            => $idx + 1,
+                'id'              => (int) $r->id,
+                'first_name'      => $first,
+                'last_name'       => $last,
+                'full_name'       => $full !== '' ? $full : 'Hiker',
+                'initials'        => $initials,
+                'profile_picture' => $picUrl,
+                'hikes_completed' => (int) $r->hikes_completed,
+                'total_hours'     => (int) round((float) $r->total_hours),
+                'total_elevation' => (int) round((float) $r->total_elevation),
+                'joined_at'       => $r->created_at,
+            ];
+        });
+
+        $myRank = null;
+        $myRow  = null;
+        foreach ($entries as $entry) {
+            if ($entry['id'] === $user->id) {
+                $myRank = $entry['rank'];
+                $myRow  = $entry;
+                break;
+            }
+        }
+
+        return [$entries, $myRank, $myRow, $entries->count()];
     }
 
     /**
@@ -176,6 +283,9 @@ class HikerDashboardController extends Controller
                 'name' => $m->name,
                 'image' => asset($m->image_path),
                 'status' => $m->status,
+                'safetyStatus' => $m->safety_status ?? Mountain::SAFETY_OPEN,
+                'safetyStatusLabel' => $m->safety_status_label,
+                'safetyNote' => (string) ($m->safety_note ?? ''),
                 'difficulty' => $m->difficulty,
                 'rating' => (float) $m->rating,
                 'location' => $m->location,
@@ -295,44 +405,6 @@ class HikerDashboardController extends Controller
                         'description' => 'The most photogenic stretch of Batulao with exposed rolling ridges and airy viewpoints.',
                     ],
                 ],
-                'forceSavedTrail' => true,
-                'fallbackTrailPath' => [
-                    ['lat' => 14.0581288, 'lng' => 120.8313422],
-                    ['lat' => 14.0577855, 'lng' => 120.8292876],
-                    ['lat' => 14.0567855, 'lng' => 120.8270297],
-                    ['lat' => 14.0553735, 'lng' => 120.8239923],
-                    ['lat' => 14.0554825, 'lng' => 120.8205722],
-                    ['lat' => 14.0557017, 'lng' => 120.8179019],
-                    ['lat' => 14.0538852, 'lng' => 120.8150767],
-                    ['lat' => 14.0528236, 'lng' => 120.8116542],
-                    ['lat' => 14.0521778, 'lng' => 120.8090893],
-                    ['lat' => 14.0518763, 'lng' => 120.8075410],
-                    ['lat' => 14.0506692, 'lng' => 120.8061288],
-                    ['lat' => 14.0482962, 'lng' => 120.8048414],
-                    ['lat' => 14.0458983, 'lng' => 120.8031549],
-                    ['lat' => 14.0437651, 'lng' => 120.8017493],
-                    ['lat' => 14.0428554, 'lng' => 120.8014918],
-                    ['lat' => 14.0420889, 'lng' => 120.8015545],
-                    ['lat' => 14.0413709, 'lng' => 120.8011945],
-                    ['lat' => 14.0403453, 'lng' => 120.8017539],
-                    ['lat' => 14.0399434, 'lng' => 120.8023782],
-                    ['lat' => 14.0403315, 'lng' => 120.8025741],
-                    ['lat' => 14.0405860, 'lng' => 120.8027830],
-                    ['lat' => 14.0408104, 'lng' => 120.8029848],
-                    ['lat' => 14.0409675, 'lng' => 120.8034532],
-                    ['lat' => 14.0408267, 'lng' => 120.8040761],
-                    ['lat' => 14.0406221, 'lng' => 120.8050627],
-                    ['lat' => 14.0410548, 'lng' => 120.8058052],
-                    ['lat' => 14.0419719, 'lng' => 120.8061882],
-                    ['lat' => 14.0437056, 'lng' => 120.8072562],
-                    ['lat' => 14.0440662, 'lng' => 120.8078081],
-                    ['lat' => 14.0450522, 'lng' => 120.8080054],
-                    ['lat' => 14.0463915, 'lng' => 120.8063455],
-                    ['lat' => 14.0476218, 'lng' => 120.8066821],
-                    ['lat' => 14.0488711, 'lng' => 120.8067467],
-                    ['lat' => 14.0505569, 'lng' => 120.8066738],
-                    ['lat' => 14.0514327, 'lng' => 120.8069371],
-                ],
                 'conditions' => [
                     'crowdLabel' => 'Crowds build fast on weekends',
                     'shadeLabel' => 'Low shade after sunrise',
@@ -344,7 +416,6 @@ class HikerDashboardController extends Controller
                         'Use shorter downhill steps when the trail is dusty or recently wet.',
                     ],
                 ],
-                'trailLabel' => 'Mount Batulao Trail',
             ],
             'pico' => [
                 'subtitle' => 'A verified point-to-point Pico route from the old north jump-off, across the summit ridge, and down the south traverse exit.',
@@ -391,50 +462,6 @@ class HikerDashboardController extends Controller
                         'description' => 'The route finishes at the southern jump-off, so exit transport should be planned ahead.',
                     ],
                 ],
-                'routeEnd' => [
-                    'name' => 'South exit',
-                    'lat' => 14.2053049,
-                    'lng' => 120.6277251,
-                ],
-                'forceSavedTrail' => true,
-                'fallbackTrailPath' => [
-                    ['lat' => 14.2343636, 'lng' => 120.6597593],
-                    ['lat' => 14.2351196, 'lng' => 120.6610751],
-                    ['lat' => 14.2353240, 'lng' => 120.6624207],
-                    ['lat' => 14.2345608, 'lng' => 120.6632659],
-                    ['lat' => 14.2331706, 'lng' => 120.6628584],
-                    ['lat' => 14.2319643, 'lng' => 120.6633617],
-                    ['lat' => 14.2302034, 'lng' => 120.6639802],
-                    ['lat' => 14.2289519, 'lng' => 120.6650666],
-                    ['lat' => 14.2277032, 'lng' => 120.6644697],
-                    ['lat' => 14.2263038, 'lng' => 120.6640444],
-                    ['lat' => 14.2248007, 'lng' => 120.6639792],
-                    ['lat' => 14.2235035, 'lng' => 120.6629972],
-                    ['lat' => 14.2221673, 'lng' => 120.6620941],
-                    ['lat' => 14.2209402, 'lng' => 120.6608698],
-                    ['lat' => 14.2200745, 'lng' => 120.6605545],
-                    ['lat' => 14.2187317, 'lng' => 120.6608708],
-                    ['lat' => 14.2170358, 'lng' => 120.6603908],
-                    ['lat' => 14.2157786, 'lng' => 120.6598377],
-                    ['lat' => 14.2146666, 'lng' => 120.6585075],
-                    ['lat' => 14.2153847, 'lng' => 120.6574878],
-                    ['lat' => 14.2157760, 'lng' => 120.6564685],
-                    ['lat' => 14.2159671, 'lng' => 120.6554129],
-                    ['lat' => 14.2165428, 'lng' => 120.6543429],
-                    ['lat' => 14.2168664, 'lng' => 120.6535584],
-                    ['lat' => 14.2173838, 'lng' => 120.6526748],
-                    ['lat' => 14.2169503, 'lng' => 120.6519177],
-                    ['lat' => 14.2166776, 'lng' => 120.6508114],
-                    ['lat' => 14.2154855, 'lng' => 120.6476085],
-                    ['lat' => 14.2143619, 'lng' => 120.6463951],
-                    ['lat' => 14.2128013, 'lng' => 120.6452045],
-                    ['lat' => 14.2104144, 'lng' => 120.6441477],
-                    ['lat' => 14.2084460, 'lng' => 120.6435227],
-                    ['lat' => 14.2063856, 'lng' => 120.6409183],
-                    ['lat' => 14.2054340, 'lng' => 120.6352938],
-                    ['lat' => 14.2062452, 'lng' => 120.6293580],
-                    ['lat' => 14.2053049, 'lng' => 120.6277251],
-                ],
                 'conditions' => [
                     'crowdLabel' => 'Popular on weekends',
                     'shadeLabel' => 'Good shade early, more exposed on the traverse side',
@@ -446,7 +473,6 @@ class HikerDashboardController extends Controller
                         'Carry enough water for the long south descent even if the early forest section feels manageable.',
                     ],
                 ],
-                'trailLabel' => 'Mount Pico de Loro Point-to-Point Route',
             ],
             'talamitam' => [
                 'subtitle' => 'A shorter grassland climb with broad views, rolling slopes, and a very approachable summit day.',
@@ -493,17 +519,6 @@ class HikerDashboardController extends Controller
                         'description' => 'A breezy open stretch that gives the climb its best photo spots before the summit.',
                     ],
                 ],
-                'fallbackTrailPath' => [
-                    ['lat' => 14.0885028, 'lng' => 120.7760430],
-                    ['lat' => 14.0919240, 'lng' => 120.7704844],
-                    ['lat' => 14.0925509, 'lng' => 120.7690517],
-                    ['lat' => 14.0941300, 'lng' => 120.7674451],
-                    ['lat' => 14.0968901, 'lng' => 120.7664875],
-                    ['lat' => 14.0995618, 'lng' => 120.7645483],
-                    ['lat' => 14.1047698, 'lng' => 120.7628290],
-                    ['lat' => 14.1080266, 'lng' => 120.7590149],
-                    ['lat' => 14.1078115, 'lng' => 120.7599079],
-                ],
                 'conditions' => [
                     'crowdLabel' => 'Light to moderate traffic',
                     'shadeLabel' => 'Very low shade after base',
@@ -515,7 +530,6 @@ class HikerDashboardController extends Controller
                         'Wind can be stronger on the upper ridge, so keep loose items secured before summit photos.',
                     ],
                 ],
-                'trailLabel' => 'Mount Talamitam Trail',
             ],
         ];
 
@@ -525,18 +539,11 @@ class HikerDashboardController extends Controller
             return ['enabled' => false];
         }
 
-        $trailMap = ! empty($profile['forceSavedTrail'])
-            ? [
-                'label' => $profile['trailLabel'],
-                'path' => $profile['fallbackTrailPath'],
-                'source' => 'verified_saved',
-                'sourceLabel' => 'Verified saved trail line',
-            ]
-            : $this->trailDataService->buildTrailMap(
-                $mountain,
-                $profile['trailLabel'],
-                $profile['fallbackTrailPath'],
-            );
+        // Trail polyline + route-end pin live in MountainTrailProfileService
+        // so the admin live map and this mountain-detail page share one
+        // source of truth for the curvy "fence" line.
+        $trailMap = $this->trailProfileService->buildTrailMap($mountain);
+        $routeEnd = $this->trailProfileService->routeEnd($mountain->slug);
 
         return [
             'enabled' => true,
@@ -561,7 +568,7 @@ class HikerDashboardController extends Controller
             'highlights' => $profile['highlights'],
             'topSights' => $profile['topSights'],
             'trailMap' => [...$trailMap],
-            'routeEnd' => $profile['routeEnd'] ?? null,
+            'routeEnd' => $routeEnd,
             'conditions' => $profile['conditions'],
             'reviewBadge' => $reviewSummary['average'].' / 5 trail rating',
         ];
@@ -820,6 +827,124 @@ class HikerDashboardController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function triggerSos(Request $request)
+    {
+        $validated = $request->validate([
+            'lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'lng' => ['nullable', 'numeric', 'between:-180,180'],
+            'accuracy_m' => ['nullable', 'numeric', 'min:0', 'max:100000'],
+            'mountain_id' => ['nullable', 'integer', 'exists:mountains,id'],
+            'hike_booking_id' => ['nullable', 'integer', 'exists:hike_bookings,id'],
+            'message' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $user = Auth::user();
+        $booking = $this->resolveSosBooking($user->id, $validated['hike_booking_id'] ?? null);
+        $mountainId = $booking?->mountain_id ?? ($validated['mountain_id'] ?? null);
+        $tourGuideId = $booking?->tour_guide_id;
+
+        $alert = SosAlert::create([
+            'user_id' => $user->id,
+            'hike_booking_id' => $booking?->id,
+            'mountain_id' => $mountainId,
+            'tour_guide_id' => $tourGuideId,
+            'lat' => $validated['lat'] ?? null,
+            'lng' => $validated['lng'] ?? null,
+            'accuracy_m' => $validated['accuracy_m'] ?? null,
+            'status' => SosAlert::STATUS_OPEN,
+            'message' => trim((string) ($validated['message'] ?? '')) ?: 'Emergency SOS triggered from hiker live tracking.',
+        ]);
+
+        $alert->load(['user', 'hikeBooking.mountain', 'mountain', 'tourGuide.user']);
+
+        $emailSent = $this->notifySosRecipients($alert);
+
+        AuditLogger::log(
+            'hiker.sos_triggered',
+            'Emergency SOS triggered by '.$user->full_name,
+            $user,
+            $alert,
+            ['sos_alert_id' => $alert->id, 'email_sent' => $emailSent]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => $emailSent
+                ? 'SOS sent to Admin and your Tour Guide. Stay where you are if it is safe.'
+                : 'SOS recorded. Email notification could not be sent, but Admin and your Tour Guide can see the alert.',
+            'email_sent' => $emailSent,
+            'alert' => [
+                'id' => $alert->id,
+                'status' => $alert->status,
+                'created_at' => $alert->created_at?->toIso8601String(),
+            ],
+        ], 201);
+    }
+
+    public function storeExperienceFeedback(Request $request)
+    {
+        $validated = $request->validate([
+            'score' => ['required', 'in:bad,okay,great'],
+            'dont_show_again' => ['nullable', 'boolean'],
+            'context' => ['nullable', 'string', 'max:64'],
+        ]);
+
+        $user = Auth::user();
+
+        UserExperienceFeedback::create([
+            'user_id' => $user->id,
+            'score' => $validated['score'],
+            'dont_show_again' => (bool) ($validated['dont_show_again'] ?? false),
+            'context' => $validated['context'] ?? 'hiker_dashboard_login',
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    private function resolveSosBooking(int $userId, ?int $requestedBookingId): ?HikeBooking
+    {
+        if ($requestedBookingId) {
+            $booking = HikeBooking::query()
+                ->where('user_id', $userId)
+                ->with(['mountain', 'tourGuide.user'])
+                ->find($requestedBookingId);
+
+            if ($booking) {
+                return $booking;
+            }
+        }
+
+        return HikeBooking::query()
+            ->where('user_id', $userId)
+            ->whereIn('status', ['pending', 'approved'])
+            ->whereDate('hike_on', '>=', today())
+            ->with(['mountain', 'tourGuide.user'])
+            ->orderBy('hike_on')
+            ->orderBy('id')
+            ->first();
+    }
+
+    private function notifySosRecipients(SosAlert $alert): bool
+    {
+        $recipients = collect();
+        $guideUser = $alert->tourGuide?->user;
+        if ($guideUser?->email) {
+            $recipients->push($guideUser);
+        }
+
+        User::query()
+            ->where('role', User::ROLE_ADMIN)
+            ->get()
+            ->each(fn (User $admin) => $recipients->push($admin));
+
+        $sentAny = false;
+        foreach ($recipients->unique('email') as $recipient) {
+            $sentAny = $this->emailService->sendSosAlert($recipient, $alert) || $sentAny;
+        }
+
+        return $sentAny;
     }
 
     public function sendPasswordChangeCode(Request $request)

@@ -230,7 +230,7 @@
         
         /* Footer */
         footer{background:var(--dg);color:var(--w);padding:5rem 3.75rem 2.5rem}
-        .footer-content{max-width:87.5rem;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3.75rem;margin-bottom:3.75rem}
+        .footer-content{max-width:87.5rem;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:3.75rem;margin-bottom:3.75rem}
         .footer-brand h4{margin-bottom:1.25rem;display:flex;align-items:center;gap:.625rem}
         .footer-brand h4 img{height:2rem;width:auto}
         .footer-brand h4 span{font-size:1.25rem;font-weight:700;color:var(--ag)}
@@ -633,45 +633,41 @@
                     <span>HikeConnect</span>
                 </h4>
                 <p>Do what you love - Hiking. Leave the rest to us. From guided treks to detailed trail information, we're here to help you discover the beauty of Batangas mountains.</p>
-                <form class="newsletter" onsubmit="return false;" aria-label="Newsletter signup">
-                    <input type="email" placeholder="Enter your email" aria-label="Email address" required>
+                <form class="newsletter" method="POST" action="{{ route('newsletter.subscribe') }}" aria-label="Newsletter signup">
+                    @csrf
+                    <input type="email" name="email" value="{{ old('email') }}" placeholder="Enter your email" aria-label="Email address" required>
                     <button type="submit">Subscribe</button>
                 </form>
+                @if (session('newsletter_success'))
+                    <p style="margin-top:.5rem;font-size:.8125rem;color:#a7f3d0;">{{ session('newsletter_success') }}</p>
+                @endif
+                @if ($errors->newsletter->has('email'))
+                    <p style="margin-top:.5rem;font-size:.8125rem;color:#fecaca;">{{ $errors->newsletter->first('email') }}</p>
+                @endif
             </div>
             
             <nav class="footer-links" aria-label="Company links">
                 <h5>Company</h5>
                 <ul>
-                    <li><a href="#">About Us</a></li>
-                    <li><a href="#">Careers</a></li>
-                    <li><a href="#">Press</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#features">Careers</a></li>
+                    <li><a href="#info">Press</a></li>
                 </ul>
             </nav>
             
             <nav class="footer-links" aria-label="Support links">
                 <h5>Support</h5>
                 <ul>
-                    <li><a href="#">Contact</a></li>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">Terms</a></li>
+                    <li><a href="#info">Contact</a></li>
+                    <li><a href="#info">FAQ</a></li>
+                    <li><a href="#about">Terms</a></li>
                 </ul>
             </nav>
             
-            <nav class="footer-links" aria-label="Social links">
-                <h5>Connect</h5>
-                <ul>
-                    <li><a href="#" aria-label="Facebook">Facebook</a></li>
-                    <li><a href="#" aria-label="Instagram">Instagram</a></li>
-                </ul>
-            </nav>
         </div>
         
         <div class="footer-bottom">
             <span>&copy; {{ date('Y') }} HikeConnect. All rights reserved.</span>
-            <div class="social-links" aria-label="Social media">
-                <a href="#" aria-label="Facebook"><iconify-icon icon="lucide:facebook"></iconify-icon></a>
-                <a href="#" aria-label="Instagram"><iconify-icon icon="lucide:instagram"></iconify-icon></a>
-            </div>
         </div>
     </footer>
 
