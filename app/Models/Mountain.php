@@ -27,7 +27,9 @@ class Mountain extends Model
         'best_time_label', 'full_description', 'jumpoff_name', 'jumpoff_address',
         'jumpoff_meeting_time', 'jumpoff_notes', 'jumpoff_lat', 'jumpoff_lng',
         'summit_lat', 'summit_lng', 'open_meteo_lat', 'open_meteo_lng', 'gear',
-        'trail_plan', 'trail_gear_list', 'emergency_contact', 'sort_order',
+        'trail_plan', 'trail_gear_list', 'registration_fee_per_person', 'environmental_fee_per_person',
+        'local_fee_per_person', 'guide_fee_per_person', 'guide_fee_per_group', 'pricing_source_note',
+        'pricing_last_verified_on', 'emergency_contact', 'sort_order',
     ];
 
     protected function casts(): array
@@ -43,6 +45,12 @@ class Mountain extends Model
             'gear' => 'array',
             'trail_plan' => 'array',
             'trail_gear_list' => 'array',
+            'registration_fee_per_person' => 'float',
+            'environmental_fee_per_person' => 'float',
+            'local_fee_per_person' => 'float',
+            'guide_fee_per_person' => 'float',
+            'guide_fee_per_group' => 'float',
+            'pricing_last_verified_on' => 'date',
         ];
     }
 

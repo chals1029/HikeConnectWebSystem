@@ -100,16 +100,6 @@
                     @if($hikerSafetyBadge > 0)<span class="menu-badge" style="background:#fee2e2;color:#991b1b;">{{ $hikerSafetyBadge }}</span>@endif
                 </a>
 
-                <div class="group-title">Group</div>
-                <div class="group-list">
-                    @php $dots = ['green', 'blue', 'orange']; @endphp
-                    @forelse($mountains->take(8) as $i => $gm)
-                    <div class="group-item"><span class="dot {{ $dots[$i % count($dots)] }}"></span> <span class="group-item-text">{{ $gm->name }}</span></div>
-                    @empty
-                    <div class="group-item"><span class="dot green"></span> <span class="group-item-text" style="color:var(--muted);">No trails yet</span></div>
-                    @endforelse
-                </div>
-
                 <div class="sidebar-footer">
                     <div class="mode-toggle">
                         <button class="mode-pill active" id="mode-light">
@@ -1184,6 +1174,8 @@
                 'storeCommunityPost' => url('/hikers/community-posts'),
                 'triggerSos' => url('/hikers/sos'),
                 'cancelBookingPrefix' => url('/hikers/bookings'),
+                'checkInScanPrefix' => url('/hikers/bookings'),
+                'checkOutScanPrefix' => url('/hikers/bookings'),
                 'updateProfilePicture' => url('/hikers/profile/picture'),
                 'updateProfile' => url('/hikers/profile'),
                 'sendPasswordChangeCode' => url('/hikers/profile/password/send-code'),
@@ -1191,8 +1183,10 @@
                 'achievementClaimBase' => url('/hikers/achievements'),
                 'storeExperienceFeedback' => url('/hikers/experience-feedback'),
             ],
+            'hasSubmittedExperienceFeedback' => (bool) $hasSubmittedExperienceFeedback,
         ];
     @endphp
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <!-- Interactive Logic -->
     <script>
         // ============================================================
@@ -1225,6 +1219,26 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
+        }
+
+        function buildBookingPriceReceiptClient(mountain, hikersCount) {
+            if (!mountain || !mountain.pricing) return null;
+            const headCount = Number.isFinite(Number(hikersCount)) ? Math.max(1, Number(hikersCount)) : 1;
+            const p = mountain.pricing;
+            const lines = [
+                { label: 'Registration fee', amount: (Number(p.registrationFeePerPerson || 0) * headCount) },
+                { label: 'Environmental fee', amount: (Number(p.environmentalFeePerPerson || 0) * headCount) },
+                { label: 'Local trail fee', amount: (Number(p.localFeePerPerson || 0) * headCount) },
+                { label: 'Guide fee (per person)', amount: (Number(p.guideFeePerPerson || 0) * headCount) },
+                { label: 'Guide fee (per group)', amount: Number(p.guideFeePerGroup || 0) },
+            ];
+            const total = lines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
+            return { lines, total, sourceNote: p.sourceNote || '', lastVerifiedOn: p.lastVerifiedOn || '' };
+        }
+
+        function formatPhpCurrency(value) {
+            if (!Number.isFinite(Number(value))) return '—';
+            return 'PHP ' + Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function formatDayLabel(dateString, index) {
@@ -1867,7 +1881,9 @@
             const feedback = document.getElementById('hc-review-feedback');
             const choices = overlay.querySelectorAll('.hc-review-choice');
             const endpoint = window.HIKER_BOOTSTRAP?.routes?.storeExperienceFeedback;
+            const hasSubmittedExperienceFeedback = !!window.HIKER_BOOTSTRAP?.hasSubmittedExperienceFeedback;
 
+            if (hasSubmittedExperienceFeedback) return;
             if (localStorage.getItem(hideKey) === '1') return;
 
             const closePopup = () => {
@@ -1926,6 +1942,9 @@
                     if (feedback) feedback.textContent = saved
                         ? 'Thanks! Your experience was recorded.'
                         : 'Saved locally. We will retry next login.';
+                    if (saved) {
+                        localStorage.setItem(hideKey, '1');
+                    }
                     setTimeout(closePopup, 700);
                 });
             });
@@ -2401,7 +2420,7 @@
                 const map = new google.maps.Map(mapEl, {
                     center: jumpoffPos,
                     zoom: 14,
-                    mapTypeId: visibleTrailPath.length > 1 ? 'terrain' : 'hybrid',
+                    mapTypeId: 'satellite',
                     disableDefaultUI: false,
                     zoomControl: true,
                     mapTypeControl: true,
@@ -2578,6 +2597,18 @@
                     <div class="ns-preview-row"><span>Hikers</span><strong>${hikers || '1'}</strong></div>
                     <div class="ns-preview-row"><span>Guide</span><strong>${gData ? gData.name : '—'}</strong></div>
                     <div class="ns-preview-row"><span>Jump-off</span><strong>${mData ? mData.jumpoff.name : '—'}</strong></div>
+                    ${(() => {
+                        const receipt = buildBookingPriceReceiptClient(mData, hikers || '1');
+                        if (!receipt) return '<div class="ns-preview-row"><span>Expected Price</span><strong>—</strong></div>';
+                        const linesHtml = receipt.lines
+                            .filter((line) => Number(line.amount) > 0)
+                            .map((line) => `<div class="ns-preview-row"><span>${escapeHtml(line.label)}</span><strong>${formatPhpCurrency(line.amount)}</strong></div>`)
+                            .join('');
+                        const sourceHtml = receipt.sourceNote
+                            ? `<div style="font-size:11px;color:var(--muted);line-height:1.45;margin-top:6px;">${escapeHtml(receipt.sourceNote)}${receipt.lastVerifiedOn ? ` (Verified: ${escapeHtml(receipt.lastVerifiedOn)})` : ''}</div>`
+                            : '';
+                        return `${linesHtml}<div class="ns-preview-row"><span>Expected Total</span><strong>${formatPhpCurrency(receipt.total)}</strong></div>${sourceHtml}`;
+                    })()}
                     ${safetyWarning}
                     <div class="ns-preview-row"><span>Status</span><strong style="color:#f59e0b;"><iconify-icon icon="lucide:circle" style="vertical-align:text-bottom; margin-right:2px; font-size:10px;"></iconify-icon> Pending</strong></div>
                 </div>`;
@@ -2615,6 +2646,12 @@
             updateBookingPreview();
         };
 
+        const bookingQrState = {
+            bookingId: null,
+            action: null,
+            stream: null,
+        };
+
         // ── My Bookings Tabs ──────────────────────────────────────
         window.filterBookings = function(type, btn) {
             document.querySelectorAll('.ns-tab').forEach(t => t.classList.remove('active'));
@@ -2649,6 +2686,267 @@
             }).catch(() => alert('Could not cancel.'));
         };
 
+        window.openBookingQrScan = function(btn, action) {
+            const card = btn?.closest('.ns-booking-card');
+            const bookingId = card?.dataset?.bookingId;
+            if (!bookingId) return;
+            bookingQrState.bookingId = bookingId;
+            bookingQrState.action = action;
+
+            const modal = document.getElementById('booking-qr-modal');
+            const title = document.getElementById('booking-qr-modal-title');
+            const subtitle = document.getElementById('booking-qr-modal-subtitle');
+            const feedback = document.getElementById('booking-qr-feedback');
+            const scannerWrap = document.getElementById('booking-qr-scanner-wrap');
+            const cameraStatus = document.getElementById('booking-qr-camera-status');
+            if (title) title.textContent = action === 'checkout' ? 'Scan Check-out QR' : 'Scan Check-in QR';
+            if (subtitle) subtitle.textContent = action === 'checkout'
+                ? 'Scan the posted check-out QR after your hike.'
+                : 'Scan the posted check-in QR at the jump-off point.';
+            if (feedback) feedback.textContent = '';
+            if (scannerWrap) scannerWrap.style.display = 'block';
+            if (cameraStatus) cameraStatus.textContent = 'Opening camera...';
+            if (modal) modal.style.display = 'flex';
+            startBookingQrCamera();
+        };
+
+        window.closeBookingQrScan = function() {
+            stopBookingQrCamera();
+            bookingQrState.bookingId = null;
+            bookingQrState.action = null;
+            const modal = document.getElementById('booking-qr-modal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        window.startBookingQrCamera = async function() {
+            const video = document.getElementById('booking-qr-video');
+            const cameraStatus = document.getElementById('booking-qr-camera-status');
+            if (!video) return;
+
+            if (!navigator.mediaDevices?.getUserMedia) {
+                if (cameraStatus) cameraStatus.textContent = 'Camera is not supported on this browser.';
+                return;
+            }
+
+            try {
+                stopBookingQrCamera();
+                bookingQrState.stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                    audio: false,
+                });
+                video.srcObject = bookingQrState.stream;
+                if (cameraStatus) cameraStatus.textContent = 'Point camera at QR then tap Take Photo.';
+            } catch (_err) {
+                if (cameraStatus) cameraStatus.textContent = 'Unable to open camera.';
+            }
+        };
+
+        window.stopBookingQrCamera = function() {
+            if (bookingQrState.stream) {
+                bookingQrState.stream.getTracks().forEach((track) => track.stop());
+                bookingQrState.stream = null;
+            }
+            const video = document.getElementById('booking-qr-video');
+            if (video) {
+                video.srcObject = null;
+            }
+        };
+
+        async function decodeQrFromCanvas(canvas) {
+            if (typeof window.jsQR !== 'function') return null;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            if (!ctx) return null;
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const result = window.jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'dontInvert',
+            });
+            return result?.data || null;
+        }
+
+        window.captureBookingQrPhoto = async function() {
+            const video = document.getElementById('booking-qr-video');
+            const canvas = document.getElementById('booking-qr-canvas');
+            const cameraStatus = document.getElementById('booking-qr-camera-status');
+            const feedback = document.getElementById('booking-qr-feedback');
+            if (!video || !canvas) return;
+
+            if (!bookingQrState.stream) {
+                if (feedback) feedback.textContent = 'Camera is not ready yet.';
+                return;
+            }
+
+            const width = video.videoWidth;
+            const height = video.videoHeight;
+            if (!width || !height) {
+                if (feedback) feedback.textContent = 'Camera not ready. Try again in a second.';
+                return;
+            }
+
+            if (cameraStatus) cameraStatus.textContent = 'Capturing photo...';
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            if (!ctx) return;
+            ctx.drawImage(video, 0, 0, width, height);
+
+            const rawPayload = await decodeQrFromCanvas(canvas);
+            if (!rawPayload) {
+                if (feedback) feedback.textContent = 'No QR code found in photo. Try moving closer and retake.';
+                if (cameraStatus) cameraStatus.textContent = 'QR not detected. Retake photo.';
+                return;
+            }
+            if (cameraStatus) cameraStatus.textContent = 'QR captured. Validating...';
+            submitBookingQrScan(rawPayload, true);
+        };
+
+        function parseBookingQrPayloadClient(rawPayload) {
+            const payload = String(rawPayload || '').trim();
+            if (!payload) return null;
+            let decoded = null;
+            try {
+                decoded = JSON.parse(payload);
+            } catch (_jsonErr) {
+                try {
+                    decoded = JSON.parse(atob(payload));
+                } catch (_base64Err) {
+                    try {
+                        const b64url = payload.replace(/-/g, '+').replace(/_/g, '/');
+                        decoded = JSON.parse(atob(b64url));
+                    } catch (_base64UrlErr) {
+                        decoded = null;
+                    }
+                }
+            }
+
+            if (!decoded || typeof decoded !== 'object') {
+                try {
+                    const maybeUrl = payload.startsWith('http://') || payload.startsWith('https://')
+                        ? new URL(payload)
+                        : null;
+                    const params = maybeUrl ? maybeUrl.searchParams : new URLSearchParams(payload);
+                    if (params.has('mountain_id') || params.has('mountainId') || params.has('action') || params.has('type')) {
+                        decoded = {
+                            mountain_id: params.get('mountain_id') || params.get('mountainId'),
+                            action: params.get('action') || params.get('type'),
+                        };
+                    }
+                } catch (_queryErr) {
+                    decoded = null;
+                }
+            }
+
+            if (!decoded || typeof decoded !== 'object') return null;
+
+            const mountainRaw = decoded?.mountain_id ?? decoded?.mountainId;
+            const hasMountain = mountainRaw !== undefined && mountainRaw !== null && String(mountainRaw).trim() !== '';
+            const mountainId = hasMountain ? Number(mountainRaw) : null;
+            let action = String(decoded?.action ?? decoded?.type ?? '')
+                .toLowerCase()
+                .replace(/[\s_-]+/g, '');
+            if (action === 'checkinqr') action = 'checkin';
+            if (action === 'checkoutqr') action = 'checkout';
+            if (hasMountain && (!Number.isInteger(mountainId) || mountainId < 1)) return null;
+            if (action !== 'checkin' && action !== 'checkout') return null;
+            return { mountain_id: mountainId, action };
+        }
+
+        window.submitBookingQrScan = function(payload, isAutoScan = false) {
+            if (!bookingQrState.bookingId || !bookingQrState.action) {
+                return;
+            }
+            if (!payload) {
+                const feedback = document.getElementById('booking-qr-feedback');
+                if (feedback) feedback.textContent = 'No QR payload detected. Keep the QR in front of the camera.';
+                return;
+            }
+            const parsedPayload = parseBookingQrPayloadClient(payload);
+            const feedback = document.getElementById('booking-qr-feedback');
+            if (!parsedPayload) {
+                if (feedback) feedback.textContent = 'Invalid QR payload. Use JSON, base64 JSON, or URL/query with mountain_id and action.';
+                return;
+            }
+            if (parsedPayload.action !== bookingQrState.action) {
+                if (feedback) feedback.textContent = `Wrong QR type scanned. Expected ${bookingQrState.action}.`;
+                return;
+            }
+            if (parsedPayload.mountain_id !== null) {
+                const bookingCard = document.querySelector(`.ns-booking-card[data-booking-id="${bookingQrState.bookingId}"]`);
+                const expectedMountainId = Number(bookingCard?.dataset?.mountainId || 0);
+                if (!Number.isInteger(expectedMountainId) || expectedMountainId < 1) {
+                    if (feedback) feedback.textContent = 'Could not verify booking mountain. Please refresh and try again.';
+                    return;
+                }
+                if (parsedPayload.mountain_id !== expectedMountainId) {
+                    if (feedback) feedback.textContent = 'Scanned QR is for a different mountain jump-off point.';
+                    return;
+                }
+            }
+            if (feedback) feedback.textContent = 'Submitting scan...';
+
+            const endpointBase = bookingQrState.action === 'checkout'
+                ? window.HIKER_BOOTSTRAP.routes.checkOutScanPrefix
+                : window.HIKER_BOOTSTRAP.routes.checkInScanPrefix;
+            const endpoint = `${endpointBase}/${bookingQrState.bookingId}/${bookingQrState.action === 'checkout' ? 'check-out-scan' : 'check-in-scan'}`;
+            const fd = new FormData();
+            fd.append('_token', window.HIKER_BOOTSTRAP.csrf);
+            fd.append('qr_payload', payload);
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': window.HIKER_BOOTSTRAP.csrf, 'X-Requested-With': 'XMLHttpRequest' },
+                body: fd
+            }).then(async r => ({ status: r.status, body: await r.json() }))
+                .then(res => {
+                    if (res.status >= 200 && res.status < 300 && res.body.success) {
+                        const booking = res.body.booking || {};
+                        const card = document.querySelector(`.ns-booking-card[data-booking-id="${bookingQrState.bookingId}"]`);
+                        if (card) {
+                            const status = card.querySelector('.ns-booking-status');
+                            const cancelBtn = card.querySelector('.ns-cancel-btn');
+                            const right = card.querySelector('.ns-booking-right');
+                            const meta = card.querySelector('.ns-booking-qr-meta');
+                            if (status) {
+                                if (booking.status === 'in_progress') {
+                                    status.textContent = 'In Progress';
+                                    status.className = 'ns-booking-status approved';
+                                } else if (booking.status === 'completed') {
+                                    status.textContent = 'Completed';
+                                    status.className = 'ns-booking-status completed';
+                                }
+                            }
+                            if (cancelBtn) cancelBtn.remove();
+                            card.querySelectorAll('button[onclick*="openBookingQrScan"]').forEach(el => el.remove());
+                            if (right && booking.status === 'in_progress') {
+                                const checkOutBtn = document.createElement('button');
+                                checkOutBtn.type = 'button';
+                                checkOutBtn.className = 'ns-action-btn';
+                                checkOutBtn.textContent = 'Check out';
+                                checkOutBtn.setAttribute('onclick', "openBookingQrScan(this, 'checkout')");
+                                right.appendChild(checkOutBtn);
+                            }
+                            if (card && booking.status === 'completed') {
+                                card.dataset.bookingType = 'past';
+                            }
+                            if (meta) {
+                                const inAt = booking.checked_in_at ? new Date(booking.checked_in_at).toLocaleString() : '';
+                                const outAt = booking.checked_out_at ? new Date(booking.checked_out_at).toLocaleString() : '';
+                                meta.innerHTML = `${inAt ? `<span><strong style="color:var(--text);">Checked in:</strong> ${escapeHtml(inAt)}</span>` : ''}${outAt ? `<span><strong style="color:var(--text);">Checked out:</strong> ${escapeHtml(outAt)}</span>` : ''}`;
+                            }
+                        }
+                        if (!isAutoScan) {
+                            alert(res.body.message || 'Scan accepted.');
+                        }
+                        closeBookingQrScan();
+                    } else {
+                        const msg = res.body?.message || Object.values(res.body?.errors || {}).flat().join('\n') || 'Scan failed.';
+                        if (feedback) feedback.textContent = msg;
+                    }
+                })
+                .catch(() => {
+                    if (feedback) feedback.textContent = 'Could not submit QR scan.';
+                });
+        };
+
         // ── Track Location (live GPS + trail polyline) ────────────
         function haversine(lat1, lon1, lat2, lon2) {
             const R = 6371;
@@ -2666,8 +2964,37 @@
             watchId: null,
             isTracking: false,
             hasLiveFix: false,
+            lastFix: null,
         };
         const MAX_TRACKING_ACCURACY_M = 500;
+        const LAST_TRACK_KEY = 'hike_last_track_' + String(window.HIKER_BOOTSTRAP?.userId || '0');
+
+        function saveLastTrackFix(fix) {
+            if (!fix) return;
+            try {
+                localStorage.setItem(LAST_TRACK_KEY, JSON.stringify(fix));
+            } catch (_) {}
+        }
+
+        function loadLastTrackFix() {
+            try {
+                const raw = localStorage.getItem(LAST_TRACK_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (!parsed || typeof parsed !== 'object') return null;
+                const lat = Number(parsed.lat);
+                const lng = Number(parsed.lng);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+                return {
+                    lat,
+                    lng,
+                    accuracy_m: Number.isFinite(Number(parsed.accuracy_m)) ? Number(parsed.accuracy_m) : null,
+                    at: Number.isFinite(Number(parsed.at)) ? Number(parsed.at) : Date.now(),
+                };
+            } catch (_) {
+                return null;
+            }
+        }
 
         function hikeTrailLengthKm(path) {
             if (!path || path.length < 2) return 0;
@@ -2698,11 +3025,14 @@
             if (window.hikeTracker.map) return true;
             const mapEl = document.getElementById('tracker-gmap');
             if (!mapEl || typeof google === 'undefined' || !google.maps || !window.HIKER_BOOTSTRAP) return false;
-            const fb = window.HIKER_BOOTSTRAP.mapsFallbackCenter || { lat: 12.8797, lng: 121.7740 };
+            const dj = window.HIKER_BOOTSTRAP.defaultJumpoff;
+            const fallbackCenter = (dj && dj.lat != null && dj.lng != null)
+                ? { lat: Number(dj.lat), lng: Number(dj.lng) }
+                : (window.HIKER_BOOTSTRAP.mapsFallbackCenter || { lat: 12.8797, lng: 121.7740 });
             const map = new google.maps.Map(mapEl, {
-                center: fb,
-                zoom: 6,
-                mapTypeId: 'terrain',
+                center: fallbackCenter,
+                zoom: (dj && dj.lat != null && dj.lng != null) ? 10 : 6,
+                mapTypeId: 'satellite',
                 disableDefaultUI: false,
                 zoomControl: true,
                 mapTypeControl: true,
@@ -2718,6 +3048,25 @@
                     icon: { url: 'https://maps.google.com/mapfiles/ms/icons/orange-dot.png' }
                 });
             });
+
+            const savedFix = loadLastTrackFix();
+            if (savedFix) {
+                window.hikeTracker.lastFix = savedFix;
+                window.hikeTracker.userMarker = new google.maps.Marker({
+                    position: { lat: savedFix.lat, lng: savedFix.lng },
+                    map,
+                    title: 'Last saved location',
+                    icon: { url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png' },
+                });
+                map.setCenter({ lat: savedFix.lat, lng: savedFix.lng });
+                if (map.getZoom() < 14) map.setZoom(14);
+                const lastEl = document.getElementById('tracker-last-fix');
+                const statusEl = document.getElementById('tracker-status');
+                if (lastEl) lastEl.textContent = new Date(savedFix.at).toLocaleTimeString();
+                if (statusEl && !window.hikeTracker.isTracking) {
+                    statusEl.textContent = 'Showing last saved track';
+                }
+            }
             return true;
         }
 
@@ -2908,6 +3257,7 @@
                     accuracy_m: acc,
                     at: Date.now(),
                 };
+                saveLastTrackFix(window.hikeTracker.lastFix);
 
                 if (altEl) {
                     altEl.textContent = (pos.coords.altitude != null && !isNaN(pos.coords.altitude))
@@ -2981,7 +3331,16 @@
 
             const onErr = (err) => {
                 if (statusEl) {
-                    statusEl.textContent = err.code === 1 ? 'Location permission denied' : (err.code === 2 ? 'Position unavailable' : 'GPS timeout');
+                    const base = err.code === 1 ? 'Location permission denied' : (err.code === 2 ? 'Signal lost (position unavailable)' : 'GPS timeout');
+                    statusEl.textContent = window.hikeTracker.lastFix
+                        ? `${base} - showing last saved track`
+                        : base;
+                }
+                if (window.hikeTracker.lastFix) {
+                    pushHikerLocationToServer(window.hikeTracker.lastFix);
+                    const lastEl = document.getElementById('tracker-last-fix');
+                    if (lastEl) lastEl.textContent = new Date(window.hikeTracker.lastFix.at || Date.now()).toLocaleTimeString();
+                    return;
                 }
                 stopLiveTracking();
             };

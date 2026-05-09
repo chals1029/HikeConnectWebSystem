@@ -12,6 +12,7 @@ class HikeBooking extends Model
     protected $fillable = [
         'user_id', 'mountain_id', 'tour_guide_id', 'hike_on', 'hikers_count',
         'notes', 'status', 'rating', 'review_text', 'duration_hours',
+        'checked_in_at', 'checked_out_at', 'expected_price',
     ];
 
     protected function casts(): array
@@ -19,7 +20,20 @@ class HikeBooking extends Model
         return [
             'hike_on' => 'date',
             'duration_hours' => 'float',
+            'checked_in_at' => 'datetime',
+            'checked_out_at' => 'datetime',
+            'expected_price' => 'float',
         ];
+    }
+
+    public function canCheckIn(): bool
+    {
+        return $this->status === 'approved' && $this->checked_in_at === null;
+    }
+
+    public function canCheckOut(): bool
+    {
+        return $this->status === 'in_progress' && $this->checked_in_at !== null && $this->checked_out_at === null;
     }
 
     public function user(): BelongsTo

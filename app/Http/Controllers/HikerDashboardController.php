@@ -88,7 +88,7 @@ class HikerDashboardController extends Controller
 
         $upcoming = HikeBooking::query()
             ->where('user_id', $user->id)
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', ['pending', 'approved', 'in_progress'])
             ->whereDate('hike_on', '>=', today())
             ->with(['mountain', 'tourGuide'])
             ->orderBy('hike_on')
@@ -137,6 +137,10 @@ class HikerDashboardController extends Controller
 
         $mountainDifficulties = $mountains->pluck('difficulty')->filter()->unique()->sort()->values();
         $communityPostTotal = CommunityPost::query()->count();
+        $hasSubmittedExperienceFeedback = UserExperienceFeedback::query()
+            ->where('user_id', $user->id)
+            ->where('context', 'hiker_dashboard_login')
+            ->exists();
         $safetyMountains = $mountains
             ->filter(fn (Mountain $m) => $m->hasSafetyWarning())
             ->values();
@@ -181,6 +185,7 @@ class HikerDashboardController extends Controller
             'safetyEmergency',
             'mountainDifficulties',
             'communityPostTotal',
+            'hasSubmittedExperienceFeedback',
             'safetyMountains',
             'hikerSosAlerts',
             'achievementsUi',
@@ -312,6 +317,15 @@ class HikerDashboardController extends Controller
                 ],
                 'gear' => $m->gear ?? [],
                 'emergencyContact' => $m->emergency_contact,
+                'pricing' => [
+                    'registrationFeePerPerson' => (float) ($m->registration_fee_per_person ?? 0),
+                    'environmentalFeePerPerson' => (float) ($m->environmental_fee_per_person ?? 0),
+                    'localFeePerPerson' => (float) ($m->local_fee_per_person ?? 0),
+                    'guideFeePerPerson' => (float) ($m->guide_fee_per_person ?? 0),
+                    'guideFeePerGroup' => (float) ($m->guide_fee_per_group ?? 0),
+                    'sourceNote' => (string) ($m->pricing_source_note ?? ''),
+                    'lastVerifiedOn' => optional($m->pricing_last_verified_on)->format('Y-m-d'),
+                ],
                 'reviews' => $reviewSummary,
                 'experience' => $this->mountainExperiencePayload($m, $reviewSummary),
             ];
@@ -536,7 +550,7 @@ class HikerDashboardController extends Controller
         $profile = $profiles[$mountain->slug] ?? null;
 
         if (! $profile) {
-            return ['enabled' => false];
+            return $this->buildDefaultMountainExperiencePayload($mountain, $reviewSummary);
         }
 
         // Trail polyline + route-end pin live in MountainTrailProfileService
@@ -574,6 +588,103 @@ class HikerDashboardController extends Controller
         ];
     }
 
+    /**
+     * Build a strong default "trail spotlight" payload so every mountain
+     * has usable conditions/tips even without a custom static profile.
+     *
+     * @param  array<string, mixed>  $reviewSummary
+     * @return array<string, mixed>
+     */
+    private function buildDefaultMountainExperiencePayload(Mountain $mountain, array $reviewSummary): array
+    {
+        $difficulty = strtolower((string) $mountain->difficulty);
+        $estimatedDistance = max(2.5, round((float) ($mountain->elevation_meters / 170), 1));
+        $crowdLabel = match (true) {
+            str_contains($difficulty, 'hard') => 'Moderate to heavy on good-weather weekends',
+            str_contains($difficulty, 'easy') => 'Steady traffic from early morning',
+            default => 'Light to moderate traffic depending on weather',
+        };
+        $shadeLabel = match (true) {
+            str_contains($mountain->trail_type_label, 'Forest') => 'Good shade in many sections',
+            str_contains($mountain->trail_type_label, 'Open') => 'Low shade after sunrise',
+            default => 'Mixed shade depending on trail section',
+        };
+        $surfaceLabel = match (true) {
+            str_contains($mountain->trail_type_label, 'Rocky') => 'Rocky and uneven footing',
+            str_contains($mountain->trail_type_label, 'Grassland') => 'Dry grassland and dusty stretches',
+            default => 'Mixed soil trail with occasional loose sections',
+        };
+        $safetyNote = trim((string) ($mountain->safety_note ?? ''));
+        $summary = $safetyNote !== ''
+            ? $safetyNote
+            : 'Best tackled early with steady pacing, regular hydration, and careful footing on exposed or loose sections.';
+
+        $trailMap = $this->trailProfileService->buildTrailMap($mountain);
+        $routeEnd = $this->trailProfileService->routeEnd($mountain->slug);
+
+        return [
+            'enabled' => true,
+            'subtitle' => $mountain->short_description ?: 'Trail overview, conditions, and field tips for a safer hike day.',
+            'distanceKm' => $estimatedDistance,
+            'elevationGainM' => (int) $mountain->elevation_meters,
+            'routeType' => str_contains(strtolower($mountain->trail_type_label), 'open') ? 'Out & back' : 'Point to point',
+            'region' => $mountain->location,
+            'gallery' => [
+                [
+                    'image' => asset($mountain->image_path),
+                    'label' => $mountain->jumpoff_name ?: 'Jump-off',
+                    'accent' => 'Trail approach',
+                ],
+                [
+                    'image' => asset($mountain->image_path),
+                    'label' => $mountain->name.' summit route',
+                    'accent' => $mountain->trail_type_label,
+                ],
+            ],
+            'routeMarkers' => [
+                ['name' => 'Jump-off', 'detail' => '0.0 km'],
+                ['name' => 'Mid trail', 'detail' => number_format($estimatedDistance / 2, 1).' km'],
+                ['name' => 'Summit', 'detail' => number_format($estimatedDistance, 1).' km'],
+            ],
+            'highlights' => [
+                'Trail profile: '.$mountain->trail_type_label.' with '.$mountain->difficulty.' pacing.',
+                'Meet-up starts at '.$mountain->jumpoff_name.' ('.$mountain->jumpoff_meeting_time.').',
+                'Summit day timing works best with early-start hydration and pacing checks.',
+            ],
+            'topSights' => [
+                [
+                    'name' => $mountain->jumpoff_name,
+                    'type' => 'Trailhead',
+                    'description' => $mountain->jumpoff_address,
+                ],
+                [
+                    'name' => $mountain->name.' Summit',
+                    'type' => 'Peak',
+                    'description' => 'Main summit area with elevation at '.$mountain->elevation_label.'.',
+                ],
+                [
+                    'name' => 'Trail route',
+                    'type' => 'Scenic section',
+                    'description' => 'Expected terrain: '.$mountain->trail_type_label.'.',
+                ],
+            ],
+            'trailMap' => [...$trailMap],
+            'routeEnd' => $routeEnd,
+            'conditions' => [
+                'crowdLabel' => $crowdLabel,
+                'shadeLabel' => $shadeLabel,
+                'surfaceLabel' => $surfaceLabel,
+                'summary' => $summary,
+                'tips' => [
+                    'Start 30-60 minutes before the listed meeting time to settle permits and warm up.',
+                    'Bring enough water for '.$mountain->duration_label.' and add electrolytes for exposed sections.',
+                    'Use short, controlled steps on steep descents and avoid rushing loose ground.',
+                ],
+            ],
+            'reviewBadge' => $reviewSummary['average'].' / 5 trail rating',
+        ];
+    }
+
     public function storeBooking(Request $request)
     {
         $validated = $request->validate([
@@ -607,6 +718,7 @@ class HikerDashboardController extends Controller
             'hikers_count' => $validated['hikers_count'],
             'notes' => $validated['notes'] ?? null,
             'status' => 'pending',
+            'expected_price' => $this->estimateBookingPrice($mountain, (int) $validated['hikers_count']),
         ]);
 
         AuditLogger::log('booking.created', "Booked {$mountain->name} on {$validated['hike_on']}", Auth::user(), $booking, [
@@ -635,6 +747,100 @@ class HikerDashboardController extends Controller
         AuditLogger::log('booking.cancelled', "Cancelled booking #{$booking->id}", Auth::user(), $booking);
 
         return response()->json(['success' => true]);
+    }
+
+    public function checkInScan(Request $request, HikeBooking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $payload = $this->parseBookingQrPayload((string) $request->input('qr_payload', ''));
+
+        if (($payload['action'] ?? null) !== 'checkin') {
+            throw ValidationException::withMessages([
+                'qr_payload' => 'This QR code is for check-out, not check-in.',
+            ]);
+        }
+
+        if (($payload['mountain_id'] ?? null) !== null && (int) $payload['mountain_id'] !== (int) $booking->mountain_id) {
+            throw ValidationException::withMessages([
+                'qr_payload' => 'This QR code is for a different jump-off point.',
+            ]);
+        }
+
+        if (! $booking->canCheckIn()) {
+            throw ValidationException::withMessages([
+                'booking' => 'This booking cannot be checked in right now.',
+            ]);
+        }
+
+        DB::transaction(function () use ($booking): void {
+            $booking->forceFill([
+                'status' => 'in_progress',
+                'checked_in_at' => now(),
+            ])->save();
+        });
+
+        AuditLogger::log('booking.checked_in', "Checked in booking #{$booking->id}", Auth::user(), $booking);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Check-in successful. Enjoy your hike!',
+            'booking' => [
+                'id' => $booking->id,
+                'status' => $booking->status,
+                'checked_in_at' => optional($booking->checked_in_at)->toIso8601String(),
+                'checked_out_at' => optional($booking->checked_out_at)->toIso8601String(),
+            ],
+        ]);
+    }
+
+    public function checkOutScan(Request $request, HikeBooking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $payload = $this->parseBookingQrPayload((string) $request->input('qr_payload', ''));
+
+        if (($payload['action'] ?? null) !== 'checkout') {
+            throw ValidationException::withMessages([
+                'qr_payload' => 'This QR code is for check-in, not check-out.',
+            ]);
+        }
+
+        if (($payload['mountain_id'] ?? null) !== null && (int) $payload['mountain_id'] !== (int) $booking->mountain_id) {
+            throw ValidationException::withMessages([
+                'qr_payload' => 'This QR code is for a different jump-off point.',
+            ]);
+        }
+
+        if (! $booking->canCheckOut()) {
+            throw ValidationException::withMessages([
+                'booking' => 'You must check in first before checking out.',
+            ]);
+        }
+
+        DB::transaction(function () use ($booking): void {
+            $booking->forceFill([
+                'status' => 'completed',
+                'checked_out_at' => now(),
+            ])->save();
+        });
+
+        AuditLogger::log('booking.checked_out', "Checked out booking #{$booking->id}", Auth::user(), $booking);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Check-out successful. Hike marked as completed.',
+            'booking' => [
+                'id' => $booking->id,
+                'status' => $booking->status,
+                'checked_in_at' => optional($booking->checked_in_at)->toIso8601String(),
+                'checked_out_at' => optional($booking->checked_out_at)->toIso8601String(),
+            ],
+        ]);
     }
 
     public function storeReview(Request $request)
@@ -918,12 +1124,76 @@ class HikerDashboardController extends Controller
 
         return HikeBooking::query()
             ->where('user_id', $userId)
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', ['pending', 'approved', 'in_progress'])
             ->whereDate('hike_on', '>=', today())
             ->with(['mountain', 'tourGuide.user'])
             ->orderBy('hike_on')
             ->orderBy('id')
             ->first();
+    }
+
+    /**
+     * @return array{version?: int, mountain_id?: int|null, action: string}
+     */
+    private function parseBookingQrPayload(string $rawPayload): array
+    {
+        $payload = trim($rawPayload);
+        if ($payload === '') {
+            throw ValidationException::withMessages([
+                'qr_payload' => 'QR data is required.',
+            ]);
+        }
+
+        $decoded = json_decode($payload, true);
+        if (! is_array($decoded)) {
+            $decoded = json_decode(base64_decode($payload, true) ?: '', true);
+        }
+        if (! is_array($decoded)) {
+            $decoded = json_decode(base64_decode(strtr($payload, '-_', '+/'), true) ?: '', true);
+        }
+        if (! is_array($decoded)) {
+            $queryData = [];
+            $queryString = '';
+            if (preg_match('/^https?:\/\//i', $payload) === 1) {
+                $queryString = (string) parse_url($payload, PHP_URL_QUERY);
+            } elseif (str_contains($payload, '=')) {
+                $queryString = $payload;
+            }
+            if ($queryString !== '') {
+                parse_str($queryString, $queryData);
+                if (is_array($queryData) && $queryData !== []) {
+                    $decoded = $queryData;
+                }
+            }
+        }
+
+        if (! is_array($decoded)) {
+            throw ValidationException::withMessages([
+                'qr_payload' => 'Invalid QR format. Use JSON, base64 JSON, or URL/query format.',
+            ]);
+        }
+
+        $mountainRaw = $decoded['mountain_id'] ?? $decoded['mountainId'] ?? null;
+        $actionRaw = $decoded['action'] ?? $decoded['type'] ?? null;
+        $mountainId = is_numeric($mountainRaw) ? (int) $mountainRaw : null;
+        $action = strtolower(str_replace(['-', '_', ' '], '', (string) $actionRaw));
+        if ($action === 'checkinqr') {
+            $action = 'checkin';
+        } elseif ($action === 'checkoutqr') {
+            $action = 'checkout';
+        }
+
+        if (! in_array($action, ['checkin', 'checkout'], true)) {
+            throw ValidationException::withMessages([
+                'qr_payload' => 'QR code action must be checkin or checkout.',
+            ]);
+        }
+
+        return [
+            'version' => isset($decoded['version']) ? (int) $decoded['version'] : 1,
+            'mountain_id' => $mountainId,
+            'action' => $action,
+        ];
     }
 
     private function notifySosRecipients(SosAlert $alert): bool
@@ -1060,5 +1330,18 @@ class HikerDashboardController extends Controller
         }
 
         return $booking;
+    }
+
+    private function estimateBookingPrice(Mountain $mountain, int $hikersCount): float
+    {
+        $headCount = max(1, $hikersCount);
+        $perPersonTotal = (float) (
+            ($mountain->registration_fee_per_person ?? 0)
+            + ($mountain->environmental_fee_per_person ?? 0)
+            + ($mountain->local_fee_per_person ?? 0)
+            + ($mountain->guide_fee_per_person ?? 0)
+        );
+
+        return (float) (($perPersonTotal * $headCount) + (float) ($mountain->guide_fee_per_group ?? 0));
     }
 }

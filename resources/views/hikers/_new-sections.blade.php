@@ -437,6 +437,7 @@
                 <div class="ns-legend-items">
                     <span class="ns-legend-item"><span class="ns-dot pending"></span>Pending</span>
                     <span class="ns-legend-item"><span class="ns-dot approved"></span>Approved</span>
+                    <span class="ns-legend-item"><span class="ns-dot approved"></span>In progress</span>
                     <span class="ns-legend-item"><span class="ns-dot rejected"></span>Rejected</span>
                     <span class="ns-legend-item"><span class="ns-dot completed"></span>Completed</span>
                     <span class="ns-legend-item"><span class="ns-dot cancelled"></span>Cancelled</span>
@@ -484,6 +485,7 @@
         @php
             $stClass = match($booking->status) {
                 'approved' => 'approved',
+                'in_progress' => 'approved',
                 'pending' => 'pending',
                 'completed' => 'completed',
                 'cancelled' => 'cancelled',
@@ -491,7 +493,7 @@
                 default => 'pending',
             };
         @endphp
-        <div class="ns-booking-card" data-booking-type="{{ $booking->ui_tab }}" data-booking-id="{{ $booking->id }}">
+        <div class="ns-booking-card" data-booking-type="{{ $booking->ui_tab }}" data-booking-id="{{ $booking->id }}" data-mountain-id="{{ $booking->mountain_id }}">
             <div class="ns-booking-left">
                 <div class="ns-booking-mountain-icon" style="background:linear-gradient(135deg,#065f46,#10b981);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="m8 3 4 8 5-5 5 15H2L8 3z"></path></svg>
@@ -503,13 +505,28 @@
                         <span><iconify-icon icon="lucide:calendar" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon> {{ $booking->hike_on->format('F j, Y') }}</span>
                         <span><iconify-icon icon="lucide:map-pin" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon> {{ $booking->mountain->jumpoff_name }}</span>
                         <span><iconify-icon icon="lucide:footprints" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon> {{ $booking->hikers_count }} {{ $booking->hikers_count === 1 ? 'hiker' : 'hikers' }}</span>
+                        <span><iconify-icon icon="lucide:wallet" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon> Expected: {{ $booking->expected_price !== null ? 'PHP '.number_format($booking->expected_price, 2) : '—' }}</span>
                     </div>
                 </div>
             </div>
             <div class="ns-booking-right">
-                <span class="ns-booking-status {{ $stClass }}">{{ ucfirst($booking->status) }}</span>
+                <span class="ns-booking-status {{ $stClass }}">{{ $booking->status === 'in_progress' ? 'In Progress' : ucfirst($booking->status) }}</span>
                 @if($booking->ui_tab === 'upcoming' && in_array($booking->status, ['pending', 'approved'], true))
                 <button type="button" class="ns-cancel-btn" onclick="cancelBooking(this)">Cancel</button>
+                @endif
+                @if($booking->status === 'approved')
+                <button type="button" class="ns-action-btn" onclick="openBookingQrScan(this, 'checkin')">Check in</button>
+                @endif
+                @if($booking->status === 'in_progress')
+                <button type="button" class="ns-action-btn" onclick="openBookingQrScan(this, 'checkout')">Check out</button>
+                @endif
+            </div>
+            <div class="ns-booking-qr-meta" style="width:100%;margin-top:10px;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:10px;">
+                @if($booking->checked_in_at)
+                    <span><strong style="color:var(--text);">Checked in:</strong> {{ $booking->checked_in_at->format('M j, Y g:i A') }}</span>
+                @endif
+                @if($booking->checked_out_at)
+                    <span><strong style="color:var(--text);">Checked out:</strong> {{ $booking->checked_out_at->format('M j, Y g:i A') }}</span>
                 @endif
             </div>
             @if($booking->status === 'completed')
@@ -519,6 +536,30 @@
         @empty
         <p style="padding:16px;color:var(--muted);">No bookings yet. Create one from Book a Hike.</p>
         @endforelse
+    </div>
+</div>
+
+<div id="booking-qr-modal" style="position:fixed;inset:0;background:rgba(2,6,23,.68);display:none;align-items:center;justify-content:center;z-index:2200;padding:18px;">
+    <div class="card" style="width:min(560px,95vw);max-height:90vh;overflow:auto;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+            <div>
+                <h3 id="booking-qr-modal-title">Scan booking QR</h3>
+                <p style="font-size:13px;color:var(--muted);margin:6px 0 0;" id="booking-qr-modal-subtitle">Scan the posted QR code at jump-off point.</p>
+            </div>
+            <button type="button" class="ns-action-btn" onclick="closeBookingQrScan()">Close</button>
+        </div>
+        <div id="booking-qr-scanner-wrap" style="margin-top:12px;border:1px dashed var(--line);border-radius:12px;padding:10px;display:none;">
+            <video id="booking-qr-video" autoplay playsinline muted style="width:100%;border-radius:10px;background:#0f172a;max-height:280px;object-fit:cover;display:block;"></video>
+            <canvas id="booking-qr-canvas" style="display:none;"></canvas>
+            <p id="booking-qr-camera-status" style="font-size:12px;color:var(--muted);margin:8px 0 0;">Point camera at QR then take a photo.</p>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;">
+            <button type="button" class="ns-submit-btn" onclick="captureBookingQrPhoto()">Take Photo</button>
+        </div>
+        <p id="booking-qr-feedback" style="font-size:12px;min-height:18px;color:var(--muted);margin-top:8px;"></p>
+        <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;">
+            <button type="button" class="ns-action-btn" onclick="closeBookingQrScan()">Cancel</button>
+        </div>
     </div>
 </div>
 

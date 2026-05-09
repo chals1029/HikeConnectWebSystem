@@ -21,6 +21,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/hikers', [HikerDashboardController::class, 'index'])->name('hikers.dashboard');
     Route::post('/hikers/bookings', [HikerDashboardController::class, 'storeBooking'])->name('hikers.bookings.store');
     Route::post('/hikers/bookings/{booking}/cancel', [HikerDashboardController::class, 'cancelBooking'])->name('hikers.bookings.cancel');
+    Route::post('/hikers/bookings/{booking}/check-in-scan', [HikerDashboardController::class, 'checkInScan'])->name('hikers.bookings.checkin-scan');
+    Route::post('/hikers/bookings/{booking}/check-out-scan', [HikerDashboardController::class, 'checkOutScan'])->name('hikers.bookings.checkout-scan');
     Route::post('/hikers/reviews', [HikerDashboardController::class, 'storeReview'])->name('hikers.reviews.store');
     Route::post('/hikers/guide-reviews', [HikerDashboardController::class, 'storeGuideReview'])->name('hikers.guide-reviews.store');
     Route::post('/hikers/community-posts', [HikerDashboardController::class, 'storeCommunityPost'])->name('hikers.community.store');
