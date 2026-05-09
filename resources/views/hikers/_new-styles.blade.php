@@ -546,6 +546,12 @@
         .ns-guides-grid { grid-template-columns:repeat(2,1fr); }
         .ns-booking-layout { grid-template-columns:1fr; }
         .ns-completed-feedback-grid { grid-template-columns:1fr; }
+        .ns-tabs { flex-wrap:wrap; }
+        .ns-tab { flex:1 1 calc(50% - 4px); }
+        .ns-booking-card { flex-direction:column; align-items:flex-start; }
+        .ns-booking-left { width:100%; }
+        .ns-booking-right { width:100%; justify-content:flex-start; flex-wrap:wrap; }
+        .ns-booking-meta { gap:8px; }
         .ns-tracker-layout { grid-template-columns:1fr; }
         .ns-checklist-grid { grid-template-columns:1fr; }
         .ns-history-stats { gap:12px; }
@@ -570,8 +576,10 @@
         .ns-tracker-stats { grid-template-columns:1fr; }
         .ns-page-header { flex-direction:column; align-items:stretch; }
         .ns-history-stats { justify-content:space-around; }
-        .ns-booking-card { flex-direction:column; align-items:flex-start; }
-        .ns-booking-right { width:100%; justify-content:flex-end; }
+        .ns-tabs { gap:6px; }
+        .ns-tab { flex:1 1 100%; }
+        .ns-booking-right { justify-content:flex-start; }
+        .ns-feedback-panel { padding:14px; border-radius:14px; }
         .ns-sim-cta { padding:13px 14px; }
         .ns-trail-sim-overlay { padding:8px; }
         .ns-trail-sim-shell { border-radius:18px; min-height:calc(100dvh - 16px); }

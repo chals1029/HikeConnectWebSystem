@@ -66,9 +66,12 @@
         header.scrolled .login-btn:hover{background:var(--ag);box-shadow:0 8px 25px rgba(16,185,129,.35)}
         
         /* Mobile Menu Button */
-        .mobile-menu-btn{display:none;flex-direction:column;gap:5px;padding:8px;background:none;border:none;cursor:pointer;z-index:1001}
+        .mobile-menu-btn{display:none;flex-direction:column;gap:5px;padding:8px;background:none;border:none;cursor:pointer;z-index:1002}
         .mobile-menu-btn span{width:24px;height:2px;background:var(--w);transition:all var(--tr);border-radius:2px}
         header.scrolled .mobile-menu-btn span{background:var(--td)}
+        .mobile-menu-btn.is-open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+        .mobile-menu-btn.is-open span:nth-child(2){opacity:0}
+        .mobile-menu-btn.is-open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
         
         /* Hero */
         .hero{height:100vh;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;isolation:isolate}
@@ -118,6 +121,32 @@
             header{top:0.75rem;width:calc(100% - 1.5rem);padding:0.5rem 0.75rem}
             header.scrolled{top:0.5rem;width:calc(100% - 1rem);padding:0.5rem 0.75rem}
             header nav{display:none}
+            header nav.mobile-open{
+                display:flex;
+                position:absolute;
+                top:calc(100% + 0.5rem);
+                left:0;
+                right:0;
+                flex-direction:column;
+                align-items:stretch;
+                gap:0;
+                padding:0.5rem;
+                border-radius:1rem;
+                background:rgba(255,255,255,0.98);
+                border:1px solid rgba(6,78,59,.15);
+                box-shadow:0 18px 40px rgba(2,44,34,.18);
+                z-index:1001;
+            }
+            header nav.mobile-open a{
+                color:var(--td);
+                padding:0.75rem 0.875rem;
+                border-radius:0.625rem;
+            }
+            header nav.mobile-open a:hover{
+                color:var(--ag);
+                background:rgba(16,185,129,.09);
+            }
+            header nav.mobile-open a::after{display:none}
             .hero h1{font-size:2.25rem}
             .hero-badge{font-size:.75rem;padding:.5rem 1rem}
         }
@@ -680,9 +709,42 @@
             
             // Header + scroll progress (throttled)
             const header = document.getElementById('header');
+            const mobileMenuBtn = header ? header.querySelector('.mobile-menu-btn') : null;
+            const headerNav = header ? header.querySelector('nav') : null;
             const scrollProgress = document.getElementById('scroll-progress');
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             let ticking = false;
+
+            function closeMobileMenu() {
+                if (!mobileMenuBtn || !headerNav) return;
+                mobileMenuBtn.classList.remove('is-open');
+                mobileMenuBtn.setAttribute('aria-expanded', 'false');
+                headerNav.classList.remove('mobile-open');
+            }
+
+            if (mobileMenuBtn && headerNav) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    const isOpen = mobileMenuBtn.classList.toggle('is-open');
+                    headerNav.classList.toggle('mobile-open', isOpen);
+                    mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+
+                headerNav.querySelectorAll('a[href^="#"]').forEach((link) => {
+                    link.addEventListener('click', closeMobileMenu);
+                });
+
+                document.addEventListener('click', function(event) {
+                    if (!header.contains(event.target)) {
+                        closeMobileMenu();
+                    }
+                });
+
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768) {
+                        closeMobileMenu();
+                    }
+                });
+            }
             
             function applyScrollUI() {
                 header.classList.toggle('scrolled', window.scrollY > 100);

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
 
 class SmsService
 {
@@ -25,7 +26,7 @@ class SmsService
 
     private function sendMessage(string $phoneNumber, string $content): bool
     {
-        $secret = (string) env('UNISMS_SECRET_KEY', '');
+        $secret = (string) (Config::get('services.unisms.secret_key') ?: env('UNISMS_SECRET_KEY', ''));
         if ($secret === '') {
             Log::warning('UniSMS secret key is missing. Skipping SMS send.');
 

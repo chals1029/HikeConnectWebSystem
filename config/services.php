@@ -39,6 +39,10 @@ return [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'unisms' => [
+        'secret_key' => env('UNISMS_SECRET_KEY'),
+    ],
+
     'trail_data' => [
         'enabled' => env('TRAIL_DATA_ENABLED', true),
         'overpass_url' => env('TRAIL_DATA_OVERPASS_URL', 'https://overpass-api.de/api/interpreter'),

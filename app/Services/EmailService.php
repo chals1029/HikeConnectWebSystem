@@ -11,6 +11,31 @@ use Illuminate\Support\Facades\Log;
 
 class EmailService
 {
+    private function smtpHost(): string
+    {
+        return (string) (Config::get('mail.mailers.smtp.host') ?: env('MAIL_HOST', 'smtp.gmail.com'));
+    }
+
+    private function smtpPort(): int
+    {
+        return (int) (Config::get('mail.mailers.smtp.port') ?: env('MAIL_PORT', 587));
+    }
+
+    private function smtpUsername(): string
+    {
+        return (string) (Config::get('mail.mailers.smtp.username') ?: env('MAIL_USERNAME', ''));
+    }
+
+    private function smtpPassword(): string
+    {
+        return (string) (Config::get('mail.mailers.smtp.password') ?: env('MAIL_PASSWORD', ''));
+    }
+
+    private function smtpEncryption(): string
+    {
+        return (string) (Config::get('mail.mailers.smtp.encryption') ?: env('MAIL_ENCRYPTION', PHPMailer::ENCRYPTION_STARTTLS));
+    }
+
     /**
      * Send a 6-digit verification code to the user.
      *
@@ -26,12 +51,12 @@ class EmailService
         try {
             // Server settings
             $mail->isSMTP();
-            $mail->Host       = env('MAIL_HOST', 'smtp.gmail.com');
+            $mail->Host       = $this->smtpHost();
             $mail->SMTPAuth   = true;
-            $mail->Username   = env('MAIL_USERNAME');
-            $mail->Password   = env('MAIL_PASSWORD');
-            $mail->SMTPSecure = env('MAIL_ENCRYPTION', PHPMailer::ENCRYPTION_STARTTLS);
-            $mail->Port       = env('MAIL_PORT', 587);
+            $mail->Username   = $this->smtpUsername();
+            $mail->Password   = $this->smtpPassword();
+            $mail->SMTPSecure = $this->smtpEncryption();
+            $mail->Port       = $this->smtpPort();
 
             // Recipients
             $fromAddress = (string) (Config::get('mail.from.address') ?: env('MAIL_USERNAME'));
@@ -132,12 +157,12 @@ class EmailService
 
         try {
             $mail->isSMTP();
-            $mail->Host = env('MAIL_HOST', 'smtp.gmail.com');
+            $mail->Host = $this->smtpHost();
             $mail->SMTPAuth = true;
-            $mail->Username = env('MAIL_USERNAME');
-            $mail->Password = env('MAIL_PASSWORD');
-            $mail->SMTPSecure = env('MAIL_ENCRYPTION', PHPMailer::ENCRYPTION_STARTTLS);
-            $mail->Port = env('MAIL_PORT', 587);
+            $mail->Username = $this->smtpUsername();
+            $mail->Password = $this->smtpPassword();
+            $mail->SMTPSecure = $this->smtpEncryption();
+            $mail->Port = $this->smtpPort();
 
             $mail->setFrom(env('MAIL_FROM_ADDRESS') ?? env('MAIL_USERNAME'), env('MAIL_FROM_NAME', 'HikeConnect'));
             $mail->addAddress($email, $firstName);
@@ -197,12 +222,12 @@ class EmailService
 
         try {
             $mail->isSMTP();
-            $mail->Host = env('MAIL_HOST', 'smtp.gmail.com');
+            $mail->Host = $this->smtpHost();
             $mail->SMTPAuth = true;
-            $mail->Username = env('MAIL_USERNAME');
-            $mail->Password = env('MAIL_PASSWORD');
-            $mail->SMTPSecure = env('MAIL_ENCRYPTION', PHPMailer::ENCRYPTION_STARTTLS);
-            $mail->Port = env('MAIL_PORT', 587);
+            $mail->Username = $this->smtpUsername();
+            $mail->Password = $this->smtpPassword();
+            $mail->SMTPSecure = $this->smtpEncryption();
+            $mail->Port = $this->smtpPort();
 
             $mail->setFrom(env('MAIL_FROM_ADDRESS') ?? env('MAIL_USERNAME'), env('MAIL_FROM_NAME', 'HikeConnect'));
             $mail->addAddress($recipient->email, $recipient->full_name);
@@ -259,12 +284,12 @@ class EmailService
 
         try {
             $mail->isSMTP();
-            $mail->Host = env('MAIL_HOST', 'smtp.gmail.com');
+            $mail->Host = $this->smtpHost();
             $mail->SMTPAuth = true;
-            $mail->Username = env('MAIL_USERNAME');
-            $mail->Password = env('MAIL_PASSWORD');
-            $mail->SMTPSecure = env('MAIL_ENCRYPTION', PHPMailer::ENCRYPTION_STARTTLS);
-            $mail->Port = env('MAIL_PORT', 587);
+            $mail->Username = $this->smtpUsername();
+            $mail->Password = $this->smtpPassword();
+            $mail->SMTPSecure = $this->smtpEncryption();
+            $mail->Port = $this->smtpPort();
 
             $fromAddress = env('MAIL_FROM_ADDRESS') ?? env('MAIL_USERNAME');
             $fromName = env('MAIL_FROM_NAME', 'HikeConnect');
