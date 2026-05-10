@@ -409,11 +409,7 @@
             </a>
         </section>
 
-        @php
-            $exploreTrailHref = auth()->check()
-                ? route('hikers.dashboard') . '#mountain-overview'
-                : route('home') . '?auth=login&next_section=mountain-overview';
-        @endphp
+        {{-- Trail explore links now go to public pages — no login required --}}
         <section class="mountains" id="mountains" aria-labelledby="mountains-heading">
             <div class="mountains-header reveal-section">
                 <h3 id="mountains-heading">From Beginner Trails to Expert Peaks: Discover Batangas</h3>
@@ -433,7 +429,7 @@
                             <span><span aria-hidden="true"><iconify-icon icon="lucide:timer" style="vertical-align:text-bottom;"></iconify-icon></span> 4-5 Hours</span>
                             <span class="weather-chip"><span aria-hidden="true"><iconify-icon icon="lucide:cloud-sun" style="vertical-align:text-bottom;"></iconify-icon></span> <span data-weather-temp>--°C</span></span>
                         </div>
-                        <a href="{{ $exploreTrailHref }}" class="explore-link" aria-label="Explore Mt. Batulao trail">
+                        <a href="{{ route('trails.explore', 'batulao') }}" class="explore-link" aria-label="Explore Mt. Batulao trail">
                             <span>Explore Trail</span>
                             <span aria-hidden="true">→</span>
                         </a>
@@ -452,7 +448,7 @@
                             <span><span aria-hidden="true"><iconify-icon icon="lucide:timer" style="vertical-align:text-bottom;"></iconify-icon></span> 5-6 Hours</span>
                             <span class="weather-chip"><span aria-hidden="true"><iconify-icon icon="lucide:cloud-sun" style="vertical-align:text-bottom;"></iconify-icon></span> <span data-weather-temp>--°C</span></span>
                         </div>
-                        <a href="{{ $exploreTrailHref }}" class="explore-link" aria-label="Explore Mt. Pico de Loro trail">
+                        <a href="{{ route('trails.explore', 'pico') }}" class="explore-link" aria-label="Explore Mt. Pico de Loro trail">
                             <span>Explore Trail</span>
                             <span aria-hidden="true">→</span>
                         </a>
@@ -471,7 +467,7 @@
                             <span><span aria-hidden="true"><iconify-icon icon="lucide:timer" style="vertical-align:text-bottom;"></iconify-icon></span> 3-4 Hours</span>
                             <span class="weather-chip"><span aria-hidden="true"><iconify-icon icon="lucide:cloud-sun" style="vertical-align:text-bottom;"></iconify-icon></span> <span data-weather-temp>--°C</span></span>
                         </div>
-                        <a href="{{ $exploreTrailHref }}" class="explore-link" aria-label="Explore Mt. Talamitam trail">
+                        <a href="{{ route('trails.explore', 'talamitam') }}" class="explore-link" aria-label="Explore Mt. Talamitam trail">
                             <span>Explore Trail</span>
                             <span aria-hidden="true">→</span>
                         </a>
