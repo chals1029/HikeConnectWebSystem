@@ -956,7 +956,8 @@ class HikerDashboardController extends Controller
     public function updateProfilePicture(Request $request, ProfilePictureStorageService $profilePictures)
     {
         $request->validate([
-            'profile_picture' => ['required', 'image', 'max:2048', 'mimes:jpeg,png,gif,webp'],
+            // max is kilobytes; phone camera JPEGs are often > 2MB
+            'profile_picture' => ['required', 'image', 'max:10240', 'mimes:jpeg,png,gif,webp'],
         ]);
 
         $user = Auth::user();

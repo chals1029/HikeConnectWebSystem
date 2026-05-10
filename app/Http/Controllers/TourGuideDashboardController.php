@@ -209,7 +209,7 @@ class TourGuideDashboardController extends Controller
     public function updateProfilePicture(Request $request, ProfilePictureStorageService $profilePictures)
     {
         $request->validate([
-            'profile_picture' => ['required', 'image', 'max:2048', 'mimes:jpeg,png,gif,webp'],
+            'profile_picture' => ['required', 'image', 'max:10240', 'mimes:jpeg,png,gif,webp'],
         ]);
 
         $user = Auth::user();
@@ -222,7 +222,6 @@ class TourGuideDashboardController extends Controller
 
             $guide->profile_picture_path = $path;
             $guide->save();
-            AuditLogger::log('guide.photo_updated', 'Updated guide profile photo', $user, $guide);
         } catch (\Throwable $e) {
             Log::error('Tour guide profile picture upload failed', [
                 'user_id' => $user->id,
@@ -234,6 +233,15 @@ class TourGuideDashboardController extends Controller
                 'success' => false,
                 'message' => ProfilePictureStorageService::clientMessageForException($e),
             ], 500);
+        }
+
+        try {
+            AuditLogger::log('guide.photo_updated', 'Updated guide profile photo', $user, $guide);
+        } catch (\Throwable $e) {
+            Log::warning('guide.photo_updated audit log failed after successful upload', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+            ]);
         }
 
         $user->refresh();

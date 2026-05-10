@@ -2135,8 +2135,8 @@
                 picInput.addEventListener('change', () => {
                     const file = picInput.files && picInput.files[0];
                     if (!file) return;
-                    if (file.size > 2048 * 1024) {
-                        if (picStatus) picStatus.textContent = 'File is too large (max 2MB).';
+                    if (file.size > 10240 * 1024) {
+                        if (picStatus) picStatus.textContent = 'File is too large (max 10MB).';
                         picInput.value = '';
                         return;
                     }
