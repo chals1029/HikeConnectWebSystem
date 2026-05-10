@@ -141,15 +141,7 @@
         .te-jumpoff-info p { margin-bottom: 0.5rem; }
         .te-jumpoff-info strong { color: var(--td); }
 
-        /* Login prompt modal */
-        .te-login-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
-        .te-login-overlay.active { display: flex; }
-        .te-login-box { background: var(--w); border-radius: var(--radius); padding: 2.5rem; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-        .te-login-box h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
-        .te-login-box p { font-size: 0.9rem; color: var(--tg); margin-bottom: 1.5rem; line-height: 1.6; }
-        .te-login-box .te-btn { width: 100%; justify-content: center; margin-bottom: 0.75rem; }
-        .te-login-box .te-dismiss { background: none; border: none; color: var(--tg); font-size: 0.85rem; cursor: pointer; margin-top: 0.5rem; }
-        .te-login-box .te-dismiss:hover { color: var(--td); }
+
 
         @media (max-width: 600px) {
             .te-hero { height: 280px; }
@@ -418,10 +410,10 @@
                         <iconify-icon icon="lucide:calendar-plus"></iconify-icon> Book Now
                     </a>
                 @else
-                    <button type="button" class="te-btn te-btn-primary te-book-btn" id="te-book-trigger">
-                        <iconify-icon icon="lucide:calendar-plus"></iconify-icon> Book This Hike
-                    </button>
-                    <p class="te-book-note">Free account required to book. Takes 30 seconds.</p>
+                    <a href="{{ route('home') }}?auth=login" class="te-btn te-btn-primary te-book-btn">
+                        <iconify-icon icon="lucide:calendar-plus"></iconify-icon> Book Now
+                    </a>
+                    <p class="te-book-note">Log in or create an account to book this hike.</p>
                 @endauth
 
                 @if($mountainData['pricing']['sourceNote'])
@@ -470,23 +462,7 @@
         </aside>
     </div>
 
-    {{-- Login Prompt Modal --}}
-    @guest
-    <div class="te-login-overlay" id="te-login-overlay">
-        <div class="te-login-box">
-            <iconify-icon icon="lucide:mountain" style="font-size:2.5rem;color:var(--ag);margin-bottom:1rem;"></iconify-icon>
-            <h3>Ready to Book {{ $mountain->name }}?</h3>
-            <p>Create a free HikeConnect account to book guided hikes, track your adventures, and join the hiking community.</p>
-            <a href="{{ route('home') }}?auth=register&next_section=mountain-overview" class="te-btn te-btn-primary">
-                <iconify-icon icon="lucide:user-plus"></iconify-icon> Create Free Account
-            </a>
-            <a href="{{ route('home') }}?auth=login&next_section=mountain-overview" class="te-btn te-btn-outline">
-                <iconify-icon icon="lucide:log-in"></iconify-icon> I Already Have an Account
-            </a>
-            <button type="button" class="te-dismiss" id="te-login-dismiss">Maybe later</button>
-        </div>
-    </div>
-    @endguest
+
 
     <script>
     (function() {
@@ -504,27 +480,6 @@
                     }
                 })
                 .catch(() => {});
-        }
-
-        // Login prompt for booking
-        const bookTrigger = document.getElementById('te-book-trigger');
-        const loginOverlay = document.getElementById('te-login-overlay');
-        const loginDismiss = document.getElementById('te-login-dismiss');
-
-        if (bookTrigger && loginOverlay) {
-            bookTrigger.addEventListener('click', () => {
-                loginOverlay.classList.add('active');
-            });
-        }
-        if (loginDismiss && loginOverlay) {
-            loginDismiss.addEventListener('click', () => {
-                loginOverlay.classList.remove('active');
-            });
-            loginOverlay.addEventListener('click', (e) => {
-                if (e.target === loginOverlay) {
-                    loginOverlay.classList.remove('active');
-                }
-            });
         }
     })();
     </script>

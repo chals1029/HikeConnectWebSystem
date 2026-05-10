@@ -185,8 +185,123 @@
         .mountain-meta{display:flex;gap:1.25rem;font-size:.8125rem;color:var(--tg);flex-wrap:wrap}
         .mountain-meta span{display:flex;align-items:center;gap:.375rem}
         .weather-chip{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .6rem;border-radius:999px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.22);color:var(--pg);font-weight:600;line-height:1}
-        .explore-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--ag);text-decoration:none;font-size:.875rem;font-weight:600;margin-top:1rem;transition:gap var(--tr)}
-        .explore-link:hover{gap:.75rem}
+        .explore-link{display:inline-flex;align-items:center;gap:.5rem;color:var(--ag);text-decoration:none;font-size:.875rem;font-weight:600;margin-top:1rem;transition:gap var(--tr);background:none;border:none;padding:0;cursor:pointer;font-family:inherit}
+        .explore-link:hover{gap:.75rem;color:var(--pg)}
+        .explore-link:focus-visible{outline:2px solid var(--ag);outline-offset:3px;border-radius:4px}
+        .mountain-actions{display:flex;align-items:center;justify-content:flex-start;gap:1rem;margin-top:1rem;flex-wrap:wrap}
+        .mountain-actions .explore-link{margin-top:0}
+
+        /* Trail preview modal */
+        .tp-overlay{position:fixed;inset:0;z-index:10050;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(6,20,16,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+        .tp-overlay.is-open{display:flex}
+        /* Make sure [hidden] always wins inside the modal even when a flex/grid
+           rule would otherwise override the browser default. */
+        .tp-card [hidden]{display:none!important}
+        .tp-card{position:relative;width:min(720px,100%);max-height:92vh;overflow:auto;background:var(--w);border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.35);transform:translateY(12px) scale(.98);opacity:0;transition:transform .35s cubic-bezier(.16,1,.3,1),opacity .25s ease}
+        .tp-overlay.is-open .tp-card{transform:translateY(0) scale(1);opacity:1}
+        .tp-hero{position:relative;height:240px;background-size:cover;background-position:center;border-radius:20px 20px 0 0;overflow:hidden;background-color:#0f172a}
+        .tp-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),rgba(0,0,0,.05) 55%,transparent)}
+        .tp-tag{position:absolute;top:1rem;left:1rem;z-index:2;background:var(--ag);color:var(--w);padding:.35rem .8rem;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+        .tp-title{position:absolute;left:1.25rem;right:3.5rem;bottom:1rem;z-index:2;color:var(--w)}
+        .tp-title h3{font-size:1.65rem;font-weight:800;margin:0;text-shadow:0 2px 8px rgba(0,0,0,.4);line-height:1.15}
+        .tp-title small{display:flex;align-items:center;gap:.35rem;font-size:.8125rem;opacity:.92;margin-top:.3rem}
+        .tp-close{position:absolute;top:.75rem;right:.75rem;z-index:3;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:var(--w);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background var(--tr)}
+        .tp-close:hover{background:rgba(0,0,0,.7)}
+        .tp-body{padding:1.5rem}
+
+        .tp-loading{display:flex;align-items:center;justify-content:center;gap:.6rem;padding:2rem 0;color:var(--tg);font-size:.9rem}
+        .tp-loading .tp-spin{font-size:1.15rem;color:var(--ag);animation:tp-spin 1s linear infinite}
+        @keyframes tp-spin{to{transform:rotate(360deg)}}
+
+        .tp-safety{display:flex;gap:.75rem;align-items:flex-start;padding:.85rem 1rem;border-radius:12px;background:linear-gradient(135deg,rgba(239,68,68,.06),rgba(245,158,11,.04));border:1px solid rgba(239,68,68,.18);margin-bottom:1.15rem}
+        .tp-safety iconify-icon{font-size:1.2rem;color:#b91c1c;flex-shrink:0;margin-top:2px}
+        .tp-safety strong{display:block;color:#991b1b;font-size:.85rem;margin-bottom:2px}
+        .tp-safety p{font-size:.8rem;color:var(--tg);line-height:1.5;margin:0}
+
+        .tp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem;margin-bottom:1.35rem}
+        .tp-stat{display:flex;align-items:center;gap:.55rem;padding:.7rem .75rem;background:var(--bc);border-radius:12px}
+        .tp-stat iconify-icon{font-size:1.1rem;color:var(--ag);flex-shrink:0}
+        .tp-stat span{display:block;font-size:.65rem;color:var(--tg);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1px}
+        .tp-stat strong{font-size:.8125rem;color:var(--pg);font-weight:700;display:block;line-height:1.2}
+        .tp-stat--weather{background:linear-gradient(135deg,#eff6ff,#f0f9ff)}
+        .tp-stat--weather iconify-icon{color:#3b82f6}
+        .tp-stat--weather strong{color:#1e40af}
+
+        .tp-section{margin-bottom:1.35rem;padding-bottom:1.25rem;border-bottom:1px solid rgba(0,0,0,.06)}
+        .tp-section:last-of-type{border-bottom:none;padding-bottom:0;margin-bottom:1rem}
+        .tp-section h4{font-size:.95rem;font-weight:700;color:var(--td);display:flex;align-items:center;gap:.45rem;margin-bottom:.6rem}
+        .tp-section h4 iconify-icon{color:var(--ag);font-size:1.05rem}
+        .tp-desc{font-size:.875rem;color:#374151;line-height:1.65;margin:0 0 .4rem}
+        .tp-meta-line{font-size:.78rem;color:var(--tg);margin:0}
+
+        .tp-highlights{list-style:none;margin:0;padding:0}
+        .tp-highlights li{position:relative;padding:.45rem 0 .45rem 1.25rem;font-size:.85rem;color:#374151;line-height:1.5;border-bottom:1px dashed rgba(0,0,0,.05)}
+        .tp-highlights li:last-child{border-bottom:none}
+        .tp-highlights li::before{content:'';position:absolute;left:0;top:.75rem;width:6px;height:6px;border-radius:50%;background:var(--ag)}
+
+        .tp-review-head{display:flex;align-items:center;gap:.9rem;margin-bottom:.85rem}
+        .tp-review-avg{font-size:2rem;font-weight:800;color:var(--pg);line-height:1}
+        .tp-review-stars{color:#f59e0b;font-size:.95rem;letter-spacing:1px;margin-bottom:2px}
+        .tp-review-count{font-size:.75rem;color:var(--tg)}
+        .tp-review-list{display:flex;flex-direction:column;gap:.55rem}
+        .tp-review-item{padding:.65rem .8rem;border-radius:10px;background:#f9fafb;border:1px solid rgba(0,0,0,.04)}
+        .tp-review-item .tp-review-row{display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:2px}
+        .tp-review-item strong{font-size:.82rem;color:var(--td)}
+        .tp-review-item .tp-review-date{font-size:.7rem;color:var(--tg)}
+        .tp-review-item .tp-review-rate{font-size:.7rem;color:#f59e0b;font-weight:700}
+        .tp-review-item p{font-size:.82rem;color:#4b5563;margin:2px 0 0;line-height:1.5}
+        .tp-review-empty{font-size:.82rem;color:var(--tg);margin:0}
+
+        .tp-jumpoff{font-size:.85rem;color:#374151;line-height:1.55;margin:0}
+        .tp-jumpoff strong{color:var(--td)}
+
+        .tp-pricing{display:flex;flex-direction:column;gap:.2rem}
+        .tp-pricing .tp-price-row{display:flex;justify-content:space-between;font-size:.82rem;padding:.35rem 0;border-bottom:1px solid rgba(0,0,0,.04)}
+        .tp-pricing .tp-price-row:last-child{border-bottom:none}
+        .tp-pricing-total{display:flex;justify-content:space-between;font-weight:700;font-size:.95rem;margin-top:.5rem;padding-top:.55rem;border-top:2px solid rgba(6,78,59,.15);color:var(--pg)}
+
+        .tp-gear{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:.35rem .75rem}
+        .tp-gear li{display:flex;align-items:center;gap:.4rem;font-size:.82rem;color:#374151}
+        .tp-gear li iconify-icon{color:var(--ag);font-size:.9rem;flex-shrink:0}
+
+        .tp-error{display:flex;align-items:center;gap:.5rem;padding:.65rem .8rem;border-radius:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#991b1b;font-size:.8rem;margin-bottom:1rem}
+        .tp-error iconify-icon{font-size:1rem}
+
+        .tp-actions{margin-top:1rem}
+        .tp-book-btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.85rem 1.25rem;border-radius:999px;border:none;background:linear-gradient(135deg,var(--pg),var(--ag));color:var(--w);font-size:.95rem;font-weight:700;cursor:pointer;text-decoration:none;transition:transform var(--tr),box-shadow var(--tr);font-family:inherit}
+        .tp-book-btn:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(6,78,59,.32)}
+        .tp-note{font-size:.72rem;color:var(--tg);text-align:center;margin:.55rem 0 0}
+
+        @media (max-width:600px){
+            .tp-overlay{padding:0;align-items:stretch;justify-content:stretch}
+            .tp-card{width:100%;max-height:100vh;max-height:100dvh;border-radius:0;display:flex;flex-direction:column}
+            .tp-hero{height:200px;border-radius:0;flex-shrink:0}
+            .tp-title h3{font-size:1.25rem}
+            .tp-title small{font-size:.75rem}
+            .tp-body{padding:1rem 1rem calc(1.5rem + env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+            .tp-stats{grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1.15rem}
+            .tp-stat{padding:.6rem .65rem}
+            .tp-stat iconify-icon{font-size:1rem}
+            .tp-stat span{font-size:.62rem}
+            .tp-stat strong{font-size:.78rem}
+            .tp-section{margin-bottom:1.15rem;padding-bottom:1rem}
+            .tp-section h4{font-size:.88rem}
+            .tp-desc{font-size:.82rem}
+            .tp-gear{grid-template-columns:1fr}
+            .tp-review-head{gap:.65rem}
+            .tp-review-avg{font-size:1.6rem}
+            .tp-close{width:40px;height:40px;top:.6rem;right:.6rem;background:rgba(0,0,0,.55)}
+            .tp-book-btn{padding:.95rem 1.15rem;min-height:48px;font-size:.9rem}
+            .tp-book-btn iconify-icon{font-size:1.05rem}
+        }
+        @media (max-width:380px){
+            .tp-stats{grid-template-columns:1fr}
+            .tp-title h3{font-size:1.15rem}
+        }
+        @media (prefers-reduced-motion:reduce){
+            .tp-card{transition:none}
+            .tp-loading .tp-spin{animation:none}
+        }
         .slider-dots{display:flex;justify-content:center;gap:.625rem;margin-top:3.125rem}
         .dot{width:.625rem;height:.625rem;border-radius:50%;background:rgba(6,78,59,.2);cursor:pointer;transition:all var(--tr)}
         .dot.active{background:var(--ag);width:1.875rem;border-radius:5px}
@@ -429,10 +544,22 @@
                             <span><span aria-hidden="true"><iconify-icon icon="lucide:timer" style="vertical-align:text-bottom;"></iconify-icon></span> 4-5 Hours</span>
                             <span class="weather-chip"><span aria-hidden="true"><iconify-icon icon="lucide:cloud-sun" style="vertical-align:text-bottom;"></iconify-icon></span> <span data-weather-temp>--°C</span></span>
                         </div>
-                        <a href="{{ route('trails.explore', 'batulao') }}" class="explore-link" aria-label="Explore Mt. Batulao trail">
-                            <span>Explore Trail</span>
-                            <span aria-hidden="true">→</span>
-                        </a>
+                        <div class="mountain-actions">
+                            <button type="button" class="explore-link js-trail-preview"
+                                data-trail-slug="batulao"
+                                data-trail-name="Mt. Batulao"
+                                data-trail-tag="Beginner Friendly"
+                                data-trail-image="{{ asset('images/mt-batulao.jpg') }}"
+                                data-trail-location="Nasugbu, Batangas"
+                                data-trail-elevation="811 MASL"
+                                data-trail-duration="4-5 Hours"
+                                data-trail-difficulty="Beginner"
+                                data-trail-description="Known for its rolling hills and stunning views of Nasugbu. Perfect for beginners with well-established trails and campsites. Expect open grassland ridges, sunrise-friendly views, and a manageable summit push."
+                                aria-label="Preview Mt. Batulao trail">
+                                <span>Explore Trail</span>
+                                <span aria-hidden="true">→</span>
+                            </button>
+                        </div>
                     </div>
                 </article>
                 
@@ -448,10 +575,22 @@
                             <span><span aria-hidden="true"><iconify-icon icon="lucide:timer" style="vertical-align:text-bottom;"></iconify-icon></span> 5-6 Hours</span>
                             <span class="weather-chip"><span aria-hidden="true"><iconify-icon icon="lucide:cloud-sun" style="vertical-align:text-bottom;"></iconify-icon></span> <span data-weather-temp>--°C</span></span>
                         </div>
-                        <a href="{{ route('trails.explore', 'pico') }}" class="explore-link" aria-label="Explore Mt. Pico de Loro trail">
-                            <span>Explore Trail</span>
-                            <span aria-hidden="true">→</span>
-                        </a>
+                        <div class="mountain-actions">
+                            <button type="button" class="explore-link js-trail-preview"
+                                data-trail-slug="pico"
+                                data-trail-name="Mt. Pico de Loro"
+                                data-trail-tag="Moderate"
+                                data-trail-image="{{ asset('images/mt-pico-de-loro.jpg') }}"
+                                data-trail-location="Maragondon, Cavite"
+                                data-trail-elevation="664 MASL"
+                                data-trail-duration="5-6 Hours"
+                                data-trail-difficulty="Moderate"
+                                data-trail-description="Famous for its iconic monolith and panoramic views of the West Philippine Sea. Forest trails open onto rocky spires and ocean air. A point-to-point traverse best for hikers with transport on both ends."
+                                aria-label="Preview Mt. Pico de Loro trail">
+                                <span>Explore Trail</span>
+                                <span aria-hidden="true">→</span>
+                            </button>
+                        </div>
                     </div>
                 </article>
                 
@@ -467,10 +606,22 @@
                             <span><span aria-hidden="true"><iconify-icon icon="lucide:timer" style="vertical-align:text-bottom;"></iconify-icon></span> 3-4 Hours</span>
                             <span class="weather-chip"><span aria-hidden="true"><iconify-icon icon="lucide:cloud-sun" style="vertical-align:text-bottom;"></iconify-icon></span> <span data-weather-temp>--°C</span></span>
                         </div>
-                        <a href="{{ route('trails.explore', 'talamitam') }}" class="explore-link" aria-label="Explore Mt. Talamitam trail">
-                            <span>Explore Trail</span>
-                            <span aria-hidden="true">→</span>
-                        </a>
+                        <div class="mountain-actions">
+                            <button type="button" class="explore-link js-trail-preview"
+                                data-trail-slug="talamitam"
+                                data-trail-name="Mt. Talamitam"
+                                data-trail-tag="Beginner Friendly"
+                                data-trail-image="{{ asset('images/mt-talamitam.jpg') }}"
+                                data-trail-location="Nasugbu, Batangas"
+                                data-trail-elevation="630 MASL"
+                                data-trail-duration="3-4 Hours"
+                                data-trail-difficulty="Beginner"
+                                data-trail-description="Batulao's sister mountain offering open trails, grasslands, and spectacular summit views. Gentle climbs and open fields make this a favorite for first timers and sunset chasers alike."
+                                aria-label="Preview Mt. Talamitam trail">
+                                <span>Explore Trail</span>
+                                <span aria-hidden="true">→</span>
+                            </button>
+                        </div>
                     </div>
                 </article>
             </div>
@@ -695,6 +846,125 @@
             <span>&copy; {{ date('Y') }} HikeConnect. All rights reserved.</span>
         </div>
     </footer>
+
+    {{-- Trail Preview Card (opened from Explore Trail) --}}
+    <div id="trail-preview-overlay" class="tp-overlay" role="dialog" aria-modal="true" aria-labelledby="tp-name" aria-hidden="true">
+        <div class="tp-card">
+            <button type="button" class="tp-close js-tp-close" aria-label="Close preview">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+            <div class="tp-hero" id="tp-hero">
+                <span class="tp-tag" id="tp-tag">Trail</span>
+                <div class="tp-title">
+                    <h3 id="tp-name">Trail name</h3>
+                    <small><iconify-icon icon="lucide:map-pin"></iconify-icon> <span id="tp-location"></span></small>
+                </div>
+            </div>
+            <div class="tp-body">
+                <div class="tp-loading" id="tp-loading">
+                    <iconify-icon icon="lucide:loader-2" class="tp-spin"></iconify-icon>
+                    <span>Loading trail details…</span>
+                </div>
+
+                <div class="tp-content" id="tp-content" hidden>
+                    {{-- Safety warning --}}
+                    <div class="tp-safety" id="tp-safety" hidden>
+                        <iconify-icon icon="lucide:triangle-alert"></iconify-icon>
+                        <div>
+                            <strong id="tp-safety-label"></strong>
+                            <p id="tp-safety-note"></p>
+                        </div>
+                    </div>
+
+                    {{-- Quick stats + live weather --}}
+                    <div class="tp-stats">
+                        <div class="tp-stat">
+                            <iconify-icon icon="lucide:mountain"></iconify-icon>
+                            <div><span>Elevation</span><strong id="tp-elevation">—</strong></div>
+                        </div>
+                        <div class="tp-stat">
+                            <iconify-icon icon="lucide:timer"></iconify-icon>
+                            <div><span>Duration</span><strong id="tp-duration">—</strong></div>
+                        </div>
+                        <div class="tp-stat">
+                            <iconify-icon icon="lucide:gauge"></iconify-icon>
+                            <div><span>Difficulty</span><strong id="tp-difficulty">—</strong></div>
+                        </div>
+                        <div class="tp-stat tp-stat--weather">
+                            <iconify-icon icon="lucide:cloud-sun"></iconify-icon>
+                            <div><span>Weather</span><strong id="tp-weather">--°C</strong></div>
+                        </div>
+                    </div>
+
+                    {{-- About --}}
+                    <section class="tp-section">
+                        <h4><iconify-icon icon="lucide:info"></iconify-icon> About this trail</h4>
+                        <p class="tp-desc" id="tp-description"></p>
+                        <p class="tp-meta-line" id="tp-meta-line"></p>
+                    </section>
+
+                    {{-- Highlights --}}
+                    <section class="tp-section" id="tp-highlights-section" hidden>
+                        <h4><iconify-icon icon="lucide:sparkles"></iconify-icon> Trail highlights</h4>
+                        <ul class="tp-highlights" id="tp-highlights"></ul>
+                    </section>
+
+                    {{-- Reviews --}}
+                    <section class="tp-section" id="tp-reviews-section" hidden>
+                        <h4><iconify-icon icon="lucide:star"></iconify-icon> Hiker reviews</h4>
+                        <div class="tp-review-head">
+                            <span class="tp-review-avg" id="tp-review-avg">0.0</span>
+                            <div>
+                                <div class="tp-review-stars" id="tp-review-stars"></div>
+                                <span class="tp-review-count" id="tp-review-count">0 reviews</span>
+                            </div>
+                        </div>
+                        <div class="tp-review-list" id="tp-review-list"></div>
+                        <p class="tp-review-empty" id="tp-review-empty" hidden>No reviews yet. Be the first to share your experience.</p>
+                    </section>
+
+                    {{-- Jump-off --}}
+                    <section class="tp-section" id="tp-jumpoff-section" hidden>
+                        <h4><iconify-icon icon="lucide:map-pin"></iconify-icon> Jump-off point</h4>
+                        <p class="tp-jumpoff" id="tp-jumpoff"></p>
+                    </section>
+
+                    {{-- Pricing --}}
+                    <section class="tp-section" id="tp-pricing-section" hidden>
+                        <h4><iconify-icon icon="lucide:receipt"></iconify-icon> Estimated fees</h4>
+                        <div class="tp-pricing" id="tp-pricing"></div>
+                        <div class="tp-pricing-total" id="tp-pricing-total"></div>
+                    </section>
+
+                    {{-- Gear --}}
+                    <section class="tp-section" id="tp-gear-section" hidden>
+                        <h4><iconify-icon icon="lucide:backpack"></iconify-icon> Recommended gear</h4>
+                        <ul class="tp-gear" id="tp-gear"></ul>
+                    </section>
+
+                    <div class="tp-error" id="tp-error" hidden>
+                        <iconify-icon icon="lucide:circle-alert"></iconify-icon>
+                        <span>Couldn't load trail details right now. Please try again.</span>
+                    </div>
+                </div>
+
+                <div class="tp-actions">
+                    @auth
+                        <a id="tp-book-btn" href="{{ route('hikers.dashboard') }}#book-hike" class="tp-book-btn">
+                            <iconify-icon icon="lucide:calendar-plus"></iconify-icon>
+                            <span>Book Now</span>
+                        </a>
+                    @else
+                        <button type="button" id="tp-book-btn" class="tp-book-btn js-auth-open" data-auth-mode="login">
+                            <iconify-icon icon="lucide:calendar-plus"></iconify-icon>
+                            <span>Book Now</span>
+                        </button>
+                        <p class="tp-note">Log in or sign up to book this hike.</p>
+                    @endauth
+                </div>
+            </div>
+        </div>
+    </div>
 
     @include('auth._modal')
 
@@ -967,6 +1237,339 @@
                 });
                 
                 document.querySelectorAll('[data-src]').forEach(img => imgObserver.observe(img));
+            }
+        })();
+    </script>
+
+    {{-- Trail preview modal controller --}}
+    <script>
+        (function () {
+            var overlay = document.getElementById('trail-preview-overlay');
+            if (!overlay) return;
+
+            // Build the preview URL from the browser's current origin, not
+            // from APP_URL. APP_URL in .env may differ from where the page is
+            // actually served (e.g. hikeconnect.test vs localhost), which
+            // would make the request cross-origin and fail silently.
+            function previewUrl(slug) {
+                return window.location.origin + '/trails/' + encodeURIComponent(slug) + '/preview';
+            }
+
+            var hero = document.getElementById('tp-hero');
+            var tag = document.getElementById('tp-tag');
+            var nameEl = document.getElementById('tp-name');
+            var locationEl = document.getElementById('tp-location');
+            var elevationEl = document.getElementById('tp-elevation');
+            var durationEl = document.getElementById('tp-duration');
+            var difficultyEl = document.getElementById('tp-difficulty');
+            var weatherEl = document.getElementById('tp-weather');
+            var descEl = document.getElementById('tp-description');
+            var metaLineEl = document.getElementById('tp-meta-line');
+            var loadingEl = document.getElementById('tp-loading');
+            var contentEl = document.getElementById('tp-content');
+            var errorEl = document.getElementById('tp-error');
+            var safetyBox = document.getElementById('tp-safety');
+            var safetyLabel = document.getElementById('tp-safety-label');
+            var safetyNote = document.getElementById('tp-safety-note');
+            var highlightsSection = document.getElementById('tp-highlights-section');
+            var highlightsList = document.getElementById('tp-highlights');
+            var reviewsSection = document.getElementById('tp-reviews-section');
+            var reviewAvg = document.getElementById('tp-review-avg');
+            var reviewStars = document.getElementById('tp-review-stars');
+            var reviewCount = document.getElementById('tp-review-count');
+            var reviewList = document.getElementById('tp-review-list');
+            var reviewEmpty = document.getElementById('tp-review-empty');
+            var jumpoffSection = document.getElementById('tp-jumpoff-section');
+            var jumpoffEl = document.getElementById('tp-jumpoff');
+            var pricingSection = document.getElementById('tp-pricing-section');
+            var pricingEl = document.getElementById('tp-pricing');
+            var pricingTotal = document.getElementById('tp-pricing-total');
+            var gearSection = document.getElementById('tp-gear-section');
+            var gearList = document.getElementById('tp-gear');
+
+            var previousFocus = null;
+            var weatherController = null;
+            var detailsController = null;
+            var requestToken = 0;
+
+            function resetContent() {
+                safetyBox.hidden = true;
+                highlightsSection.hidden = true;
+                reviewsSection.hidden = true;
+                jumpoffSection.hidden = true;
+                pricingSection.hidden = true;
+                gearSection.hidden = true;
+                errorEl.hidden = true;
+                highlightsList.innerHTML = '';
+                reviewList.innerHTML = '';
+                pricingEl.innerHTML = '';
+                pricingTotal.innerHTML = '';
+                gearList.innerHTML = '';
+                reviewEmpty.hidden = true;
+                weatherEl.textContent = '--°C';
+                descEl.textContent = '';
+                metaLineEl.textContent = '';
+            }
+
+            function showLoading(on) {
+                loadingEl.hidden = !on;
+                contentEl.hidden = on;
+            }
+
+            function pesos(v) {
+                var n = Number(v) || 0;
+                return '₱' + n.toLocaleString('en-PH', { maximumFractionDigits: 0 });
+            }
+
+            function renderStars(avg) {
+                var full = Math.round(Number(avg) || 0);
+                var out = '';
+                for (var i = 1; i <= 5; i++) {
+                    out += i <= full ? '★' : '☆';
+                }
+                return out;
+            }
+
+            function renderPricing(p) {
+                if (!p) return;
+                var rows = [
+                    ['Registration fee', p.registrationFeePerPerson],
+                    ['Environmental fee', p.environmentalFeePerPerson],
+                    ['Local fee', p.localFeePerPerson],
+                    ['Guide fee (per person)', p.guideFeePerPerson],
+                ];
+                var total = 0;
+                var html = '';
+                rows.forEach(function (row) {
+                    var v = Number(row[1]) || 0;
+                    if (v <= 0) return;
+                    total += v;
+                    html += '<div class="tp-price-row"><span>' + row[0] + '</span><strong>' + pesos(v) + '</strong></div>';
+                });
+                if (total <= 0) return;
+                pricingEl.innerHTML = html;
+                pricingTotal.innerHTML = '<span>Est. total / person</span><span>' + pesos(total) + '</span>';
+                pricingSection.hidden = false;
+            }
+
+            function renderReviews(r) {
+                if (!r) return;
+                reviewsSection.hidden = false;
+                reviewAvg.textContent = (Number(r.average) || 0).toFixed(1);
+                reviewStars.textContent = renderStars(r.average);
+                var count = Number(r.count) || 0;
+                reviewCount.textContent = count + ' ' + (count === 1 ? 'review' : 'reviews');
+                var items = Array.isArray(r.items) ? r.items : [];
+                if (count === 0 || items.length === 0) {
+                    reviewEmpty.hidden = false;
+                    return;
+                }
+                reviewList.innerHTML = items.slice(0, 3).map(function (item) {
+                    var body = item.body ? '<p>' + escapeHtml(item.body) + '</p>' : '';
+                    return '<div class="tp-review-item">'
+                        + '<div class="tp-review-row">'
+                        +   '<strong>' + escapeHtml(item.reviewer || 'Hiker') + '</strong>'
+                        +   '<span class="tp-review-rate">' + renderStars(item.rating) + '</span>'
+                        + '</div>'
+                        + '<div class="tp-review-row"><span class="tp-review-date">' + escapeHtml(item.date || '') + '</span></div>'
+                        + body
+                        + '</div>';
+                }).join('');
+            }
+
+            function escapeHtml(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function renderHighlights(list) {
+                if (!Array.isArray(list) || list.length === 0) return;
+                highlightsList.innerHTML = list.slice(0, 4).map(function (h) {
+                    return '<li>' + escapeHtml(h) + '</li>';
+                }).join('');
+                highlightsSection.hidden = false;
+            }
+
+            function renderJumpoff(j) {
+                if (!j || !j.name) return;
+                var parts = ['<strong>' + escapeHtml(j.name) + '</strong>'];
+                if (j.address) parts.push(escapeHtml(j.address));
+                if (j.meetingTime) parts.push('Meeting time: <strong>' + escapeHtml(j.meetingTime) + '</strong>');
+                jumpoffEl.innerHTML = parts.join('<br>');
+                jumpoffSection.hidden = false;
+            }
+
+            function renderGear(list) {
+                if (!Array.isArray(list) || list.length === 0) return;
+                gearList.innerHTML = list.slice(0, 8).map(function (g) {
+                    var label = typeof g === 'string' ? g : (g && g.name ? g.name : '');
+                    if (!label) return '';
+                    return '<li><iconify-icon icon="lucide:check-circle"></iconify-icon>' + escapeHtml(label) + '</li>';
+                }).join('');
+                gearSection.hidden = false;
+            }
+
+            function renderDetails(d) {
+                nameEl.textContent = d.name || 'Trail';
+                locationEl.textContent = d.location || '';
+                tag.textContent = d.tag || d.difficulty || 'Trail';
+                if (d.image) hero.style.backgroundImage = "url('" + d.image + "')";
+
+                elevationEl.textContent = d.elevation || '—';
+                durationEl.textContent = d.duration || '—';
+                difficultyEl.textContent = d.difficulty || '—';
+
+                descEl.textContent = (d.experience && d.experience.subtitle) || d.description || '';
+                var metaBits = [];
+                if (d.trailType) metaBits.push(d.trailType);
+                if (d.bestTime) metaBits.push('Best time: ' + d.bestTime);
+                metaLineEl.textContent = metaBits.join(' • ');
+
+                if (d.hasSafetyWarning) {
+                    safetyLabel.textContent = d.safetyStatusLabel || 'Trail advisory';
+                    safetyNote.textContent = d.safetyNote || 'Check trail conditions before starting your hike.';
+                    safetyBox.hidden = false;
+                }
+
+                renderHighlights((d.experience && d.experience.highlights) || []);
+                renderReviews(d.reviews);
+                renderJumpoff(d.jumpoff);
+                renderPricing(d.pricing);
+                renderGear(d.gear);
+            }
+
+            function fetchWeather(lat, lng) {
+                if (!lat || !lng) return;
+                if (weatherController) weatherController.abort();
+                weatherController = new AbortController();
+                fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lng + '&current_weather=true',
+                    { signal: weatherController.signal })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data && data.current_weather && data.current_weather.temperature != null) {
+                            weatherEl.textContent = Math.round(data.current_weather.temperature) + '°C';
+                        }
+                    })
+                    .catch(function () {});
+            }
+
+            function fetchDetails(slug, fallback) {
+                if (!slug) return;
+                if (detailsController) detailsController.abort();
+                detailsController = new AbortController();
+                var token = ++requestToken;
+                showLoading(true);
+                errorEl.hidden = true;
+
+                var url = previewUrl(slug);
+
+                fetch(url, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                    signal: detailsController.signal,
+                })
+                    .then(function (r) {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        if (token !== requestToken) return; // stale response
+                        renderDetails(data);
+                        showLoading(false);
+                        errorEl.hidden = true;
+                        if (data.weather && data.weather.lat && data.weather.lng) {
+                            fetchWeather(data.weather.lat, data.weather.lng);
+                        }
+                    })
+                    .catch(function (err) {
+                        if (err && err.name === 'AbortError') return;
+                        if (token !== requestToken) return;
+                        // Fall back to dataset values from the card so the preview still shows something
+                        renderDetails(fallback);
+                        showLoading(false);
+                        errorEl.hidden = false;
+                        console.warn('Trail preview fetch failed:', err);
+                    });
+            }
+
+            function openPreview(btn) {
+                var d = btn.dataset;
+                var fallback = {
+                    name: d.trailName,
+                    location: d.trailLocation,
+                    tag: d.trailTag,
+                    image: d.trailImage,
+                    elevation: d.trailElevation,
+                    duration: d.trailDuration,
+                    difficulty: d.trailDifficulty,
+                    description: d.trailDescription,
+                };
+
+                resetContent();
+
+                // Paint hero + title immediately from the dataset so the card
+                // shows something while the details JSON is in flight. The
+                // main content area stays in the loading state until the
+                // fetch resolves or fails.
+                nameEl.textContent = fallback.name || 'Trail';
+                locationEl.textContent = fallback.location || '';
+                tag.textContent = fallback.tag || fallback.difficulty || 'Trail';
+                if (fallback.image) hero.style.backgroundImage = "url('" + fallback.image + "')";
+
+                previousFocus = document.activeElement;
+                overlay.classList.add('is-open');
+                overlay.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+
+                var closeBtn = overlay.querySelector('.js-tp-close');
+                if (closeBtn) closeBtn.focus();
+
+                fetchDetails(d.trailSlug, fallback);
+            }
+
+            function closePreview() {
+                overlay.classList.remove('is-open');
+                overlay.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                if (weatherController) { weatherController.abort(); weatherController = null; }
+                if (detailsController) { detailsController.abort(); detailsController = null; }
+                if (previousFocus && typeof previousFocus.focus === 'function') {
+                    previousFocus.focus();
+                }
+            }
+
+            document.querySelectorAll('.js-trail-preview').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    openPreview(btn);
+                });
+            });
+
+            overlay.querySelectorAll('.js-tp-close').forEach(function (btn) {
+                btn.addEventListener('click', closePreview);
+            });
+
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) closePreview();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && overlay.classList.contains('is-open')) {
+                    closePreview();
+                }
+            });
+
+            // When the Book Now button inside the preview opens the auth modal,
+            // close the preview first so the login modal isn't stacked behind it.
+            var bookBtn = document.getElementById('tp-book-btn');
+            if (bookBtn && bookBtn.classList.contains('js-auth-open')) {
+                bookBtn.addEventListener('click', function () {
+                    closePreview();
+                });
             }
         })();
     </script>

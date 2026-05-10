@@ -19,6 +19,73 @@ class TrailExploreController extends Controller
      */
     public function show(string $slug)
     {
+        $payload = $this->buildPreviewPayload($slug);
+
+        return view('trails.explore', [
+            'mountain' => $payload['mountain'],
+            'mountainData' => $payload['mountainData'],
+            'guideData' => $payload['guideData'],
+            'reviewSummary' => $payload['reviewSummary'],
+        ]);
+    }
+
+    /**
+     * JSON preview used by the welcome-page trail preview card.
+     * Reuses the same data shape as the full page so the modal can render
+     * weather, reviews, pricing, jump-off, and trail info without a page load.
+     */
+    public function preview(string $slug)
+    {
+        $payload = $this->buildPreviewPayload($slug);
+        $mountain = $payload['mountain'];
+        $data = $payload['mountainData'];
+
+        return response()->json([
+            'slug' => $mountain->slug,
+            'name' => $mountain->name,
+            'image' => $data['image'],
+            'tag' => $mountain->difficulty,
+            'location' => $mountain->location,
+            'elevation' => $mountain->elevation_label,
+            'duration' => $mountain->duration_label,
+            'difficulty' => $mountain->difficulty,
+            'status' => $mountain->status,
+            'safetyStatus' => $data['safetyStatus'],
+            'safetyStatusLabel' => $data['safetyStatusLabel'],
+            'safetyNote' => $data['safetyNote'],
+            'hasSafetyWarning' => $mountain->hasSafetyWarning(),
+            'description' => $data['description'],
+            'bestTime' => $data['bestTime'],
+            'trailType' => $data['trailType'],
+            'weather' => $data['weather'],
+            'jumpoff' => $data['jumpoff'],
+            'gear' => array_map(fn ($g) => is_string($g) ? $g : ($g['name'] ?? ''), $data['gear'] ?? []),
+            'emergencyContact' => $data['emergencyContact'],
+            'pricing' => $data['pricing'],
+            'reviews' => $data['reviews'],
+            'experience' => [
+                'enabled' => $data['experience']['enabled'] ?? false,
+                'subtitle' => $data['experience']['subtitle'] ?? '',
+                'distanceKm' => $data['experience']['distanceKm'] ?? null,
+                'elevationGainM' => $data['experience']['elevationGainM'] ?? null,
+                'routeType' => $data['experience']['routeType'] ?? '',
+                'highlights' => $data['experience']['highlights'] ?? [],
+                'topSights' => $data['experience']['topSights'] ?? [],
+                'conditions' => $data['experience']['conditions'] ?? null,
+            ],
+        ]);
+    }
+
+    /**
+     * @return array{
+     *     mountain: Mountain,
+     *     mountainData: array<string, mixed>,
+     *     guideData: array<int, array<string, mixed>>,
+     *     reviewSummary: array<string, mixed>,
+     * }
+     */
+    private function buildPreviewPayload(string $slug): array
+    {
         $mountain = Mountain::query()->where('slug', $slug)->firstOrFail();
 
         $reviews = MountainReview::query()
@@ -95,12 +162,12 @@ class TrailExploreController extends Controller
             'gradient' => $g->avatar_gradient,
         ])->values()->all();
 
-        return view('trails.explore', [
+        return [
             'mountain' => $mountain,
             'mountainData' => $mountainData,
             'guideData' => $guideData,
             'reviewSummary' => $reviewSummary,
-        ]);
+        ];
     }
 
     private function buildReviewSummary(Mountain $mountain, $reviews): array

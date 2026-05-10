@@ -22,6 +22,7 @@ Route::get('/avatars/{user}', [UserAvatarController::class, 'show'])->name('user
 
 // Public trail exploration — no login required
 Route::get('/trails/{slug}', [TrailExploreController::class, 'show'])->name('trails.explore');
+Route::get('/trails/{slug}/preview', [TrailExploreController::class, 'preview'])->name('trails.preview');
 
 // Authenticated Hikers Dashboard
 Route::middleware('auth')->group(function () {
