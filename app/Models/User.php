@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Support\Facades\Schema;
 
 #[Hidden(['password', 'remember_token', 'password_change_code'])]
 class User extends Authenticatable
@@ -46,19 +47,21 @@ class User extends Authenticatable
     public function getProfilePictureUrlAttribute(): ?string
     {
         $pictureUpdatedAt = null;
-        if ($this->relationLoaded('profilePicture')) {
-            $hasDbPicture = $this->profilePicture !== null;
-            $pictureUpdatedAt = $this->profilePicture?->updated_at;
-        } else {
-            $pictureUpdatedAt = $this->profilePicture()->value('updated_at');
-            $hasDbPicture = $pictureUpdatedAt !== null;
-        }
+        if (self::supportsDatabaseProfilePictures()) {
+            if ($this->relationLoaded('profilePicture')) {
+                $hasDbPicture = $this->profilePicture !== null;
+                $pictureUpdatedAt = $this->profilePicture?->updated_at;
+            } else {
+                $pictureUpdatedAt = $this->profilePicture()->value('updated_at');
+                $hasDbPicture = $pictureUpdatedAt !== null;
+            }
 
-        if ($hasDbPicture) {
-            $url = route('users.avatar', ['user' => $this->getKey()], false);
-            $version = $pictureUpdatedAt ? strtotime((string) $pictureUpdatedAt) : null;
+            if ($hasDbPicture) {
+                $url = route('users.avatar', ['user' => $this->getKey()], false);
+                $version = $pictureUpdatedAt ? strtotime((string) $pictureUpdatedAt) : null;
 
-            return $version ? $url.'?v='.$version : $url;
+                return $version ? $url.'?v='.$version : $url;
+            }
         }
 
         if (empty($this->attributes['profile_picture_path'] ?? null)) {
@@ -77,6 +80,15 @@ class User extends Authenticatable
         }
 
         return asset($relative);
+    }
+
+    public static function supportsDatabaseProfilePictures(): bool
+    {
+        try {
+            return Schema::hasTable('user_profile_pictures');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function getRoleLabelAttribute(): string

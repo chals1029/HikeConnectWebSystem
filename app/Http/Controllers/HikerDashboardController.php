@@ -44,17 +44,20 @@ class HikerDashboardController extends Controller
         if ($user->isTourGuide()) {
             return redirect()->route('tour-guide.dashboard');
         }
+        $profilePictureRelation = User::supportsDatabaseProfilePictures()
+            ? 'tourGuide.user.profilePicture:user_id,mime,updated_at'
+            : null;
         $mountains = Mountain::query()->orderBy('sort_order')->get();
         $guides = TourGuide::query()->with('mountain')->orderBy('sort_order')->get();
         $bookings = HikeBooking::query()
             ->where('user_id', $user->id)
-            ->with([
+            ->with(array_filter([
                 'mountain',
                 'tourGuide',
                 'mountainReview',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime,updated_at',
-            ])
+                $profilePictureRelation,
+            ]))
             ->orderByDesc('hike_on')
             ->orderByDesc('id')
             ->get();
@@ -98,17 +101,20 @@ class HikerDashboardController extends Controller
             ->where('user_id', $user->id)
             ->whereIn('status', ['pending', 'approved', 'in_progress'])
             ->whereDate('hike_on', '>=', today())
-            ->with([
+            ->with(array_filter([
                 'mountain',
                 'tourGuide',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime,updated_at',
-            ])
+                $profilePictureRelation,
+            ]))
             ->orderBy('hike_on')
             ->first();
 
         $communityPosts = CommunityPost::query()
-            ->with(['mountain', 'user.profilePicture'])
+            ->with(array_filter([
+                'mountain',
+                User::supportsDatabaseProfilePictures() ? 'user.profilePicture' : 'user',
+            ]))
             ->latest()
             ->limit(20)
             ->get();
@@ -221,17 +227,27 @@ class HikerDashboardController extends Controller
      */
     private function buildHikerLeaderboard(User $user): array
     {
-        $rows = DB::table('users as u')
+        $hasAvatarTable = User::supportsDatabaseProfilePictures();
+
+        $base = DB::table('users as u')
             ->leftJoin('hike_bookings as b', function ($j) {
                 $j->on('b.user_id', '=', 'u.id')->where('b.status', 'completed');
             })
             ->leftJoin('mountains as m', 'm.id', '=', 'b.mountain_id')
-            ->leftJoin('user_profile_pictures as upp', 'upp.user_id', '=', 'u.id')
             ->where(function ($q) {
                 $q->where('u.role', User::ROLE_HIKER)->orWhereNull('u.role');
-            })
-            ->groupBy('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at', 'upp.user_id')
-            ->select('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at', 'upp.user_id as profile_picture_db_user')
+            });
+
+        if ($hasAvatarTable) {
+            $base->leftJoin('user_profile_pictures as upp', 'upp.user_id', '=', 'u.id')
+                ->groupBy('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at', 'upp.user_id')
+                ->select('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at', 'upp.user_id as profile_picture_db_user');
+        } else {
+            $base->groupBy('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at')
+                ->select('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at');
+        }
+
+        $rows = $base
             ->selectRaw('COUNT(b.id) as hikes_completed')
             ->selectRaw('COALESCE(SUM(COALESCE(b.duration_hours, 4)), 0) as total_hours')
             ->selectRaw('COALESCE(SUM(COALESCE(m.elevation_meters, 0)), 0) as total_elevation')
@@ -241,7 +257,7 @@ class HikerDashboardController extends Controller
             ->orderBy('u.id')
             ->get();
 
-        $entries = $rows->values()->map(function ($r, $idx) {
+        $entries = $rows->values()->map(function ($r, $idx) use ($hasAvatarTable) {
             $first = (string) ($r->first_name ?? '');
             $last  = (string) ($r->last_name ?? '');
             $full  = trim($first.' '.$last);
@@ -254,7 +270,7 @@ class HikerDashboardController extends Controller
             }
 
             $picUrl = null;
-            if (! empty($r->profile_picture_db_user)) {
+            if ($hasAvatarTable && ! empty($r->profile_picture_db_user ?? null)) {
                 $picUrl = route('users.avatar', ['user' => (int) $r->id]);
             } elseif (! empty($r->profile_picture_path)) {
                 $relative = 'storage/'.ltrim(str_replace('\\', '/', $r->profile_picture_path), '/');
@@ -1149,11 +1165,11 @@ class HikerDashboardController extends Controller
         if ($requestedBookingId) {
             $booking = HikeBooking::query()
                 ->where('user_id', $userId)
-                ->with([
+                ->with(array_filter([
                     'mountain',
                     'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                    'tourGuide.user.profilePicture:user_id,mime,updated_at',
-                ])
+                    User::supportsDatabaseProfilePictures() ? 'tourGuide.user.profilePicture:user_id,mime,updated_at' : null,
+                ]))
                 ->find($requestedBookingId);
 
             if ($booking) {
@@ -1165,11 +1181,11 @@ class HikerDashboardController extends Controller
             ->where('user_id', $userId)
             ->whereIn('status', ['pending', 'approved', 'in_progress'])
             ->whereDate('hike_on', '>=', today())
-            ->with([
+            ->with(array_filter([
                 'mountain',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime,updated_at',
-            ])
+                User::supportsDatabaseProfilePictures() ? 'tourGuide.user.profilePicture:user_id,mime,updated_at' : null,
+            ]))
             ->orderBy('hike_on')
             ->orderBy('id')
             ->first();
@@ -1363,13 +1379,13 @@ class HikerDashboardController extends Controller
         $booking = HikeBooking::query()
             ->whereKey($bookingId)
             ->where('user_id', Auth::id())
-            ->with([
+            ->with(array_filter([
                 'mountain',
                 'tourGuide',
                 'mountainReview',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime,updated_at',
-            ])
+                User::supportsDatabaseProfilePictures() ? 'tourGuide.user.profilePicture:user_id,mime,updated_at' : null,
+            ]))
             ->firstOrFail();
 
         if ($booking->status !== 'completed') {
