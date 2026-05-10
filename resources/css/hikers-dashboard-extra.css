@@ -275,3 +275,118 @@
         .upcoming-btn:hover {
             background: #044e39;
         }
+
+
+/* ==========================================================================
+   Hiker Account Settings — mobile tuning
+   Targets the Account Settings card inside #view-settings. The markup uses
+   heavy inline styles, so these overrides use the section id for specificity.
+   ========================================================================== */
+#view-settings .card {
+    padding: 20px;
+}
+
+#view-settings .card h3 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+@media (max-width: 640px) {
+    #view-settings {
+        padding: 14px !important;
+    }
+
+    #view-settings .card {
+        padding: 16px;
+        border-radius: var(--radius-md);
+    }
+
+    #view-settings .card h3 {
+        font-size: 18px;
+    }
+
+    /* Profile picture header row: stack avatar + controls vertically */
+    #view-settings .card > div > div:first-child {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+
+    /* The "Upload new picture" label becomes full-width for easy tapping */
+    #view-settings .card label[style*="cursor: pointer"] {
+        width: 100% !important;
+        text-align: center;
+        padding: 10px 16px !important;
+        min-height: 44px;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* First name + Last name from 2-col grid to single column */
+    #view-settings .card > div > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Inputs and textareas get larger touch targets and 16px font to avoid
+       iOS zoom on focus. */
+    #view-settings .card input[type="text"],
+    #view-settings .card input[type="email"],
+    #view-settings .card input[type="password"],
+    #view-settings .card textarea {
+        font-size: 16px !important;
+        padding: 12px 14px !important;
+        min-height: 46px;
+    }
+
+    #view-settings .card textarea {
+        min-height: 120px !important;
+    }
+
+    /* Password panel fills full width and stacks action buttons */
+    #view-settings #settings-password-panel {
+        padding: 14px !important;
+        border-radius: 12px !important;
+    }
+
+    #view-settings #settings-pw-send-code,
+    #view-settings #settings-pw-submit,
+    #view-settings #settings-change-pw-toggle,
+    #view-settings #settings-save-profile {
+        width: 100% !important;
+        max-width: 100% !important;
+        justify-content: center;
+        padding: 12px 18px !important;
+        min-height: 46px;
+        font-size: 14px !important;
+    }
+
+    #view-settings #settings-password-panel > div[style*="display: flex"] {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    #view-settings #settings-pw-cancel {
+        width: 100% !important;
+        padding: 12px 16px !important;
+        min-height: 46px;
+    }
+
+    /* Code input — large, centered */
+    #view-settings #settings-pw-code {
+        letter-spacing: 0.35em !important;
+        text-align: center;
+        font-size: 18px !important;
+    }
+}
+
+@media (max-width: 380px) {
+    #view-settings .card {
+        padding: 14px;
+    }
+
+    #view-settings .card h3 {
+        font-size: 17px;
+    }
+}

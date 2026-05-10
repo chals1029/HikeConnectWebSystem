@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HikerDashboardController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\TourGuideDashboardController;
+use App\Http\Controllers\TrailExploreController;
 use App\Http\Controllers\UserAvatarController;
 
 Route::get('/', function () {
@@ -18,6 +19,10 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/avatars/{user}', [UserAvatarController::class, 'show'])->name('users.avatar');
+
+// Public trail exploration — no login required
+Route::get('/trails/{slug}', [TrailExploreController::class, 'show'])->name('trails.explore');
+Route::get('/trails/{slug}/preview', [TrailExploreController::class, 'preview'])->name('trails.preview');
 
 // Authenticated Hikers Dashboard
 Route::middleware('auth')->group(function () {
