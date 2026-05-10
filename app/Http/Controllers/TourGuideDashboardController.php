@@ -26,7 +26,7 @@ class TourGuideDashboardController extends Controller
             ->where('tour_guide_id', $guide->id)
             ->with([
                 'user:id,first_name,last_name,email,phone,profile_picture_path',
-                'user.profilePicture:user_id,mime',
+                'user.profilePicture:user_id,mime,updated_at',
                 'mountain',
                 'mountainReview',
             ])
@@ -75,7 +75,7 @@ class TourGuideDashboardController extends Controller
             ->where('tour_guide_id', $guide->id)
             ->with([
                 'user:id,first_name,last_name,email,phone,profile_picture_path',
-                'user.profilePicture:user_id,mime',
+                'user.profilePicture:user_id,mime,updated_at',
                 'mountain:id,name,location,emergency_contact',
                 'hikeBooking:id,hike_on,status,hikers_count,mountain_id',
                 'hikeBooking.mountain:id,name,location',
@@ -263,7 +263,7 @@ class TourGuideDashboardController extends Controller
             ->where('tour_guide_id', $guide->id)
             ->with([
                 'user:id,first_name,last_name,email,phone,profile_picture_path',
-                'user.profilePicture:user_id,mime',
+                'user.profilePicture:user_id,mime,updated_at',
                 'mountain:id,name,location',
             ])
             ->whereIn('status', [SosAlert::STATUS_OPEN, SosAlert::STATUS_ACKNOWLEDGED])

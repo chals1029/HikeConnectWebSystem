@@ -117,11 +117,15 @@ class AdminController extends Controller
         $mountains = Mountain::orderBy('sort_order')->get();
         $guides = TourGuide::with([
             'user:id,first_name,last_name,email,phone,profile_picture_path',
-            'user.profilePicture:user_id,mime',
+            'user.profilePicture:user_id,mime,updated_at',
             'mountain:id,name',
         ])->orderBy('sort_order')->get();
-        $admins = User::where('role', User::ROLE_ADMIN)->orderBy('first_name')->get();
+        $admins = User::where('role', User::ROLE_ADMIN)
+            ->with('profilePicture')
+            ->orderBy('first_name')
+            ->get();
         $hikers = User::where('role', User::ROLE_HIKER)
+            ->with('profilePicture')
             ->withCount('hikeBookings')
             ->orderByDesc('id')
             ->limit(200)
@@ -139,12 +143,12 @@ class AdminController extends Controller
         $sosAlerts = SosAlert::query()
             ->with([
                 'user:id,first_name,last_name,email,phone,profile_picture_path',
-                'user.profilePicture:user_id,mime',
+                'user.profilePicture:user_id,mime,updated_at',
                 'mountain:id,name,location,emergency_contact',
                 'hikeBooking:id,hike_on,status,hikers_count',
                 'tourGuide:id,first_name,last_name,email,phone,user_id',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime',
+                'tourGuide.user.profilePicture:user_id,mime,updated_at',
                 'acknowledgedBy:id,first_name,last_name',
                 'resolvedBy:id,first_name,last_name',
             ])
@@ -563,7 +567,7 @@ class AdminController extends Controller
         }
 
         $hiker->load([
-            'profilePicture:user_id,mime',
+            'profilePicture:user_id,mime,updated_at',
             'hikeBookings.mountain',
             'hikeBookings.tourGuide',
         ]);
@@ -731,11 +735,11 @@ class AdminController extends Controller
         return SosAlert::query()
             ->with([
                 'user:id,first_name,last_name,email,phone,profile_picture_path',
-                'user.profilePicture:user_id,mime',
+                'user.profilePicture:user_id,mime,updated_at',
                 'mountain:id,name,location',
                 'tourGuide:id,first_name,last_name,email,phone',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime',
+                'tourGuide.user.profilePicture:user_id,mime,updated_at',
             ])
             ->whereIn('status', [SosAlert::STATUS_OPEN, SosAlert::STATUS_ACKNOWLEDGED])
             ->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
@@ -792,7 +796,7 @@ class AdminController extends Controller
         $activeBookings = HikeBooking::query()
             ->with([
                 'user:id,first_name,last_name,email,profile_picture_path,phone',
-                'user.profilePicture:user_id,mime',
+                'user.profilePicture:user_id,mime,updated_at',
             ])
             ->whereDate('hike_on', $today)
             ->whereIn('status', ['approved', 'pending'])

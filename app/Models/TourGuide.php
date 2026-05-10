@@ -66,7 +66,7 @@ class TourGuide extends Model
         if (! app()->runningInConsole()) {
             $request = request();
             if ($request && $request->getHttpHost()) {
-                $base = rtrim($request->getSchemeAndHttpHost().$request->getBasePath(), '/');
+                $base = rtrim($request->getBasePath(), '/');
 
                 return $base.'/'.$relative;
             }

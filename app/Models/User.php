@@ -45,12 +45,20 @@ class User extends Authenticatable
 
     public function getProfilePictureUrlAttribute(): ?string
     {
-        $hasDbPicture = $this->relationLoaded('profilePicture')
-            ? ($this->profilePicture !== null)
-            : $this->profilePicture()->exists();
+        $pictureUpdatedAt = null;
+        if ($this->relationLoaded('profilePicture')) {
+            $hasDbPicture = $this->profilePicture !== null;
+            $pictureUpdatedAt = $this->profilePicture?->updated_at;
+        } else {
+            $pictureUpdatedAt = $this->profilePicture()->value('updated_at');
+            $hasDbPicture = $pictureUpdatedAt !== null;
+        }
 
         if ($hasDbPicture) {
-            return route('users.avatar', ['user' => $this->getKey()]);
+            $url = route('users.avatar', ['user' => $this->getKey()], false);
+            $version = $pictureUpdatedAt ? strtotime((string) $pictureUpdatedAt) : null;
+
+            return $version ? $url.'?v='.$version : $url;
         }
 
         if (empty($this->attributes['profile_picture_path'] ?? null)) {
@@ -62,7 +70,7 @@ class User extends Authenticatable
         if (! app()->runningInConsole()) {
             $request = request();
             if ($request && $request->getHttpHost()) {
-                $base = rtrim($request->getSchemeAndHttpHost().$request->getBasePath(), '/');
+                $base = rtrim($request->getBasePath(), '/');
 
                 return $base.'/'.$relative;
             }
@@ -143,7 +151,7 @@ class User extends Authenticatable
     public function profilePicture(): HasOne
     {
         return $this->hasOne(UserProfilePicture::class, 'user_id')
-            ->select(['user_id', 'mime']);
+            ->select(['user_id', 'mime', 'updated_at']);
     }
 
     public function auditLogs(): HasMany

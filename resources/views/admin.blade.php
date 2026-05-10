@@ -905,7 +905,7 @@
                                     <div class="adm-map-side" data-role="hiker-list" data-slug="{{ $m['slug'] }}">
                                         @forelse($m['hikers'] as $h)
                                             <div class="adm-map-row" data-uid="{{ $h['user_id'] }}" data-lat="{{ $h['lat'] }}" data-lng="{{ $h['lng'] }}" data-slug="{{ $m['slug'] }}">
-                                                <div class="tg-mini-avatar" style="{{ $h['avatar'] ? 'background-image:url('.$h['avatar'].')' : '' }}">{{ $h['initials'] }}</div>
+                                                <div class="tg-mini-avatar" style="{{ $h['avatar'] ? 'background-image:url('.$h['avatar'].');background-size:cover;background-position:center;' : '' }}">{{ $h['avatar'] ? '' : $h['initials'] }}</div>
                                                 <div style="flex:1;min-width:0;">
                                                     <div class="tg-who-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $h['name'] }}</div>
                                                     <div class="tg-who-sub">
@@ -2227,7 +2227,7 @@
                     meta = '<span class="adm-src-tag adm-src-sim">Sim</span> ~' + (h.progress_pct != null ? h.progress_pct : 0) + '% along trail';
                 }
                 return '<div class="adm-map-row" data-uid="' + h.user_id + '" data-lat="' + h.lat + '" data-lng="' + h.lng + '" data-slug="' + m.slug + '">'
-                    + '<div class="tg-mini-avatar" style="' + (h.avatar ? 'background-image:url(' + h.avatar + ')' : '') + '">' + (h.initials || '??') + '</div>'
+                    + '<div class="tg-mini-avatar" style="' + (h.avatar ? 'background-image:url(' + h.avatar + ');background-size:cover;background-position:center;' : '') + '">' + (h.avatar ? '' : (h.initials || '??')) + '</div>'
                     + '<div style="flex:1;min-width:0;">'
                     +     '<div class="tg-who-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (h.name || 'Hiker') + '</div>'
                     +     '<div class="tg-who-sub">' + meta + '</div>'

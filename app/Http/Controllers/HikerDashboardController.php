@@ -53,7 +53,7 @@ class HikerDashboardController extends Controller
                 'tourGuide',
                 'mountainReview',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime',
+                'tourGuide.user.profilePicture:user_id,mime,updated_at',
             ])
             ->orderByDesc('hike_on')
             ->orderByDesc('id')
@@ -102,12 +102,16 @@ class HikerDashboardController extends Controller
                 'mountain',
                 'tourGuide',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime',
+                'tourGuide.user.profilePicture:user_id,mime,updated_at',
             ])
             ->orderBy('hike_on')
             ->first();
 
-        $communityPosts = CommunityPost::query()->with('mountain')->latest()->limit(20)->get();
+        $communityPosts = CommunityPost::query()
+            ->with(['mountain', 'user.profilePicture'])
+            ->latest()
+            ->limit(20)
+            ->get();
         $mountainReviews = MountainReview::query()->with('mountain')->latest()->get();
         $packingItems = PackingItem::query()->orderBy('category')->orderBy('sort_order')->get();
 
@@ -1148,7 +1152,7 @@ class HikerDashboardController extends Controller
                 ->with([
                     'mountain',
                     'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                    'tourGuide.user.profilePicture:user_id,mime',
+                    'tourGuide.user.profilePicture:user_id,mime,updated_at',
                 ])
                 ->find($requestedBookingId);
 
@@ -1164,7 +1168,7 @@ class HikerDashboardController extends Controller
             ->with([
                 'mountain',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime',
+                'tourGuide.user.profilePicture:user_id,mime,updated_at',
             ])
             ->orderBy('hike_on')
             ->orderBy('id')
@@ -1364,7 +1368,7 @@ class HikerDashboardController extends Controller
                 'tourGuide',
                 'mountainReview',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime',
+                'tourGuide.user.profilePicture:user_id,mime,updated_at',
             ])
             ->firstOrFail();
 

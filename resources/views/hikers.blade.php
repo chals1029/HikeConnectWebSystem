@@ -918,9 +918,10 @@
                 {{-- Community Feed --}}
                 <div class="ns-community-feed">
                     @forelse($communityPosts as $post)
+                    @php($postAvatarUrl = $post->user?->profile_picture_url)
                     <div class="ns-post-card">
                         <div class="ns-post-header">
-                            <div class="ns-post-avatar" style="background:{{ $post->avatar_gradient ?? 'linear-gradient(135deg,#065f46,#10b981)' }};">{{ $post->author_initials }}</div>
+                            <div class="ns-post-avatar" style="{{ $postAvatarUrl ? 'background-image:url('.$postAvatarUrl.');background-size:cover;background-position:center;' : 'background:'.($post->avatar_gradient ?? 'linear-gradient(135deg,#065f46,#10b981)').';' }}">{{ $postAvatarUrl ? '' : $post->author_initials }}</div>
                             <div class="ns-post-user-info">
                                 <strong>{{ $post->author_name }}</strong>
                                 <span>{{ $post->created_at->diffForHumans() }}</span>
