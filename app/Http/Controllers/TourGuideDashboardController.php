@@ -7,7 +7,7 @@ use App\Models\Mountain;
 use App\Models\SosAlert;
 use App\Models\TourGuide;
 use App\Services\AuditLogger;
-use App\Services\ProfilePictureStorageService;
+use App\Services\ProfilePictureDatabaseWriter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +24,12 @@ class TourGuideDashboardController extends Controller
 
         $bookings = HikeBooking::query()
             ->where('tour_guide_id', $guide->id)
-            ->with(['user', 'mountain', 'mountainReview'])
+            ->with([
+                'user:id,first_name,last_name,email,phone,profile_picture_path',
+                'user.profilePicture:user_id,mime',
+                'mountain',
+                'mountainReview',
+            ])
             ->orderByDesc('hike_on')
             ->orderByDesc('id')
             ->get();
@@ -70,6 +75,7 @@ class TourGuideDashboardController extends Controller
             ->where('tour_guide_id', $guide->id)
             ->with([
                 'user:id,first_name,last_name,email,phone,profile_picture_path',
+                'user.profilePicture:user_id,mime',
                 'mountain:id,name,location,emergency_contact',
                 'hikeBooking:id,hike_on,status,hikers_count,mountain_id',
                 'hikeBooking.mountain:id,name,location',
@@ -206,7 +212,7 @@ class TourGuideDashboardController extends Controller
         ]);
     }
 
-    public function updateProfilePicture(Request $request, ProfilePictureStorageService $profilePictures)
+    public function updateProfilePicture(Request $request, ProfilePictureDatabaseWriter $writer)
     {
         $request->validate([
             'profile_picture' => ['required', 'image', 'max:10240', 'mimes:jpeg,png,gif,webp'],
@@ -216,11 +222,8 @@ class TourGuideDashboardController extends Controller
         $guide = $this->resolveGuide($user);
 
         try {
-            $path = $profilePictures->storeForUser($user, $request->file('profile_picture'));
-            $user->profile_picture_path = $path;
-            $user->save();
-
-            $guide->profile_picture_path = $path;
+            $writer->storeFromUploadedFile($user, $request->file('profile_picture'));
+            $guide->profile_picture_path = null;
             $guide->save();
         } catch (\Throwable $e) {
             Log::error('Tour guide profile picture upload failed', [
@@ -231,7 +234,7 @@ class TourGuideDashboardController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => ProfilePictureStorageService::clientMessageForException($e),
+                'message' => config('app.debug') ? $e->getMessage() : 'Could not save your photo.',
             ], 500);
         }
 
@@ -258,7 +261,11 @@ class TourGuideDashboardController extends Controller
 
         $alerts = SosAlert::query()
             ->where('tour_guide_id', $guide->id)
-            ->with(['user:id,first_name,last_name,email,phone', 'mountain:id,name,location'])
+            ->with([
+                'user:id,first_name,last_name,email,phone,profile_picture_path',
+                'user.profilePicture:user_id,mime',
+                'mountain:id,name,location',
+            ])
             ->whereIn('status', [SosAlert::STATUS_OPEN, SosAlert::STATUS_ACKNOWLEDGED])
             ->orderByRaw("CASE WHEN status = 'open' THEN 0 ELSE 1 END")
             ->orderByDesc('created_at')

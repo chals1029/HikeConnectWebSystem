@@ -17,7 +17,7 @@ use App\Services\AchievementEvaluator;
 use App\Services\AuditLogger;
 use App\Services\EmailService;
 use App\Services\MountainTrailProfileService;
-use App\Services\ProfilePictureStorageService;
+use App\Services\ProfilePictureDatabaseWriter;
 use App\Services\TrailDataService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -48,7 +48,13 @@ class HikerDashboardController extends Controller
         $guides = TourGuide::query()->with('mountain')->orderBy('sort_order')->get();
         $bookings = HikeBooking::query()
             ->where('user_id', $user->id)
-            ->with(['mountain', 'tourGuide', 'mountainReview'])
+            ->with([
+                'mountain',
+                'tourGuide',
+                'mountainReview',
+                'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
+                'tourGuide.user.profilePicture:user_id,mime',
+            ])
             ->orderByDesc('hike_on')
             ->orderByDesc('id')
             ->get();
@@ -92,7 +98,12 @@ class HikerDashboardController extends Controller
             ->where('user_id', $user->id)
             ->whereIn('status', ['pending', 'approved', 'in_progress'])
             ->whereDate('hike_on', '>=', today())
-            ->with(['mountain', 'tourGuide'])
+            ->with([
+                'mountain',
+                'tourGuide',
+                'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
+                'tourGuide.user.profilePicture:user_id,mime',
+            ])
             ->orderBy('hike_on')
             ->first();
 
@@ -211,11 +222,12 @@ class HikerDashboardController extends Controller
                 $j->on('b.user_id', '=', 'u.id')->where('b.status', 'completed');
             })
             ->leftJoin('mountains as m', 'm.id', '=', 'b.mountain_id')
+            ->leftJoin('user_profile_pictures as upp', 'upp.user_id', '=', 'u.id')
             ->where(function ($q) {
                 $q->where('u.role', User::ROLE_HIKER)->orWhereNull('u.role');
             })
-            ->groupBy('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at')
-            ->select('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at')
+            ->groupBy('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at', 'upp.user_id')
+            ->select('u.id', 'u.first_name', 'u.last_name', 'u.profile_picture_path', 'u.created_at', 'upp.user_id as profile_picture_db_user')
             ->selectRaw('COUNT(b.id) as hikes_completed')
             ->selectRaw('COALESCE(SUM(COALESCE(b.duration_hours, 4)), 0) as total_hours')
             ->selectRaw('COALESCE(SUM(COALESCE(m.elevation_meters, 0)), 0) as total_elevation')
@@ -238,7 +250,9 @@ class HikerDashboardController extends Controller
             }
 
             $picUrl = null;
-            if (! empty($r->profile_picture_path)) {
+            if (! empty($r->profile_picture_db_user)) {
+                $picUrl = route('users.avatar', ['user' => (int) $r->id]);
+            } elseif (! empty($r->profile_picture_path)) {
                 $relative = 'storage/'.ltrim(str_replace('\\', '/', $r->profile_picture_path), '/');
                 $picUrl = asset($relative);
             }
@@ -953,7 +967,7 @@ class HikerDashboardController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function updateProfilePicture(Request $request, ProfilePictureStorageService $profilePictures)
+    public function updateProfilePicture(Request $request, ProfilePictureDatabaseWriter $writer)
     {
         $request->validate([
             // max is kilobytes; phone camera JPEGs are often > 2MB
@@ -963,9 +977,7 @@ class HikerDashboardController extends Controller
         $user = Auth::user();
 
         try {
-            $path = $profilePictures->storeForUser($user, $request->file('profile_picture'));
-            $user->profile_picture_path = $path;
-            $user->save();
+            $writer->storeFromUploadedFile($user, $request->file('profile_picture'));
         } catch (\Throwable $e) {
             Log::error('Hiker profile picture upload failed', [
                 'user_id' => $user->id,
@@ -974,7 +986,7 @@ class HikerDashboardController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => ProfilePictureStorageService::clientMessageForException($e),
+                'message' => config('app.debug') ? $e->getMessage() : 'Could not save your photo.',
             ], 500);
         }
 
@@ -1133,7 +1145,11 @@ class HikerDashboardController extends Controller
         if ($requestedBookingId) {
             $booking = HikeBooking::query()
                 ->where('user_id', $userId)
-                ->with(['mountain', 'tourGuide.user'])
+                ->with([
+                    'mountain',
+                    'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
+                    'tourGuide.user.profilePicture:user_id,mime',
+                ])
                 ->find($requestedBookingId);
 
             if ($booking) {
@@ -1145,7 +1161,11 @@ class HikerDashboardController extends Controller
             ->where('user_id', $userId)
             ->whereIn('status', ['pending', 'approved', 'in_progress'])
             ->whereDate('hike_on', '>=', today())
-            ->with(['mountain', 'tourGuide.user'])
+            ->with([
+                'mountain',
+                'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
+                'tourGuide.user.profilePicture:user_id,mime',
+            ])
             ->orderBy('hike_on')
             ->orderBy('id')
             ->first();
@@ -1339,7 +1359,13 @@ class HikerDashboardController extends Controller
         $booking = HikeBooking::query()
             ->whereKey($bookingId)
             ->where('user_id', Auth::id())
-            ->with(['mountain', 'tourGuide', 'mountainReview'])
+            ->with([
+                'mountain',
+                'tourGuide',
+                'mountainReview',
+                'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
+                'tourGuide.user.profilePicture:user_id,mime',
+            ])
             ->firstOrFail();
 
         if ($booking->status !== 'completed') {

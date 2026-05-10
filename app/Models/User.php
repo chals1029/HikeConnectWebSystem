@@ -45,7 +45,15 @@ class User extends Authenticatable
 
     public function getProfilePictureUrlAttribute(): ?string
     {
-        if (! $this->profile_picture_path) {
+        $hasDbPicture = $this->relationLoaded('profilePicture')
+            ? ($this->profilePicture !== null)
+            : $this->profilePicture()->exists();
+
+        if ($hasDbPicture) {
+            return route('users.avatar', ['user' => $this->getKey()]);
+        }
+
+        if (empty($this->attributes['profile_picture_path'] ?? null)) {
             return null;
         }
 
@@ -127,6 +135,15 @@ class User extends Authenticatable
     public function tourGuide(): HasOne
     {
         return $this->hasOne(TourGuide::class);
+    }
+
+    /**
+     * Stored image bytes (separate table so listing/auth queries do not load BLOBs).
+     */
+    public function profilePicture(): HasOne
+    {
+        return $this->hasOne(UserProfilePicture::class, 'user_id')
+            ->select(['user_id', 'mime']);
     }
 
     public function auditLogs(): HasMany

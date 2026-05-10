@@ -36,7 +36,10 @@ if [[ -n "${WEB_USER:-}" ]]; then
   chown -R "$WEB_USER:$WEB_USER" storage bootstrap/cache
 fi
 
+php artisan migrate --force
+
 php artisan optimize:clear || true
 php artisan config:cache || true
 
-echo "Done. Ensure PHP upload_max_filesize / post_max_size and nginx client_max_body_size allow your image size (e.g. 12M)."
+echo "Done. Profile pictures are stored in DB (user_profile_pictures). Legacy files still use storage/app/public."
+echo "Ensure PHP upload_max_filesize / post_max_size and nginx client_max_body_size allow your image size (e.g. 12M)."

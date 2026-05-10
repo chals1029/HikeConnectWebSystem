@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HikerDashboardController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\TourGuideDashboardController;
+use App\Http\Controllers\UserAvatarController;
 
 Route::get('/', function () {
     $sec = request()->query('next_section');
@@ -15,6 +16,8 @@ Route::get('/', function () {
 
     return view('welcome');
 })->name('home');
+
+Route::get('/avatars/{user}', [UserAvatarController::class, 'show'])->name('users.avatar');
 
 // Authenticated Hikers Dashboard
 Route::middleware('auth')->group(function () {

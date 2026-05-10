@@ -46,7 +46,17 @@ class TourGuide extends Model
 
     public function getProfilePictureUrlAttribute(): ?string
     {
-        $path = $this->profile_picture_path ?: $this->user?->profile_picture_path;
+        if ($this->relationLoaded('user') && $this->user) {
+            $fromUser = $this->user->profile_picture_url;
+            if ($fromUser) {
+                return $fromUser;
+            }
+        }
+
+        $path = $this->profile_picture_path;
+        if (! $path && $this->relationLoaded('user')) {
+            $path = $this->user?->profile_picture_path;
+        }
         if (! $path) {
             return null;
         }
