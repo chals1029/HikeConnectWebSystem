@@ -16,3 +16,45 @@
 @import './hikers-dashboard.css';
 @import './hikers-dashboard-extra.css';
 @import './dashboard-overview.css';
+
+/* Toast (booking + actions) — same pattern as admin / tour guide */
+.tg-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--panel);
+    color: var(--brand-dark);
+    border: 1px solid var(--line);
+    box-shadow: 0 8px 24px rgba(6, 95, 70, 0.18);
+    padding: 12px 18px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+    max-width: min(480px, 94vw);
+    white-space: normal;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    z-index: 6000;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.tg-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.tg-toast.error {
+    color: #b91c1c;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+[data-theme='dark'] .tg-toast {
+    color: #6ee7b7;
+}
+[data-theme='dark'] .tg-toast.error {
+    color: #fca5a5;
+}

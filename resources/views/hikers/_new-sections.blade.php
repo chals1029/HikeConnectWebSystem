@@ -493,7 +493,7 @@
                 default => 'pending',
             };
         @endphp
-        <div class="ns-booking-card" data-booking-type="{{ $booking->ui_tab }}" data-booking-id="{{ $booking->id }}" data-mountain-id="{{ $booking->mountain_id }}">
+        <div class="ns-booking-card {{ $booking->status === 'completed' ? 'is-completed' : '' }}" data-booking-type="{{ $booking->ui_tab }}" data-booking-id="{{ $booking->id }}" data-mountain-id="{{ $booking->mountain_id }}">
             <div class="ns-booking-left">
                 <div class="ns-booking-mountain-icon" style="background:linear-gradient(135deg,#065f46,#10b981);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="m8 3 4 8 5-5 5 15H2L8 3z"></path></svg>
@@ -530,7 +530,9 @@
                 @endif
             </div>
             @if($booking->status === 'completed')
-                @include('hikers._completed-hike-feedback', ['booking' => $booking])
+                <div class="ns-booking-review-inline">
+                    @include('hikers._completed-hike-feedback', ['booking' => $booking])
+                </div>
             @endif
         </div>
         @empty

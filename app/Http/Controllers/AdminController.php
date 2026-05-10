@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -347,7 +348,7 @@ class AdminController extends Controller
 
     public function storeTourGuide(Request $request)
     {
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -360,6 +361,16 @@ class AdminController extends Controller
         ], [
             'phone.regex' => 'Enter a valid phone number.',
         ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('admin.dashboard')
+                ->withFragment('guides')
+                ->withInput($request->except('password'))
+                ->withErrors($validator)
+                ->with('admin_open_modal', 'guide-create');
+        }
+
+        $data = $validator->validated();
 
         $guide = DB::transaction(function () use ($data) {
             $user = User::create([
@@ -394,7 +405,9 @@ class AdminController extends Controller
             'guide_id' => $guide->id,
         ]);
 
-        return back()->with('admin_status', 'Tour guide created successfully.');
+        return redirect()->route('admin.dashboard')
+            ->withFragment('guides')
+            ->with('admin_status', 'Tour guide created successfully.');
     }
 
     public function updateTourGuide(Request $request, TourGuide $tourGuide)
@@ -668,7 +681,16 @@ class AdminController extends Controller
             return response()->json(['success' => true, 'alert' => $alert->fresh()]);
         }
 
-        return back()->with('admin_status', 'SOS alert updated.');
+        $statusMessage = match ($newStatus) {
+            SosAlert::STATUS_ACKNOWLEDGED => 'SOS alert acknowledged.',
+            SosAlert::STATUS_RESOLVED => 'SOS alert marked as resolved.',
+            SosAlert::STATUS_FALSE_ALARM => 'SOS alert marked as false alarm.',
+            default => 'SOS alert updated.',
+        };
+
+        return redirect()->route('admin.dashboard')
+            ->withFragment('safety')
+            ->with('admin_status', $statusMessage);
     }
 
     public function updateMountainSafety(Request $request, Mountain $mountain)

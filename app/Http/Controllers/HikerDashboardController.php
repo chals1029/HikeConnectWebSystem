@@ -727,7 +727,10 @@ class HikerDashboardController extends Controller
             'hikers_count' => $validated['hikers_count'],
         ]);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking request sent! Your guide will review it (pending).',
+        ]);
     }
 
     public function cancelBooking(HikeBooking $booking)
@@ -746,7 +749,10 @@ class HikerDashboardController extends Controller
         $booking->update(['status' => 'cancelled']);
         AuditLogger::log('booking.cancelled', "Cancelled booking #{$booking->id}", Auth::user(), $booking);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking cancelled.',
+        ]);
     }
 
     public function checkInScan(Request $request, HikeBooking $booking)

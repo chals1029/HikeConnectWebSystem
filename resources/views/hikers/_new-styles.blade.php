@@ -322,7 +322,7 @@
     .ns-tab:hover:not(.active) { color:var(--text); }
 
     .ns-bookings-list { display:flex; flex-direction:column; gap:12px; }
-    .ns-booking-card { display:flex; justify-content:space-between; align-items:center; background:var(--panel); border:none; border-radius:var(--radius-lg); padding:20px; transition:all .2s ease; flex-wrap:wrap; gap:12px; box-shadow:0 1px 2px rgba(6,95,70,0.04), 0 4px 12px rgba(6,95,70,0.06), 0 12px 28px rgba(6,95,70,0.08); }
+    .ns-booking-card { display:flex; justify-content:space-between; align-items:flex-start; background:var(--panel); border:none; border-radius:var(--radius-lg); padding:20px; transition:all .2s ease; flex-wrap:wrap; gap:12px; box-shadow:0 1px 2px rgba(6,95,70,0.04), 0 4px 12px rgba(6,95,70,0.06), 0 12px 28px rgba(6,95,70,0.08); }
     .ns-booking-card:hover { box-shadow:0 2px 4px rgba(6,95,70,0.06), 0 8px 20px rgba(6,95,70,0.1), 0 20px 40px rgba(6,95,70,0.1); }
     .ns-booking-card.hidden { display:none; }
     .ns-booking-left { display:flex; align-items:center; gap:16px; flex:1; min-width:0; }
@@ -339,10 +339,32 @@
     .ns-booking-status.rejected { background:#fef2f2; color:#b91c1c; }
     .ns-cancel-btn { padding:6px 12px; border:1px solid var(--danger); color:var(--danger); background:transparent; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; transition:all .2s ease; }
     .ns-cancel-btn:hover { background:var(--danger); color:#fff; }
-    .ns-booking-feedback { flex:1 1 100%; padding-top:4px; }
-    .ns-completed-feedback-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
+    .ns-booking-feedback { flex:1 1 100%; width:100%; max-width:100%; padding-top:4px; }
+    .ns-completed-feedback-grid { display:grid; grid-template-columns:minmax(0, 1fr); gap:14px; width:100%; max-width:100%; }
+    .ns-booking-card.is-completed .ns-booking-review-inline {
+        width:100%;
+        margin-top:12px;
+        padding-top:12px;
+        border-top:1px solid var(--line);
+    }
+    .ns-booking-card.is-completed .ns-booking-review-inline .ns-booking-feedback {
+        padding-top:0;
+    }
+    .ns-booking-card.is-completed .ns-booking-review-inline .ns-feedback-panel {
+        box-shadow:none;
+        border-radius:12px;
+        background:var(--bg);
+    }
     .ns-feedback-panel { border:1px solid var(--line); border-radius:18px; background:var(--panel); padding:18px; box-shadow:0 10px 24px rgba(15,23,42,.05); }
+    .ns-feedback-dropdown { width:100%; }
+    .ns-feedback-summary { list-style:none; cursor:pointer; display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .ns-feedback-summary::-webkit-details-marker { display:none; }
+    .ns-feedback-caret { color:var(--muted); font-size:14px; font-weight:700; line-height:1; margin-top:3px; transition:transform .18s ease; }
+    .ns-feedback-dropdown[open] .ns-feedback-caret { transform:rotate(180deg); }
+    .ns-feedback-body { margin-top:8px; }
+    .ns-feedback-desc { font-size:12px; color:var(--muted); line-height:1.6; margin:0 0 12px; }
     .ns-feedback-panel-head { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:14px; }
+    .ns-feedback-panel-head > div { flex:1; min-width:0; }
     .ns-feedback-panel-head h5 { font-size:16px; color:var(--text); margin:4px 0 6px; }
     .ns-feedback-panel-head p { font-size:12px; color:var(--muted); line-height:1.6; margin:0; max-width:30rem; }
     .ns-feedback-kicker { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; background:rgba(6,95,70,.08); color:var(--brand-dark); font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
@@ -379,6 +401,25 @@
     .ns-feedback-panel .ns-form-textarea { background:var(--bg); color:var(--text); border-color:var(--line); }
     .ns-feedback-panel .ns-form-textarea::placeholder { color:var(--muted); }
     .ns-feedback-panel .ns-form-textarea:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(16,185,129,.1); }
+
+    /* Force-safe bookings layout even on odd mobile viewport modes */
+    #view-bookings { overflow-x:hidden; }
+    #view-bookings .ns-bookings-list,
+    #view-bookings .ns-booking-card,
+    #view-bookings .ns-booking-left,
+    #view-bookings .ns-booking-info,
+    #view-bookings .ns-booking-right,
+    #view-bookings .ns-booking-feedback,
+    #view-bookings .ns-completed-feedback-grid,
+    #view-bookings .ns-feedback-panel {
+        width:100%;
+        max-width:100%;
+        min-width:0;
+    }
+    #view-bookings .ns-completed-feedback-grid { grid-template-columns:minmax(0, 1fr); }
+    #view-bookings .ns-feedback-panel-head {
+        flex-wrap:wrap;
+    }
 
     /* ── Track Location ─────────────────────────────────────── */
     #view-track-location { padding-bottom: 2rem; }
@@ -578,8 +619,23 @@
         .ns-history-stats { justify-content:space-around; }
         .ns-tabs { gap:6px; }
         .ns-tab { flex:1 1 100%; }
+        .ns-booking-card,
+        .ns-booking-left,
+        .ns-booking-info,
+        .ns-booking-feedback,
+        .ns-completed-feedback-grid,
+        .ns-feedback-panel { width:100%; max-width:100%; }
+        .ns-booking-meta span { min-width:0; word-break:break-word; }
         .ns-booking-right { justify-content:flex-start; }
         .ns-feedback-panel { padding:14px; border-radius:14px; }
+        .ns-feedback-panel-head { flex-direction:column; align-items:flex-start; gap:10px; }
+        .ns-feedback-state { align-self:flex-start; white-space:normal; }
+        .ns-feedback-summary { align-items:flex-start; }
+        .ns-feedback-body { margin-top:6px; }
+        .ns-inline-rating { gap:6px; }
+        .ns-inline-rating-btn { width:34px; height:34px; font-size:12px; }
+        .ns-inline-rating-label { width:100%; }
+        .ns-inline-feedback-actions { flex-direction:column; align-items:flex-start; }
         .ns-sim-cta { padding:13px 14px; }
         .ns-trail-sim-overlay { padding:8px; }
         .ns-trail-sim-shell { border-radius:18px; min-height:calc(100dvh - 16px); }
@@ -598,6 +654,39 @@
         .ns-trail-sim-pill span { font-size:10px; margin-bottom:4px; }
         .ns-trail-sim-pill strong { font-size:12px; line-height:1.35; }
         .ns-trail-sim-status { left:12px; right:12px; bottom:12px; padding:10px 12px; border-radius:14px; font-size:12px; }
+    }
+
+    @media (max-width: 430px) {
+        #view-bookings .ns-booking-card { padding:14px; gap:10px; }
+        #view-bookings .ns-booking-left { gap:10px; }
+        #view-bookings .ns-booking-mountain-icon { width:38px; height:38px; border-radius:10px; }
+        #view-bookings .ns-booking-info h4 { font-size:14px; margin-bottom:4px; }
+        #view-bookings .ns-booking-meta { gap:6px; font-size:11px; }
+        #view-bookings .ns-booking-status { font-size:10px; padding:4px 9px; }
+        #view-bookings .ns-cancel-btn,
+        #view-bookings .ns-checkin-btn { font-size:11px; padding:5px 10px; }
+        #view-bookings .ns-feedback-panel { padding:11px; border-radius:12px; }
+        #view-bookings .ns-feedback-panel-head h5 { font-size:14px; margin:2px 0 4px; }
+        #view-bookings .ns-feedback-panel-head p { font-size:11px; line-height:1.45; }
+        #view-bookings .ns-feedback-kicker { font-size:9px; padding:4px 8px; }
+        #view-bookings .ns-feedback-state { font-size:10px; padding:5px 8px; }
+        #view-bookings .ns-feedback-caret { font-size:12px; margin-top:2px; }
+        #view-bookings .ns-inline-rating { gap:5px; }
+        #view-bookings .ns-inline-rating-btn { width:30px; height:30px; font-size:11px; }
+        #view-bookings .ns-inline-rating-label { font-size:11px; }
+        #view-bookings .ns-form-textarea { font-size:12px; min-height:70px; padding:10px 11px; }
+        #view-bookings .ns-feedback-submit { width:100%; font-size:12px; padding:9px 12px; }
+        #view-bookings .ns-inline-feedback-message { font-size:11px; }
+        #view-bookings .ns-booking-card.is-completed .ns-booking-review-inline {
+            margin-top:10px;
+            padding-top:10px;
+        }
+    }
+
+    @media (min-width: 641px) {
+        #view-bookings .ns-feedback-dropdown { display:block; }
+        #view-bookings .ns-feedback-summary { pointer-events:none; }
+        #view-bookings .ns-feedback-caret { display:none; }
     }
 
     @media (max-width: 380px) {

@@ -1154,6 +1154,8 @@
         </div>
     </div>
 
+    <div class="tg-toast" id="hcHikerToast" role="status" aria-live="polite" aria-atomic="true"></div>
+
     @php
         $__hikerBootstrap = [
             'csrf' => csrf_token(),
@@ -1194,6 +1196,18 @@
         // ============================================================
 
         window.HIKER_BOOTSTRAP = @json($__hikerBootstrap);
+
+        const hcToastEl = document.getElementById('hcHikerToast');
+        function hcToast(msg, isErr) {
+            if (!hcToastEl || !msg) return;
+            hcToastEl.textContent = msg;
+            hcToastEl.classList.toggle('error', !!isErr);
+            hcToastEl.setAttribute('aria-live', isErr ? 'assertive' : 'polite');
+            hcToastEl.classList.add('show');
+            clearTimeout(hcToast._t);
+            const ms = isErr ? 4200 : 2800;
+            hcToast._t = setTimeout(function() { hcToastEl.classList.remove('show'); }, ms);
+        }
 
         const mountainData = @json($mountainData);
         const guideData = @json($guideData);
@@ -2627,17 +2641,28 @@
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': window.HIKER_BOOTSTRAP.csrf, 'X-Requested-With': 'XMLHttpRequest' },
                 body: fd
-            }).then(r => r.json().then(data => ({ status: r.status, body: data })))
-              .then(res => {
-                  if (btn) { btn.disabled = false; }
-                  if (res.status === 200 && res.body.success) {
-                      document.getElementById('booking-success').style.display = 'flex';
-                  } else if (res.body.errors) {
-                      alert(Object.values(res.body.errors).flat().join('\n'));
-                  } else {
-                      alert(res.body.message || 'Could not create booking.');
-                  }
-              }).catch(() => { if (btn) { btn.disabled = false; } alert('Could not create booking.'); });
+            }).then(function(r) {
+                return r.text().then(function(text) {
+                    var data = {};
+                    try { data = text ? JSON.parse(text) : {}; } catch (err) { data = { message: 'Server error. Please try again.' }; }
+                    return { status: r.status, body: data };
+                });
+            }).then(function(res) {
+                if (btn) { btn.disabled = false; }
+                if (res.status === 200 && res.body.success) {
+                    var okMsg = res.body.message || 'Booking request sent! Pending guide approval.';
+                    hcToast(okMsg, false);
+                    var bs = document.getElementById('booking-success');
+                    if (bs) bs.style.display = 'flex';
+                } else if (res.body.errors) {
+                    hcToast(Object.values(res.body.errors).flat().join(' · '), true);
+                } else {
+                    hcToast(res.body.message || 'Could not create booking.', true);
+                }
+            }).catch(function() {
+                if (btn) { btn.disabled = false; }
+                hcToast('Could not create booking. Check your connection and try again.', true);
+            });
         };
 
         window.resetBookingForm = function() {
@@ -2673,17 +2698,22 @@
                 method: 'POST',
                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': window.HIKER_BOOTSTRAP.csrf, 'X-Requested-With': 'XMLHttpRequest' },
                 body: fd
-            }).then(r => r.json()).then(d => {
-                if (d.success) {
+            }).then(r => r.text().then(t => {
+                var d = {};
+                try { d = t ? JSON.parse(t) : {}; } catch (e) { d = {}; }
+                return { ok: r.ok, d: d };
+            })).then(function(res) {
+                if (res.d.success) {
+                    hcToast(res.d.message || 'Booking cancelled.', false);
                     const status = card.querySelector('.ns-booking-status');
                     status.textContent = 'Cancelled';
                     status.className = 'ns-booking-status cancelled';
                     card.dataset.bookingType = 'cancelled';
                     btn.remove();
                 } else {
-                    alert(d.message || 'Could not cancel.');
+                    hcToast(res.d.message || 'Could not cancel this booking.', true);
                 }
-            }).catch(() => alert('Could not cancel.'));
+            }).catch(function() { hcToast('Could not cancel. Try again.', true); });
         };
 
         window.openBookingQrScan = function(btn, action) {
@@ -3489,6 +3519,20 @@
 
             return fallback;
         }
+
+        function syncFeedbackDropdownMode() {
+            const isMobile = window.matchMedia('(max-width: 640px)').matches;
+            document.querySelectorAll('[data-feedback-dropdown]').forEach((dropdown) => {
+                if (isMobile) {
+                    dropdown.removeAttribute('open');
+                } else {
+                    dropdown.setAttribute('open', 'open');
+                }
+            });
+        }
+
+        syncFeedbackDropdownMode();
+        window.addEventListener('resize', syncFeedbackDropdownMode);
 
         window.setInlineFeedbackRating = function(button, value) {
             const form = button.closest('[data-feedback-form]');

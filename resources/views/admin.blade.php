@@ -151,18 +151,7 @@
                 </button>
             </div>
 
-            @if(session('admin_status'))
-                <div class="dashboard-card" style="margin-bottom:16px;border:1px solid #d1fae5;background:linear-gradient(180deg,#ecfdf5,var(--panel));">
-                    <strong style="color:#047857;">{{ session('admin_status') }}</strong>
-                </div>
-            @endif
-            @if(isset($errors) && $errors->any())
-                <div class="dashboard-card" style="margin-bottom:16px;border:1px solid #fee2e2;background:#fef2f2;">
-                    @foreach($errors->all() as $err)
-                        <div style="color:#991b1b;font-weight:600;">{{ $err }}</div>
-                    @endforeach
-                </div>
-            @endif
+            {{-- Flash feedback: toast (see HC_ADMIN_BOOT + initAdminFlash in page script) --}}
 
             {{-- ============== OVERVIEW ============== --}}
             <div class="view-section active" id="view-dashboard">
@@ -1498,33 +1487,33 @@
                 <div class="adm-modal-body">
                     <div class="tg-form">
                         <div class="tg-form-row">
-                            <div><label>First name</label><input name="first_name" required></div>
-                            <div><label>Last name</label><input name="last_name" required></div>
+                            <div><label>First name</label><input name="first_name" value="{{ old('first_name') }}" required></div>
+                            <div><label>Last name</label><input name="last_name" value="{{ old('last_name') }}" required></div>
                         </div>
                         <div class="tg-form-row">
-                            <div><label>Email</label><input type="email" name="email" required></div>
-                            <div><label>Phone</label><input name="phone" required placeholder="09XX XXX XXXX"></div>
+                            <div><label>Email</label><input type="email" name="email" value="{{ old('email') }}" required></div>
+                            <div><label>Phone</label><input name="phone" value="{{ old('phone') }}" required placeholder="09XX XXX XXXX"></div>
                         </div>
                         <div class="tg-form-row">
-                            <div><label>Temporary password</label><input type="text" name="password" required minlength="8" placeholder="Min 8 chars"></div>
+                            <div><label>Temporary password</label><input type="text" name="password" required minlength="8" placeholder="Min 8 chars" autocomplete="new-password"></div>
                             <div><label>Status</label>
                                 <select name="status" required>
                                     @foreach($statusOptions as $val => $label)
-                                        <option value="{{ $val }}" @selected($val === 'available')>{{ $label }}</option>
+                                        <option value="{{ $val }}" @selected(old('status', 'available') === $val)>{{ $label }}</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
                         <div class="tg-form-row">
-                            <div><label>Specialty</label><input name="specialty" required placeholder="Day Hikes Specialist"></div>
-                            <div><label>Years experience</label><input name="experience_years" type="number" min="0" max="60" required></div>
+                            <div><label>Specialty</label><input name="specialty" value="{{ old('specialty') }}" required placeholder="Day Hikes Specialist"></div>
+                            <div><label>Years experience</label><input name="experience_years" type="number" min="0" max="60" value="{{ old('experience_years') }}" required></div>
                         </div>
                         <div>
                             <label>Primary mountain</label>
                             <select name="mountain_id">
                                 <option value="">All mountains</option>
                                 @foreach($mountains as $m)
-                                    <option value="{{ $m->id }}">{{ $m->name }}</option>
+                                    <option value="{{ $m->id }}" @selected((string) old('mountain_id') === (string) $m->id)>{{ $m->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -1654,7 +1643,7 @@
         </div>
     </div>
 
-    <div class="tg-toast" id="tgToast"></div>
+    <div class="tg-toast" id="tgToast" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <script>
     window.HC_ADMIN_BOOT = {
@@ -1662,6 +1651,9 @@
         liveLocationsUrl: @json(route('admin.live-locations')),
         liveWindowSeconds: 180,
         pollIntervalMs: 10000,
+        flashSuccess: @json(session('admin_status')),
+        flashErrors: @json($errors->any() ? $errors->all() : []),
+        openModal: @json(session('admin_open_modal')),
     };
     </script>
     <script>
@@ -1671,9 +1663,11 @@
         function toast(msg, isErr) {
             toastEl.textContent = msg;
             toastEl.classList.toggle('error', !!isErr);
+            toastEl.setAttribute('aria-live', isErr ? 'assertive' : 'polite');
             toastEl.classList.add('show');
             clearTimeout(toast._t);
-            toast._t = setTimeout(() => toastEl.classList.remove('show'), 2400);
+            const ms = isErr ? 4200 : 2800;
+            toast._t = setTimeout(() => toastEl.classList.remove('show'), ms);
         }
 
         // ====== Section navigation ======
@@ -1730,6 +1724,19 @@
         });
         const initialHash = (window.location.hash || '').replace(/^#/, '');
         if (initialHash && sections[initialHash]) showView('#' + initialHash);
+
+        (function initAdminFlash() {
+            const boot = window.HC_ADMIN_BOOT || {};
+            if (boot.flashSuccess) toast(boot.flashSuccess, false);
+            if (boot.flashErrors && boot.flashErrors.length) {
+                const msg = boot.flashErrors.join(' · ');
+                toast(msg.length > 280 ? msg.slice(0, 277) + '…' : msg, true);
+            }
+            if (boot.openModal === 'guide-create') {
+                showView('#guides');
+                document.getElementById('adm-modal-guide-create')?.classList.add('show');
+            }
+        })();
 
         function initGlobalSearch() {
             const input = document.getElementById('adm-search');

@@ -11,29 +11,69 @@ use Illuminate\Support\Facades\Log;
 
 class EmailService
 {
+    /**
+     * Mail settings must come from Config only. After `config:cache`, `env()` in
+     * application code returns null, which breaks SMTP and From headers.
+     */
     private function smtpHost(): string
     {
-        return (string) (Config::get('mail.mailers.smtp.host') ?: env('MAIL_HOST', 'smtp.gmail.com'));
+        $host = Config::get('mail.mailers.smtp.host');
+
+        return ($host !== null && $host !== '') ? (string) $host : '127.0.0.1';
     }
 
     private function smtpPort(): int
     {
-        return (int) (Config::get('mail.mailers.smtp.port') ?: env('MAIL_PORT', 587));
+        $port = Config::get('mail.mailers.smtp.port');
+
+        return ($port !== null && $port !== '') ? (int) $port : 587;
     }
 
     private function smtpUsername(): string
     {
-        return (string) (Config::get('mail.mailers.smtp.username') ?: env('MAIL_USERNAME', ''));
+        return (string) (Config::get('mail.mailers.smtp.username') ?? '');
     }
 
     private function smtpPassword(): string
     {
-        return (string) (Config::get('mail.mailers.smtp.password') ?: env('MAIL_PASSWORD', ''));
+        return (string) (Config::get('mail.mailers.smtp.password') ?? '');
     }
 
     private function smtpEncryption(): string
     {
-        return (string) (Config::get('mail.mailers.smtp.encryption') ?: env('MAIL_ENCRYPTION', PHPMailer::ENCRYPTION_STARTTLS));
+        $raw = Config::get('mail.mailers.smtp.encryption');
+        $v = is_string($raw) ? strtolower(trim($raw)) : '';
+
+        return match ($v) {
+            'ssl', 'smtps' => PHPMailer::ENCRYPTION_SMTPS,
+            'tls', 'starttls' => PHPMailer::ENCRYPTION_STARTTLS,
+            default => $v === '' ? '' : PHPMailer::ENCRYPTION_STARTTLS,
+        };
+    }
+
+    private function mailFromAddress(): string
+    {
+        $addr = (string) (Config::get('mail.from.address') ?? '');
+
+        return $addr !== '' ? $addr : $this->smtpUsername();
+    }
+
+    private function mailFromName(): string
+    {
+        $name = (string) (Config::get('mail.from.name') ?? '');
+
+        return $name !== '' ? $name : 'HikeConnect';
+    }
+
+    private function applySmtpSettings(PHPMailer $mail): void
+    {
+        $mail->isSMTP();
+        $mail->Host = $this->smtpHost();
+        $mail->SMTPAuth = true;
+        $mail->Username = $this->smtpUsername();
+        $mail->Password = $this->smtpPassword();
+        $mail->SMTPSecure = $this->smtpEncryption();
+        $mail->Port = $this->smtpPort();
     }
 
     /**
@@ -49,19 +89,10 @@ class EmailService
         $mail = new PHPMailer(true);
 
         try {
-            // Server settings
-            $mail->isSMTP();
-            $mail->Host       = $this->smtpHost();
-            $mail->SMTPAuth   = true;
-            $mail->Username   = $this->smtpUsername();
-            $mail->Password   = $this->smtpPassword();
-            $mail->SMTPSecure = $this->smtpEncryption();
-            $mail->Port       = $this->smtpPort();
+            $this->applySmtpSettings($mail);
 
             // Recipients
-            $fromAddress = (string) (Config::get('mail.from.address') ?: env('MAIL_USERNAME'));
-            $fromName = (string) (Config::get('mail.from.name') ?: 'HikeConnect');
-            $mail->setFrom($fromAddress, $fromName);
+            $mail->setFrom($this->mailFromAddress(), $this->mailFromName());
             $mail->addAddress($email, $firstName);
 
             // Content
@@ -156,15 +187,9 @@ class EmailService
         $mail = new PHPMailer(true);
 
         try {
-            $mail->isSMTP();
-            $mail->Host = $this->smtpHost();
-            $mail->SMTPAuth = true;
-            $mail->Username = $this->smtpUsername();
-            $mail->Password = $this->smtpPassword();
-            $mail->SMTPSecure = $this->smtpEncryption();
-            $mail->Port = $this->smtpPort();
+            $this->applySmtpSettings($mail);
 
-            $mail->setFrom(env('MAIL_FROM_ADDRESS') ?? env('MAIL_USERNAME'), env('MAIL_FROM_NAME', 'HikeConnect'));
+            $mail->setFrom($this->mailFromAddress(), $this->mailFromName());
             $mail->addAddress($email, $firstName);
 
             $mail->isHTML(true);
@@ -221,15 +246,9 @@ class EmailService
             : 'No active booking was attached';
 
         try {
-            $mail->isSMTP();
-            $mail->Host = $this->smtpHost();
-            $mail->SMTPAuth = true;
-            $mail->Username = $this->smtpUsername();
-            $mail->Password = $this->smtpPassword();
-            $mail->SMTPSecure = $this->smtpEncryption();
-            $mail->Port = $this->smtpPort();
+            $this->applySmtpSettings($mail);
 
-            $mail->setFrom(env('MAIL_FROM_ADDRESS') ?? env('MAIL_USERNAME'), env('MAIL_FROM_NAME', 'HikeConnect'));
+            $mail->setFrom($this->mailFromAddress(), $this->mailFromName());
             $mail->addAddress($recipient->email, $recipient->full_name);
 
             $mail->isHTML(true);
@@ -283,19 +302,11 @@ class EmailService
         $mail = new PHPMailer(true);
 
         try {
-            $mail->isSMTP();
-            $mail->Host = $this->smtpHost();
-            $mail->SMTPAuth = true;
-            $mail->Username = $this->smtpUsername();
-            $mail->Password = $this->smtpPassword();
-            $mail->SMTPSecure = $this->smtpEncryption();
-            $mail->Port = $this->smtpPort();
+            $this->applySmtpSettings($mail);
 
-            $fromAddress = env('MAIL_FROM_ADDRESS') ?? env('MAIL_USERNAME');
-            $fromName = env('MAIL_FROM_NAME', 'HikeConnect');
-
-            $mail->setFrom($fromAddress, $fromName);
-            $mail->addAddress($fromAddress, $fromName);
+            $internalTo = $this->mailFromAddress();
+            $mail->setFrom($internalTo, $this->mailFromName());
+            $mail->addAddress($internalTo, $this->mailFromName());
             $mail->addReplyTo($subscriberEmail);
 
             $mail->isHTML(true);
