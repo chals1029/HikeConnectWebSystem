@@ -17,11 +17,13 @@ use App\Services\AchievementEvaluator;
 use App\Services\AuditLogger;
 use App\Services\EmailService;
 use App\Services\MountainTrailProfileService;
+use App\Services\ProfilePictureStorageService;
 use App\Services\TrailDataService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -951,7 +953,7 @@ class HikerDashboardController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function updateProfilePicture(Request $request)
+    public function updateProfilePicture(Request $request, ProfilePictureStorageService $profilePictures)
     {
         $request->validate([
             'profile_picture' => ['required', 'image', 'max:2048', 'mimes:jpeg,png,gif,webp'],
@@ -959,13 +961,23 @@ class HikerDashboardController extends Controller
 
         $user = Auth::user();
 
-        if ($user->profile_picture_path) {
-            Storage::disk('public')->delete($user->profile_picture_path);
+        try {
+            $path = $profilePictures->storeForUser($user, $request->file('profile_picture'));
+            $user->profile_picture_path = $path;
+            $user->save();
+        } catch (\Throwable $e) {
+            Log::error('Hiker profile picture upload failed', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => ProfilePictureStorageService::clientMessageForException($e),
+            ], 500);
         }
 
-        $path = $request->file('profile_picture')->store('profile-pictures/'.$user->id, 'public');
-        $user->profile_picture_path = $path;
-        $user->save();
+        $user->refresh();
 
         return response()->json([
             'success' => true,

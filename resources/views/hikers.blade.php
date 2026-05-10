@@ -2152,9 +2152,15 @@
                             'X-Requested-With': 'XMLHttpRequest',
                         },
                         body: fd,
-                    }).then(r => r.json().then(d => ({ ok: r.ok, d }))).then(({ ok, d }) => {
-                        if (ok && d.success && d.url) {
-                            const bust = d.url + (d.url.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
+                    }).then(function(r) {
+                        return r.text().then(function(text) {
+                            var d = {};
+                            try { d = text ? JSON.parse(text) : {}; } catch (e2) { d = { message: 'Server error (invalid response).' }; }
+                            return { ok: r.ok, d: d };
+                        });
+                    }).then(function(res) {
+                        if (res.ok && res.d.success && res.d.url) {
+                            const bust = res.d.url + (res.d.url.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
                             const imgHtml = '<img src="' + bust + '" alt="" width="80" height="80" style="width:100%;height:100%;object-fit:cover;display:block;">';
                             const prev = document.getElementById('settings-avatar-preview');
                             if (prev) prev.innerHTML = imgHtml;
@@ -2164,13 +2170,16 @@
                                 side.innerHTML = '<img src="' + bust + '" alt="" width="40" height="40" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">';
                             }
                             if (picStatus) picStatus.textContent = 'Picture saved.';
+                            if (typeof hcToast === 'function') hcToast('Profile photo updated.', false);
                         } else {
-                            const msg = (d.errors && d.errors.profile_picture && d.errors.profile_picture[0]) || d.message || 'Upload failed.';
+                            const msg = (res.d.errors && res.d.errors.profile_picture && res.d.errors.profile_picture[0]) || res.d.message || 'Upload failed.';
                             if (picStatus) picStatus.textContent = msg;
+                            if (typeof hcToast === 'function') hcToast(msg, true);
                         }
                         picInput.value = '';
-                    }).catch(() => {
+                    }).catch(function() {
                         if (picStatus) picStatus.textContent = 'Upload failed.';
+                        if (typeof hcToast === 'function') hcToast('Upload failed. Check your connection.', true);
                         picInput.value = '';
                     });
                 });

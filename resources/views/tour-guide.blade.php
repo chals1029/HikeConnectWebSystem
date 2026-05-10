@@ -917,7 +917,9 @@
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
                     body: fd,
                 });
-                const data = await res.json().catch(() => ({}));
+                const raw = await res.text();
+                let data = {};
+                try { data = raw ? JSON.parse(raw) : {}; } catch (_) { data = { message: 'Server error (invalid response).' }; }
                 if (res.ok && data.success && data.url) {
                     avatarPreview.style.backgroundImage = `url(${data.url})`;
                     avatarPreview.textContent = '';
@@ -927,7 +929,8 @@
                     }
                     toast('Photo updated');
                 } else {
-                    toast(data.message || 'Upload failed', true);
+                    const errMsg = (data.errors && data.errors.profile_picture && data.errors.profile_picture[0]) || data.message || 'Upload failed';
+                    toast(errMsg, true);
                 }
             });
         })();

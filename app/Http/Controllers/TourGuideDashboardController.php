@@ -7,9 +7,10 @@ use App\Models\Mountain;
 use App\Models\SosAlert;
 use App\Models\TourGuide;
 use App\Services\AuditLogger;
+use App\Services\ProfilePictureStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class TourGuideDashboardController extends Controller
@@ -205,7 +206,7 @@ class TourGuideDashboardController extends Controller
         ]);
     }
 
-    public function updateProfilePicture(Request $request)
+    public function updateProfilePicture(Request $request, ProfilePictureStorageService $profilePictures)
     {
         $request->validate([
             'profile_picture' => ['required', 'image', 'max:2048', 'mimes:jpeg,png,gif,webp'],
@@ -214,17 +215,28 @@ class TourGuideDashboardController extends Controller
         $user = Auth::user();
         $guide = $this->resolveGuide($user);
 
-        if ($user->profile_picture_path) {
-            Storage::disk('public')->delete($user->profile_picture_path);
+        try {
+            $path = $profilePictures->storeForUser($user, $request->file('profile_picture'));
+            $user->profile_picture_path = $path;
+            $user->save();
+
+            $guide->profile_picture_path = $path;
+            $guide->save();
+            AuditLogger::log('guide.photo_updated', 'Updated guide profile photo', $user, $guide);
+        } catch (\Throwable $e) {
+            Log::error('Tour guide profile picture upload failed', [
+                'user_id' => $user->id,
+                'guide_id' => $guide->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => ProfilePictureStorageService::clientMessageForException($e),
+            ], 500);
         }
 
-        $path = $request->file('profile_picture')->store('profile-pictures/'.$user->id, 'public');
-        $user->profile_picture_path = $path;
-        $user->save();
-
-        $guide->profile_picture_path = $path;
-        $guide->save();
-        AuditLogger::log('guide.photo_updated', 'Updated guide profile photo', $user, $guide);
+        $user->refresh();
 
         return response()->json([
             'success' => true,
