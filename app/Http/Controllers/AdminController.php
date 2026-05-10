@@ -115,17 +115,19 @@ class AdminController extends Controller
             ->get();
 
         $mountains = Mountain::orderBy('sort_order')->get();
-        $guides = TourGuide::with([
+        $supportsProfilePictures = User::supportsDatabaseProfilePictures();
+
+        $guides = TourGuide::with(array_filter([
             'user:id,first_name,last_name,email,phone,profile_picture_path',
-            'user.profilePicture:user_id,mime,updated_at',
+            $supportsProfilePictures ? 'user.profilePicture:user_id,mime,updated_at' : null,
             'mountain:id,name',
-        ])->orderBy('sort_order')->get();
+        ]))->orderBy('sort_order')->get();
         $admins = User::where('role', User::ROLE_ADMIN)
-            ->with('profilePicture')
+            ->when($supportsProfilePictures, fn ($q) => $q->with('profilePicture'))
             ->orderBy('first_name')
             ->get();
         $hikers = User::where('role', User::ROLE_HIKER)
-            ->with('profilePicture')
+            ->when($supportsProfilePictures, fn ($q) => $q->with('profilePicture'))
             ->withCount('hikeBookings')
             ->orderByDesc('id')
             ->limit(200)
@@ -141,17 +143,17 @@ class AdminController extends Controller
             ->get();
 
         $sosAlerts = SosAlert::query()
-            ->with([
+            ->with(array_filter([
                 'user:id,first_name,last_name,email,phone,profile_picture_path',
-                'user.profilePicture:user_id,mime,updated_at',
+                $supportsProfilePictures ? 'user.profilePicture:user_id,mime,updated_at' : null,
                 'mountain:id,name,location,emergency_contact',
                 'hikeBooking:id,hike_on,status,hikers_count',
                 'tourGuide:id,first_name,last_name,email,phone,user_id',
                 'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                'tourGuide.user.profilePicture:user_id,mime,updated_at',
+                $supportsProfilePictures ? 'tourGuide.user.profilePicture:user_id,mime,updated_at' : null,
                 'acknowledgedBy:id,first_name,last_name',
                 'resolvedBy:id,first_name,last_name',
-            ])
+            ]))
             ->orderByRaw("CASE WHEN status = 'open' THEN 0 WHEN status = 'acknowledged' THEN 1 ELSE 2 END")
             ->orderByDesc('created_at')
             ->limit(100)

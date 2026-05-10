@@ -57,7 +57,7 @@ class User extends Authenticatable
             }
 
             if ($hasDbPicture) {
-                $url = route('users.avatar', ['user' => $this->getKey()], false);
+                $url = '/avatars/'.$this->getKey();
                 $version = $pictureUpdatedAt ? strtotime((string) $pictureUpdatedAt) : null;
 
                 return $version ? $url.'?v='.$version : $url;

@@ -271,7 +271,7 @@ class HikerDashboardController extends Controller
 
             $picUrl = null;
             if ($hasAvatarTable && ! empty($r->profile_picture_db_user ?? null)) {
-                $picUrl = route('users.avatar', ['user' => (int) $r->id]);
+                $picUrl = '/avatars/'.(int) $r->id;
             } elseif (! empty($r->profile_picture_path)) {
                 $relative = 'storage/'.ltrim(str_replace('\\', '/', $r->profile_picture_path), '/');
                 $picUrl = asset($relative);
