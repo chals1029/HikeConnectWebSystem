@@ -96,125 +96,186 @@
         min-height: min(640px, 90vh);
     }
     @media (max-width: 640px) {
+        /* Full-screen sheet: no rounded corners, no outer padding. */
         .auth-modal {
-            padding: 0.65rem;
-            padding-bottom: max(0.65rem, env(safe-area-inset-bottom, 0px));
-            padding-top: max(0.65rem, env(safe-area-inset-top, 0px));
-            align-items: center;
-            justify-content: center;
+            padding: 0;
+            align-items: stretch;
+            justify-content: stretch;
         }
+        .auth-modal__backdrop { display: none; }
         .auth-modal__scene {
             width: 100%;
-            max-width: 26.5rem;
-            margin-left: auto;
-            margin-right: auto;
+            max-width: 100%;
+            margin: 0;
+            perspective: none;
         }
-        .auth-modal__face {
-            grid-template-columns: 1fr;
-            border-radius: 18px;
-            position: relative;
+        /* Skip the 3D flip on mobile — it was janky on mid-range devices and
+           made both faces occupy the same space. Swap with a simple fade. */
+        .auth-modal__inner {
+            transform: none !important;
+            transition: none;
+            height: 100vh;
+            max-height: 100vh;
+            min-height: 0;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-        }
-        .auth-modal__face--back { grid-template-columns: 1fr; }
-        .auth-modal__face--front,
-        .auth-modal__face--back { position: absolute; }
-        /* Fit the card in the viewport; scroll inside the face so the form is never clipped */
-        .auth-modal__inner {
-            height: calc(100vh - 2rem);
-            max-height: calc(100vh - 2rem);
-            min-height: 0;
-        }
-        .auth-modal[data-mode="register"] .auth-modal__inner {
-            height: calc(100vh - 2rem);
-            max-height: calc(100vh - 2rem);
         }
         @supports (height: 100dvh) {
-            .auth-modal__inner {
-                height: calc(100dvh - 2rem);
-                max-height: calc(100dvh - 2rem);
-            }
-            .auth-modal[data-mode="register"] .auth-modal__inner {
-                height: calc(100dvh - 2rem);
-                max-height: calc(100dvh - 2rem);
-            }
+            .auth-modal__inner { height: 100dvh; max-height: 100dvh; }
         }
+        .auth-modal[data-mode="register"] .auth-modal__inner { min-height: 0; }
+        /* Show only the active face so the form claims its natural height and
+           can scroll inside a predictable container. */
+        .auth-modal__face {
+            position: static;
+            grid-template-columns: 1fr;
+            border-radius: 0;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            transform: none !important;
+            backface-visibility: visible;
+            -webkit-backface-visibility: visible;
+        }
+        .auth-modal__face--back {
+            grid-template-columns: 1fr;
+        }
+        .auth-modal[data-mode="login"] .auth-modal__face--back { display: none; }
+        .auth-modal[data-mode="register"] .auth-modal__face--front { display: none; }
+        /* Compact slideshow locked to the top; form panel takes the rest and
+           scrolls on its own so the Log In / Create buttons are always reachable. */
         .auth-slideshow {
             order: -1;
-            flex-shrink: 0;
-            min-height: clamp(180px, 28vh, 260px);
-            max-height: 32vh;
+            flex: 0 0 auto;
+            height: clamp(150px, 22vh, 210px);
+            min-height: 0;
+            max-height: none;
         }
         .auth-modal[data-mode="register"] .auth-slideshow {
-            min-height: clamp(175px, 26vh, 240px);
-            max-height: 30vh;
+            height: clamp(140px, 20vh, 190px);
+            min-height: 0;
+            max-height: none;
         }
-        .auth-slide__inner {
-            padding: 1rem 1rem 1.65rem;
-        }
-        .auth-slide__brand img { height: 1.75rem; width: auto; }
-        .auth-slide__brand span { font-size: 1.125rem; }
-        .auth-slide h3 {
-            font-size: 1.125rem;
-            margin-bottom: 0.35rem;
-        }
-        .auth-slide p {
-            font-size: 0.75rem;
-            line-height: 1.45;
-        }
+        .auth-slide__inner { padding: 0.95rem 1.05rem 1.45rem; }
+        .auth-slide__brand img { height: 1.6rem; }
+        .auth-slide__brand span { font-size: 1.05rem; }
+        .auth-slide h3 { font-size: 1.05rem; margin-bottom: 0.3rem; }
+        .auth-slide p { font-size: 0.72rem; line-height: 1.45; }
         .auth-dots {
-            bottom: 0.55rem;
+            bottom: 0.5rem;
             left: 1rem;
             right: 1rem;
         }
+        .auth-dot { height: 4px; }
+
         .auth-form-panel {
-            flex: 0 0 auto;
-            min-height: unset;
-            padding: 1.35rem 1.15rem calc(1.85rem + env(safe-area-inset-bottom, 0px));
-            padding-top: 1.5rem;
-        }
-        .auth-modal__face--front .auth-form-panel,
-        .auth-modal__face--back .auth-form-panel {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            padding: 1.5rem 1.15rem calc(1.75rem + env(safe-area-inset-bottom, 0px));
             justify-content: flex-start;
         }
+        .auth-modal__face--front .auth-form-panel,
+        .auth-modal__face--back .auth-form-panel { justify-content: flex-start; }
         .auth-form-panel h2 {
-            font-size: 1.5rem;
-            margin-bottom: 0.35rem;
+            font-size: 1.55rem;
+            margin-bottom: 0.4rem;
+            letter-spacing: -0.02em;
         }
         .auth-sub {
-            margin-bottom: 1.35rem;
-            font-size: 0.8125rem;
+            margin-bottom: 1.2rem;
+            font-size: 0.85rem;
+            line-height: 1.5;
         }
         .auth-close {
             top: 0.6rem;
             right: 0.6rem;
-            width: 40px;
-            height: 40px;
-        }
-        .auth-field { margin-bottom: 0.85rem; }
-        .auth-input-wrap input {
-            padding: 0.75rem 1rem;
-            padding-right: 2.75rem;
-            font-size: 1rem;
-            min-height: 48px;
-        }
-        .auth-submit {
-            min-height: 48px;
-            padding-top: 0.85rem;
-            padding-bottom: 0.85rem;
-        }
-        .auth-toggle-pw {
             width: 44px;
             height: 44px;
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            z-index: 5;
+        }
+        .auth-close:hover { background: rgba(0, 0, 0, 0.7); }
+        .auth-close svg { width: 20px; height: 20px; }
+        .auth-field { margin-bottom: 0.9rem; }
+        .auth-field label {
+            font-size: 0.78rem;
+            margin-bottom: 0.4rem;
+        }
+        /* 16px input font-size prevents the iOS auto-zoom on focus. */
+        .auth-input-wrap input {
+            padding: 0.9rem 1rem;
+            padding-right: 3rem;
+            font-size: 1rem;
+            min-height: 52px;
+            border-radius: 12px;
+        }
+        .auth-register-form .auth-input-wrap input {
+            min-height: 52px;
+            border-radius: 999px;
+        }
+        .auth-submit,
+        .auth-send-code-btn {
+            min-height: 52px;
+            padding-top: 0.95rem;
+            padding-bottom: 0.95rem;
+            font-size: 0.95rem;
+        }
+        .auth-toggle-pw {
+            width: 46px;
+            height: 46px;
         }
         .auth-field-row { gap: 0.65rem; }
-        .auth-register-form .auth-input-wrap input {
-            min-height: 48px;
+        .auth-forgot { margin-bottom: 1.1rem; }
+        .auth-forgot a,
+        .auth-forgot button { font-size: 0.82rem; padding: 0.35rem 0; }
+        .auth-phone-wrap { border-radius: 12px; }
+        .auth-phone-prefix { padding: 0.9rem 1rem; font-size: 1rem; }
+        .auth-checkbox-row { padding: 0.25rem 0; font-size: 0.85rem; }
+        .auth-checkbox-row input {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-top: 0.1rem;
         }
+        .auth-inline-row { gap: 0.5rem; }
+        .auth-inline-btn {
+            padding: 0 1.1rem;
+            min-height: 52px;
+            font-size: 0.82rem;
+        }
+        .auth-channel-choice {
+            padding: 0.7rem 0.8rem;
+        }
+        .auth-channel-choice label {
+            padding: 0.4rem 0;
+            min-height: 36px;
+        }
+        .auth-password-meter { margin-top: 0.55rem; }
+        .auth-password-meter__head { font-size: 0.72rem; }
+        .auth-password-meter__hint { font-size: 0.74rem; }
+        .auth-code-input { font-size: 1.15rem; letter-spacing: 0.3em; }
+    }
+
+    /* Very small phones (iPhone SE, older Android handsets). */
+    @media (max-width: 380px) {
+        .auth-slideshow { height: clamp(130px, 18vh, 180px); }
+        .auth-form-panel { padding: 1.3rem 0.95rem calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
+        .auth-form-panel h2 { font-size: 1.4rem; }
+        .auth-slide h3 { font-size: 1rem; }
+        .auth-slide p { font-size: 0.68rem; }
+        .auth-field-row { grid-template-columns: 1fr; gap: 0.45rem; }
+    }
+
+    /* Landscape phones: keep the hero small so the form stays visible. */
+    @media (max-height: 480px) and (orientation: landscape) {
+        .auth-slideshow { height: clamp(110px, 30vh, 150px); }
+        .auth-form-panel { padding-top: 1rem; padding-bottom: 1.25rem; }
     }
     .auth-slide {
         position: absolute; inset: 0;

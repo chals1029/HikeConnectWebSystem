@@ -361,6 +361,108 @@
                 font-size: 1.125rem;
             }
         }
+        @media (max-width: 640px) {
+            /* Full-screen sheet on phones: no outer padding, no rounded corners. */
+            body { background: #0a0a0a; }
+            .login-page {
+                padding: 0;
+                min-height: 100vh;
+                min-height: 100dvh;
+            }
+            .login-shell {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+                width: 100%;
+                max-width: 100%;
+                min-height: 100vh;
+                min-height: 100dvh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .login-slideshow {
+                min-height: 0;
+                height: clamp(150px, 24vh, 220px);
+            }
+            .login-slide-inner {
+                padding: 1rem 1.1rem 1.35rem;
+            }
+            .login-slide-brand img { height: 1.6rem; }
+            .login-slide-brand span { font-size: 1.05rem; }
+            .login-slide h2 {
+                font-size: 1.2rem;
+                margin-bottom: 0.4rem;
+                max-width: 22ch;
+            }
+            .login-slide p {
+                font-size: 0.78rem;
+                line-height: 1.5;
+                max-width: 36ch;
+            }
+            .login-dots {
+                bottom: 0.65rem;
+                left: 1rem;
+                right: 1rem;
+            }
+            .login-form-panel {
+                padding: 1.6rem 1.15rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .login-close {
+                top: 0.6rem;
+                right: 0.6rem;
+                width: 44px;
+                height: 44px;
+                background: rgba(0, 0, 0, 0.45);
+                color: #fff;
+                z-index: 3;
+            }
+            .login-close:hover { background: rgba(0, 0, 0, 0.65); }
+            .login-close svg { width: 20px; height: 20px; }
+            .login-form-panel h1 {
+                font-size: 1.65rem;
+                margin-bottom: 0.4rem;
+            }
+            .login-sub {
+                margin-bottom: 1.5rem;
+                font-size: 0.88rem;
+            }
+            .login-field { margin-bottom: 1rem; }
+            .login-field label { font-size: 0.82rem; margin-bottom: 0.45rem; }
+            /* 16px input font prevents iOS zoom-on-focus. */
+            .login-input-wrap input {
+                padding: 1rem 1.2rem;
+                padding-right: 3.2rem;
+                font-size: 1rem;
+                min-height: 52px;
+            }
+            .login-toggle-pw {
+                width: 46px;
+                height: 46px;
+            }
+            .login-forgot { margin-bottom: 1.35rem; }
+            .login-forgot a { font-size: 0.85rem; padding: 0.35rem 0; display: inline-block; }
+            .login-submit {
+                min-height: 52px;
+                padding: 1rem 1.3rem;
+                font-size: 0.98rem;
+            }
+            .login-notice,
+            .login-errors {
+                font-size: 0.85rem;
+                padding: 0.8rem 1rem;
+            }
+        }
+        @media (max-width: 380px) {
+            .login-slideshow { height: clamp(130px, 20vh, 180px); }
+            .login-form-panel { padding: 1.3rem 0.95rem calc(1.3rem + env(safe-area-inset-bottom, 0px)); }
+            .login-form-panel h1 { font-size: 1.45rem; }
+            .login-slide h2 { font-size: 1.05rem; }
+        }
+        @media (max-height: 480px) and (orientation: landscape) {
+            .login-slideshow { height: clamp(110px, 34vh, 160px); }
+            .login-form-panel { padding-top: 1rem; padding-bottom: 1.15rem; }
+        }
         @media (prefers-reduced-motion: reduce) {
             .login-slide {
                 transition: none;
