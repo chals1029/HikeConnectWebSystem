@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Achievement;
 use App\Models\CommunityPost;
+use App\Models\CommunityPostComment;
+use App\Models\CommunityPostLike;
 use App\Models\HikeBooking;
 use App\Models\HikerLocation;
 use App\Models\Mountain;
@@ -47,8 +49,18 @@ class HikerDashboardController extends Controller
         $profilePictureRelation = User::supportsDatabaseProfilePictures()
             ? 'tourGuide.user.profilePicture:user_id,mime,updated_at'
             : null;
+        $guideUserPictureRelation = User::supportsDatabaseProfilePictures()
+            ? 'user.profilePicture:user_id,mime,updated_at'
+            : null;
         $mountains = Mountain::query()->orderBy('sort_order')->get();
-        $guides = TourGuide::query()->with('mountain')->orderBy('sort_order')->get();
+        $guides = TourGuide::query()
+            ->with(array_filter([
+                'mountain',
+                'user:id,first_name,last_name,email,phone,profile_picture_path',
+                $guideUserPictureRelation,
+            ]))
+            ->orderBy('sort_order')
+            ->get();
         $bookings = HikeBooking::query()
             ->where('user_id', $user->id)
             ->with(array_filter([
@@ -115,9 +127,22 @@ class HikerDashboardController extends Controller
                 'mountain',
                 User::supportsDatabaseProfilePictures() ? 'user.profilePicture' : 'user',
             ]))
+            ->withCount(['likes', 'comments'])
             ->latest()
             ->limit(20)
             ->get();
+
+        // Posts the current user has already liked, so the UI can render the
+        // "Liked" state on first paint without an extra roundtrip.
+        $likedPostIds = $communityPosts->isEmpty()
+            ? collect()
+            : CommunityPostLike::query()
+                ->where('user_id', $user->id)
+                ->whereIn('community_post_id', $communityPosts->pluck('id'))
+                ->pluck('community_post_id');
+        $communityPosts->each(function ($post) use ($likedPostIds) {
+            $post->liked_by_me = $likedPostIds->contains($post->id);
+        });
         $mountainReviews = MountainReview::query()->with('mountain')->latest()->get();
         $packingItems = PackingItem::query()->orderBy('category')->orderBy('sort_order')->get();
 
@@ -135,6 +160,7 @@ class HikerDashboardController extends Controller
             'mountainId' => $g->mountain?->slug ?? 'all',
             'status' => $g->status,
             'gradient' => $g->avatar_gradient,
+            'photo' => $g->profile_picture_url,
         ])->all();
 
         $jumpoffMarkers = $mountains->map(fn (Mountain $m) => [
@@ -985,6 +1011,118 @@ class HikerDashboardController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Toggle the current user's like on a community post.
+     * Returns the fresh like count and whether the current user now likes it.
+     */
+    public function toggleCommunityPostLike(Request $request, CommunityPost $post)
+    {
+        $user = Auth::user();
+
+        $existing = CommunityPostLike::query()
+            ->where('community_post_id', $post->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $liked = false;
+        } else {
+            CommunityPostLike::query()->create([
+                'community_post_id' => $post->id,
+                'user_id' => $user->id,
+            ]);
+            $liked = true;
+        }
+
+        return response()->json([
+            'success' => true,
+            'liked' => $liked,
+            'likes_count' => CommunityPostLike::query()->where('community_post_id', $post->id)->count(),
+        ]);
+    }
+
+    /**
+     * List comments on a community post (oldest first so replies read top-down).
+     */
+    public function indexCommunityPostComments(CommunityPost $post)
+    {
+        $comments = CommunityPostComment::query()
+            ->where('community_post_id', $post->id)
+            ->with(array_filter([
+                User::supportsDatabaseProfilePictures() ? 'user.profilePicture' : 'user',
+            ]))
+            ->orderBy('created_at')
+            ->get()
+            ->map(function (CommunityPostComment $comment) {
+                $author = $comment->user;
+                $first = (string) ($author?->first_name ?? '');
+                $last = (string) ($author?->last_name ?? '');
+                $initials = strtoupper(
+                    ($first !== '' ? substr($first, 0, 1) : '').
+                    ($last !== '' ? substr($last, 0, 1) : '')
+                );
+                if ($initials === '') {
+                    $initials = 'HC';
+                }
+
+                return [
+                    'id' => $comment->id,
+                    'body' => $comment->body,
+                    'created_at_human' => optional($comment->created_at)->diffForHumans(),
+                    'author_name' => trim($first.' '.$last) ?: ($author?->email ?? 'Hiker'),
+                    'author_initials' => $initials,
+                    'author_photo' => $author?->profile_picture_url,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'comments' => $comments,
+        ]);
+    }
+
+    /**
+     * Add a comment to a community post.
+     */
+    public function storeCommunityPostComment(Request $request, CommunityPost $post)
+    {
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'min:1', 'max:1000'],
+        ]);
+
+        $user = Auth::user();
+
+        $comment = CommunityPostComment::query()->create([
+            'community_post_id' => $post->id,
+            'user_id' => $user->id,
+            'body' => $validated['body'],
+        ]);
+
+        $first = (string) ($user->first_name ?? '');
+        $last = (string) ($user->last_name ?? '');
+        $initials = strtoupper(
+            ($first !== '' ? substr($first, 0, 1) : '').
+            ($last !== '' ? substr($last, 0, 1) : '')
+        );
+        if ($initials === '') {
+            $initials = 'HC';
+        }
+
+        return response()->json([
+            'success' => true,
+            'comment' => [
+                'id' => $comment->id,
+                'body' => $comment->body,
+                'created_at_human' => $comment->created_at->diffForHumans(),
+                'author_name' => trim($first.' '.$last) ?: $user->email,
+                'author_initials' => $initials,
+                'author_photo' => $user->profile_picture_url,
+            ],
+            'comments_count' => CommunityPostComment::query()->where('community_post_id', $post->id)->count(),
+        ]);
     }
 
     public function updateProfilePicture(Request $request, ProfilePictureDatabaseWriter $writer)

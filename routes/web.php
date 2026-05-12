@@ -34,6 +34,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/hikers/reviews', [HikerDashboardController::class, 'storeReview'])->name('hikers.reviews.store');
     Route::post('/hikers/guide-reviews', [HikerDashboardController::class, 'storeGuideReview'])->name('hikers.guide-reviews.store');
     Route::post('/hikers/community-posts', [HikerDashboardController::class, 'storeCommunityPost'])->name('hikers.community.store');
+    Route::post('/hikers/community-posts/{post}/like', [HikerDashboardController::class, 'toggleCommunityPostLike'])->name('hikers.community.like');
+    Route::get('/hikers/community-posts/{post}/comments', [HikerDashboardController::class, 'indexCommunityPostComments'])->name('hikers.community.comments.index');
+    Route::post('/hikers/community-posts/{post}/comments', [HikerDashboardController::class, 'storeCommunityPostComment'])->name('hikers.community.comments.store');
     Route::post('/hikers/profile/picture', [HikerDashboardController::class, 'updateProfilePicture'])->name('hikers.profile.picture');
     Route::post('/hikers/profile', [HikerDashboardController::class, 'updateProfile'])->name('hikers.profile.update');
     Route::post('/hikers/profile/password/send-code', [HikerDashboardController::class, 'sendPasswordChangeCode'])->name('hikers.profile.password.send-code');

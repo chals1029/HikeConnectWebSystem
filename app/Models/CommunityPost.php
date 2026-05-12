@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CommunityPost extends Model
 {
@@ -19,5 +20,15 @@ class CommunityPost extends Model
     public function mountain(): BelongsTo
     {
         return $this->belongsTo(Mountain::class);
+    }
+
+    public function likes(): HasMany
+    {
+        return $this->hasMany(CommunityPostLike::class);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(CommunityPostComment::class);
     }
 }

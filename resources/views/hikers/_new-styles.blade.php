@@ -535,6 +535,48 @@
     .ns-post-mountain-tag { display:inline-flex; align-items:center; gap:4px; background:var(--brand-soft); color:var(--brand-dark); padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; margin-top:6px; }
     .ns-post-image { width:100%; max-height:280px; object-fit:cover; }
     .ns-post-image-placeholder { width:100%; height:200px; background:linear-gradient(135deg,var(--brand-soft),rgba(16,185,129,.05)); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:13px; }
+
+    /* ── Community engagement (likes + comments) ─────────────── */
+    .ns-post-actions { display:flex; align-items:center; gap:6px; padding:8px 12px; border-top:1px solid var(--line); background:linear-gradient(180deg,rgba(236,253,245,.35),transparent); }
+    .ns-post-action { display:inline-flex; align-items:center; gap:6px; flex:1; justify-content:center; border:none; background:transparent; color:var(--muted); font-size:13px; font-weight:600; padding:8px 10px; border-radius:10px; cursor:pointer; transition:background .18s ease, color .18s ease, transform .12s ease; min-height:40px; font-family:inherit; }
+    .ns-post-action:hover { background:var(--brand-soft); color:var(--brand-dark); }
+    .ns-post-action:active { transform:scale(.98); }
+    .ns-post-action iconify-icon { font-size:18px; }
+    .ns-post-action .ns-post-count { background:rgba(6,95,70,.08); color:var(--brand-dark); font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; min-width:22px; text-align:center; }
+    .ns-post-action .ns-post-count:empty { display:none; }
+    .ns-post-action[data-action="like"].is-active { color:#e11d48; }
+    .ns-post-action[data-action="like"].is-active iconify-icon { color:#e11d48; }
+    .ns-post-action[data-action="like"].is-active .ns-post-like-icon { animation:ns-post-heart-pop .35s ease; }
+    .ns-post-action[data-action="like"].is-active .ns-post-count { background:rgba(225,29,72,.12); color:#be123c; }
+    @keyframes ns-post-heart-pop { 0% { transform:scale(1); } 40% { transform:scale(1.35); } 100% { transform:scale(1); } }
+    @media (prefers-reduced-motion:reduce){
+        .ns-post-action[data-action="like"].is-active .ns-post-like-icon { animation:none; }
+    }
+
+    .ns-post-comments { padding:10px 14px 14px; border-top:1px solid var(--line); background:#fafdfb; display:flex; flex-direction:column; gap:10px; }
+    .ns-post-comment-list { display:flex; flex-direction:column; gap:10px; max-height:260px; overflow-y:auto; padding-right:4px; }
+    .ns-post-comment { display:flex; gap:10px; align-items:flex-start; }
+    .ns-post-comment-avatar { width:30px; height:30px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:11px; font-weight:700; flex-shrink:0; background:linear-gradient(135deg,#065f46,#10b981); background-size:cover; background-position:center; }
+    .ns-post-comment-body { flex:1; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 12px; min-width:0; }
+    .ns-post-comment-body strong { display:block; font-size:12px; color:var(--text); margin-bottom:2px; }
+    .ns-post-comment-body p { font-size:13px; color:var(--text); line-height:1.5; word-wrap:break-word; overflow-wrap:break-word; }
+    .ns-post-comment-body time { display:block; font-size:10px; color:var(--muted); margin-top:4px; }
+    .ns-post-comment-empty { font-size:12px; color:var(--muted); text-align:center; padding:6px 0; }
+    .ns-post-comment-loading { font-size:12px; color:var(--muted); text-align:center; padding:6px 0; }
+
+    .ns-post-comment-form { display:flex; gap:8px; align-items:stretch; }
+    .ns-post-comment-input { flex:1; min-width:0; border:1px solid var(--line); border-radius:999px; padding:10px 14px; font-size:13px; background:var(--panel); color:var(--text); outline:none; font-family:inherit; min-height:40px; transition:border-color .2s, box-shadow .2s; }
+    .ns-post-comment-input:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(16,185,129,.12); }
+    .ns-post-comment-submit { flex-shrink:0; width:40px; height:40px; border:none; border-radius:50%; background:linear-gradient(135deg,var(--brand-dark),var(--brand)); color:#fff; display:grid; place-items:center; cursor:pointer; transition:transform .15s ease, box-shadow .2s ease; }
+    .ns-post-comment-submit:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(6,95,70,.25); }
+    .ns-post-comment-submit:disabled { opacity:.6; cursor:not-allowed; transform:none; box-shadow:none; }
+    .ns-post-comment-submit iconify-icon { font-size:16px; }
+
+    @media (max-width:480px){
+        .ns-post-action { font-size:12px; padding:8px 6px; gap:4px; }
+        .ns-post-action iconify-icon { font-size:17px; }
+        .ns-post-comment-list { max-height:220px; }
+    }
     .ns-post-footer { display:flex; gap:16px; padding:12px 16px; border-top:1px solid var(--line); }
     .ns-post-footer button { display:flex; align-items:center; gap:5px; border:none; background:transparent; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; padding:4px 8px; border-radius:6px; transition:all .2s; }
     .ns-post-footer button:hover { background:var(--brand-soft); color:var(--brand-dark); }

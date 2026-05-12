@@ -261,8 +261,9 @@
                 <h3 style="margin-bottom:16px;">Available Tour Guides</h3>
                 <div class="ns-detail-guides" id="detail-guides-list">
                     @forelse($detailGuides as $g)
+                    @php $detailGuidePhoto = $g->profile_picture_url; @endphp
                     <div class="ns-detail-guide-mini" onclick="bookWithGuide('{{ $g->id }}')">
-                        <div class="ns-guide-avatar" style="background:{{ $g->avatar_gradient }};">{{ $g->initials }}</div>
+                        <div class="ns-guide-avatar" style="{{ $detailGuidePhoto ? 'background-image:url('.$detailGuidePhoto.');background-size:cover;background-position:center;' : 'background:'.$g->avatar_gradient.';' }}">{{ $detailGuidePhoto ? '' : $g->initials }}</div>
                         <div><h5>{{ $g->full_name }}</h5><span>{{ $g->mountain?->name ?? 'All Mountains' }}</span></div>
                     </div>
                     @empty
@@ -346,7 +347,8 @@
         @foreach($guides as $g)
         <div class="ns-guide-card" data-guide="{{ $g->id }}" data-status="{{ $g->status }}" data-mountain="{{ $g->mountain?->slug ?? 'all' }}">
             <div class="ns-guide-top">
-                <div class="ns-guide-avatar" style="background:{{ $g->avatar_gradient }};">{{ strtoupper(substr($g->first_name,0,1).substr($g->last_name,0,1)) }}</div>
+                @php $guidePhoto = $g->profile_picture_url; @endphp
+                <div class="ns-guide-avatar" style="{{ $guidePhoto ? 'background-image:url('.$guidePhoto.');background-size:cover;background-position:center;' : 'background:'.$g->avatar_gradient.';' }}">{{ $guidePhoto ? '' : strtoupper(substr($g->first_name,0,1).substr($g->last_name,0,1)) }}</div>
                 <div class="ns-guide-meta">
                     <h4>{{ $g->full_name }}</h4>
                     <span class="ns-guide-spec">{{ $g->specialty }}</span>

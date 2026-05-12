@@ -920,8 +920,11 @@
                     @forelse($communityPosts as $post)
                     @php
                         $postAvatarUrl = $post->user?->profile_picture_url;
+                        $isLiked = $post->liked_by_me ?? false;
+                        $likeCount = (int) ($post->likes_count ?? 0);
+                        $commentCount = (int) ($post->comments_count ?? 0);
                     @endphp
-                    <div class="ns-post-card">
+                    <div class="ns-post-card" data-post-id="{{ $post->id }}">
                         <div class="ns-post-header">
                             <div class="ns-post-avatar" style="{{ $postAvatarUrl ? 'background-image:url('.$postAvatarUrl.');background-size:cover;background-position:center;' : 'background:'.($post->avatar_gradient ?? 'linear-gradient(135deg,#065f46,#10b981)').';' }}">{{ $postAvatarUrl ? '' : $post->author_initials }}</div>
                             <div class="ns-post-user-info">
@@ -934,6 +937,29 @@
                             @if($post->mountain)
                             <div class="ns-post-mountain-tag"><iconify-icon icon="lucide:mountain" style="margin-right:2px; vertical-align: text-bottom;"></iconify-icon> {{ $post->mountain->name }}</div>
                             @endif
+                        </div>
+                        <div class="ns-post-actions">
+                            <button type="button" class="ns-post-action ns-post-like {{ $isLiked ? 'is-active' : '' }}" data-action="like" aria-pressed="{{ $isLiked ? 'true' : 'false' }}">
+                                <iconify-icon icon="{{ $isLiked ? 'lucide:heart' : 'lucide:heart' }}" class="ns-post-like-icon"></iconify-icon>
+                                <span class="ns-post-like-label">{{ $isLiked ? 'Liked' : 'Like' }}</span>
+                                <span class="ns-post-count" data-role="like-count">{{ $likeCount }}</span>
+                            </button>
+                            <button type="button" class="ns-post-action" data-action="toggle-comments" aria-expanded="false">
+                                <iconify-icon icon="lucide:message-circle"></iconify-icon>
+                                <span>Comment</span>
+                                <span class="ns-post-count" data-role="comment-count">{{ $commentCount }}</span>
+                            </button>
+                        </div>
+                        <div class="ns-post-comments" data-role="comments" hidden>
+                            <div class="ns-post-comment-list" data-role="comment-list">
+                                <div class="ns-post-comment-empty" data-role="comment-empty">Be the first to comment.</div>
+                            </div>
+                            <form class="ns-post-comment-form" data-role="comment-form">
+                                <input type="text" class="ns-post-comment-input" data-role="comment-input" placeholder="Write a comment…" maxlength="1000" required>
+                                <button type="submit" class="ns-post-comment-submit" aria-label="Post comment">
+                                    <iconify-icon icon="lucide:send"></iconify-icon>
+                                </button>
+                            </form>
                         </div>
                     </div>
                     @empty
@@ -1177,6 +1203,7 @@
                 'storeReview' => url('/hikers/reviews'),
                 'storeGuideReview' => url('/hikers/guide-reviews'),
                 'storeCommunityPost' => url('/hikers/community-posts'),
+                'communityPostBase' => url('/hikers/community-posts'),
                 'triggerSos' => url('/hikers/sos'),
                 'cancelBookingPrefix' => url('/hikers/bookings'),
                 'checkInScanPrefix' => url('/hikers/bookings'),
@@ -2524,8 +2551,12 @@
             guidesEl.innerHTML = '';
             Object.entries(guideData).forEach(([gid, g]) => {
                 if (g.mountainId === id && g.status === 'available') {
+                    const avatarStyle = g.photo
+                        ? `background-image:url('${g.photo}');background-size:cover;background-position:center;`
+                        : `background:${g.gradient};`;
+                    const avatarLabel = g.photo ? '' : g.initials;
                     guidesEl.innerHTML += `<div class="ns-detail-guide-mini" onclick="bookWithGuide('${gid}')">
-                        <div class="ns-guide-avatar" style="background:${g.gradient};">${g.initials}</div>
+                        <div class="ns-guide-avatar" style="${avatarStyle}">${avatarLabel}</div>
                         <div><h5>${g.name}</h5><span>${g.mountain}</span></div>
                     </div>`;
                 }
@@ -3661,6 +3692,202 @@
                 }
             }).catch(() => alert('Could not post.'));
         };
+
+        // ── Community Post: likes + comments ──────────────────────
+        (function () {
+            const base = window.HIKER_BOOTSTRAP?.routes?.communityPostBase;
+            if (!base) return;
+
+            function escapeHtml(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
+            function commentAvatarMarkup(comment) {
+                const style = comment.author_photo
+                    ? `background-image:url('${comment.author_photo}');`
+                    : '';
+                return `<div class="ns-post-comment-avatar" style="${style}">${comment.author_photo ? '' : escapeHtml(comment.author_initials || 'HC')}</div>`;
+            }
+
+            function renderComment(comment) {
+                const item = document.createElement('div');
+                item.className = 'ns-post-comment';
+                item.dataset.commentId = comment.id;
+                item.innerHTML = commentAvatarMarkup(comment) +
+                    '<div class="ns-post-comment-body">' +
+                        '<strong>' + escapeHtml(comment.author_name || 'Hiker') + '</strong>' +
+                        '<p>' + escapeHtml(comment.body).replace(/\n/g, '<br>') + '</p>' +
+                        '<time>' + escapeHtml(comment.created_at_human || '') + '</time>' +
+                    '</div>';
+                return item;
+            }
+
+            function setCountText(card, role, value) {
+                const el = card.querySelector('[data-role="' + role + '"]');
+                if (!el) return;
+                el.textContent = value > 0 ? String(value) : '';
+            }
+
+            function toggleLike(card) {
+                const btn = card.querySelector('[data-action="like"]');
+                if (!btn || btn.dataset.busy === '1') return;
+                const postId = card.dataset.postId;
+                if (!postId) return;
+
+                btn.dataset.busy = '1';
+                btn.disabled = true;
+
+                const fd = new FormData();
+                fd.append('_token', window.HIKER_BOOTSTRAP.csrf);
+
+                fetch(base + '/' + encodeURIComponent(postId) + '/like', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': window.HIKER_BOOTSTRAP.csrf,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    body: fd,
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (!data || !data.success) throw new Error('Request failed');
+                        btn.classList.toggle('is-active', !!data.liked);
+                        btn.setAttribute('aria-pressed', data.liked ? 'true' : 'false');
+                        const label = btn.querySelector('.ns-post-like-label');
+                        if (label) label.textContent = data.liked ? 'Liked' : 'Like';
+                        setCountText(card, 'like-count', Number(data.likes_count) || 0);
+                    })
+                    .catch(function () {
+                        console.warn('Could not toggle like.');
+                    })
+                    .finally(function () {
+                        btn.dataset.busy = '';
+                        btn.disabled = false;
+                    });
+            }
+
+            function loadComments(card) {
+                if (card.dataset.commentsLoaded === '1') return;
+                const list = card.querySelector('[data-role="comment-list"]');
+                const empty = card.querySelector('[data-role="comment-empty"]');
+                const postId = card.dataset.postId;
+                if (!list || !postId) return;
+
+                card.dataset.commentsLoaded = '1';
+                const loading = document.createElement('div');
+                loading.className = 'ns-post-comment-loading';
+                loading.textContent = 'Loading comments…';
+                list.innerHTML = '';
+                list.appendChild(loading);
+
+                fetch(base + '/' + encodeURIComponent(postId) + '/comments', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        list.innerHTML = '';
+                        var items = (data && data.comments) || [];
+                        if (items.length === 0) {
+                            const e = document.createElement('div');
+                            e.className = 'ns-post-comment-empty';
+                            e.dataset.role = 'comment-empty';
+                            e.textContent = 'Be the first to comment.';
+                            list.appendChild(e);
+                            return;
+                        }
+                        items.forEach(function (c) { list.appendChild(renderComment(c)); });
+                    })
+                    .catch(function () {
+                        card.dataset.commentsLoaded = '';
+                        list.innerHTML = '<div class="ns-post-comment-empty">Could not load comments.</div>';
+                    });
+            }
+
+            function toggleComments(card) {
+                const section = card.querySelector('[data-role="comments"]');
+                const btn = card.querySelector('[data-action="toggle-comments"]');
+                if (!section || !btn) return;
+                const isOpen = !section.hidden;
+                section.hidden = isOpen;
+                btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+                if (!isOpen) {
+                    loadComments(card);
+                    const input = card.querySelector('[data-role="comment-input"]');
+                    if (input) setTimeout(function () { input.focus(); }, 80);
+                }
+            }
+
+            function submitComment(card, event) {
+                event.preventDefault();
+                const input = card.querySelector('[data-role="comment-input"]');
+                const list = card.querySelector('[data-role="comment-list"]');
+                const form = card.querySelector('[data-role="comment-form"]');
+                const submitBtn = form ? form.querySelector('.ns-post-comment-submit') : null;
+                if (!input || !list || !form) return;
+                const body = input.value.trim();
+                if (!body) return;
+                const postId = card.dataset.postId;
+                if (!postId) return;
+
+                if (submitBtn) submitBtn.disabled = true;
+
+                const fd = new FormData();
+                fd.append('_token', window.HIKER_BOOTSTRAP.csrf);
+                fd.append('body', body);
+
+                fetch(base + '/' + encodeURIComponent(postId) + '/comments', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': window.HIKER_BOOTSTRAP.csrf,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    body: fd,
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (!data || !data.success || !data.comment) throw new Error('Request failed');
+                        // Remove the "Be the first to comment." placeholder if present
+                        const placeholder = list.querySelector('.ns-post-comment-empty');
+                        if (placeholder) placeholder.remove();
+                        list.appendChild(renderComment(data.comment));
+                        setCountText(card, 'comment-count', Number(data.comments_count) || 0);
+                        input.value = '';
+                        card.dataset.commentsLoaded = '1';
+                        list.scrollTop = list.scrollHeight;
+                    })
+                    .catch(function () {
+                        console.warn('Could not post comment.');
+                    })
+                    .finally(function () {
+                        if (submitBtn) submitBtn.disabled = false;
+                    });
+            }
+
+            document.addEventListener('click', function (event) {
+                const actionBtn = event.target.closest('.ns-post-action');
+                if (!actionBtn) return;
+                const card = actionBtn.closest('.ns-post-card');
+                if (!card) return;
+                const action = actionBtn.dataset.action;
+                if (action === 'like') toggleLike(card);
+                else if (action === 'toggle-comments') toggleComments(card);
+            });
+
+            document.addEventListener('submit', function (event) {
+                const form = event.target.closest('[data-role="comment-form"]');
+                if (!form) return;
+                const card = form.closest('.ns-post-card');
+                if (!card) return;
+                submitComment(card, event);
+            });
+        })();
     </script>
 
     {{-- Google Maps JavaScript API --}}
