@@ -408,11 +408,22 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if ($user && $user->email_verified_at === null) {
-            return response()->json([
-                'success' => false, 
-                'needs_verification' => true,
-                'message' => 'Please verify your email address to continue.'
-            ], 403);
+            // Admin-created accounts (tour guides and admins) don't go through
+            // the OTP registration flow. If an older row was saved before we
+            // started stamping email_verified_at at creation time, auto-verify
+            // it here so the user can sign in without getting stuck.
+            if ($user->isTourGuide() || $user->isAdmin()) {
+                $user->email_verified_at = now();
+                $user->verification_code = null;
+                $user->verification_code_expires_at = null;
+                $user->save();
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'needs_verification' => true,
+                    'message' => 'Please verify your email address to continue.'
+                ], 403);
+            }
         }
 
         if (Auth::attempt($credentials, true)) {
