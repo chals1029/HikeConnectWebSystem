@@ -174,9 +174,11 @@
 .adm-modal-back { position: fixed; inset: 0; background: rgba(15,23,21,0.55); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 3000; padding: 16px; }
 .adm-modal-back.show { display: flex; }
 .adm-modal { background: var(--panel); border-radius: 18px; max-width: 720px; width: 100%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 24px 48px rgba(6,95,70,0.25); border: 1px solid var(--line); }
-.adm-modal-head { padding: 18px 22px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+/* Some modals wrap body+foot in a <form>; pass flex through so the body can scroll. */
+.adm-modal > form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.adm-modal-head { padding: 18px 22px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
 .adm-modal-head h3 { font-size: 16px; font-weight: 800; margin: 0; color: var(--text); }
-.adm-modal-body { padding: 22px; overflow-y: auto; }
-.adm-modal-foot { padding: 16px 22px; border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: flex-end; }
+.adm-modal-body { padding: 22px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1 1 auto; min-height: 0; }
+.adm-modal-foot { padding: 16px 22px; border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: flex-end; flex-shrink: 0; }
 .adm-modal-close { background: transparent; border: none; cursor: pointer; color: var(--muted); padding: 4px; border-radius: 8px; }
 .adm-modal-close:hover { background: var(--bg); color: var(--text); }
