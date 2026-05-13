@@ -40,27 +40,41 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 36px; height: 36px;
-        margin-left: auto;
+        width: 32px; height: 32px;
         flex-shrink: 0;
         border: 1px solid var(--line, #e5eee8);
-        border-radius: 10px;
+        border-radius: 8px;
         color: var(--muted, #5f6d64);
         background: var(--panel, #fff);
         cursor: pointer;
         text-decoration: none;
         transition: color .2s ease, background .2s ease, border-color .2s ease;
     }
+    .hc-bell svg { width: 16px; height: 16px; }
     .hc-bell:hover { color: var(--text, #122018); border-color: var(--brand-dark, #065f46); background: var(--brand-soft, #e8fbf4); }
     .hc-bell.is-open { color: var(--text, #122018); border-color: var(--brand-dark, #065f46); background: var(--brand-soft, #e8fbf4); }
+    /* Sidebar header layout: brand grows, bell+toggle stay snug on the right.
+       Without min-width:0 the brand text refuses to shrink and pushes the bell
+       off the edge. */
+    .sidebar-top { gap: 6px !important; }
+    .sidebar-top .brand { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+    .sidebar-top .brand-name { font-size: clamp(1rem, 1.6vw, 1.18rem) !important; }
+    .sidebar-top .brand-logo { height: 2rem !important; }
+    /* Mobile header (the top bar shown < 1050px) gets the same treatment. */
+    .mobile-header .brand { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+    .mobile-header .brand-name { font-size: 1.05rem !important; }
+    .mobile-header .brand-logo { height: 1.55rem !important; }
+    /* In collapsed sidebar mode, the bell needs to sit centered like the toggle. */
+    .layout.collapsed .sidebar-top .hc-bell { margin-left: 0; }
+    .layout.collapsed .sidebar-top .brand .brand-name { display: none; }
     .hc-bell-badge {
         position: absolute;
-        top: -6px; right: -6px;
-        min-width: 18px; height: 18px;
+        top: -5px; right: -5px;
+        min-width: 16px; height: 16px;
         padding: 0 4px;
         background: #ef4444;
         color: #fff;
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 800;
         border-radius: 999px;
         display: flex; align-items: center; justify-content: center;
