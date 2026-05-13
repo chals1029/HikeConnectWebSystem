@@ -79,6 +79,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     <span class="menu-text">Tour Guides</span>
                 </a>
+                <a href="#mountains" class="menu-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"></path></svg>
+                    <span class="menu-text">Mountains</span>
+                </a>
                 <a href="#hikers" class="menu-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     <span class="menu-text">Hikers</span>
@@ -1007,6 +1011,122 @@
                 </div>
             </div>
 
+            {{-- ============== MOUNTAINS ============== --}}
+            <div class="view-section" id="view-mountains">
+                <header class="dashboard-header">
+                    <div class="tg-topbar">
+                        <div>
+                            <h2>Mountains</h2>
+                            <p>Add a mountain so it appears in the hiker app. Set jump-off and summit coordinates, weather tracking, gear, and pricing.</p>
+                        </div>
+                        <button class="tg-btn primary" type="button" data-open-modal="adm-modal-mountain-create">
+                            <iconify-icon icon="lucide:plus"></iconify-icon> Add mountain
+                        </button>
+                    </div>
+                </header>
+
+                <div class="dashboard-card">
+                    @if($mountains->isEmpty())
+                        <div class="tg-empty">No mountains yet. Add your first one to get started.</div>
+                    @else
+                        <div class="tg-table-wrap">
+                            <table class="tg-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mountain</th>
+                                        <th>Difficulty</th>
+                                        <th>Elevation</th>
+                                        <th>Jump-off / Summit</th>
+                                        <th>Status</th>
+                                        <th style="text-align:right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($mountains as $m)
+                                        @php
+                                            $mountainPayload = [
+                                                'id' => $m->id,
+                                                'slug' => $m->slug,
+                                                'name' => $m->name,
+                                                'location' => $m->location,
+                                                'difficulty' => $m->difficulty,
+                                                'short_description' => $m->short_description,
+                                                'full_description' => $m->full_description,
+                                                'elevation_label' => $m->elevation_label,
+                                                'elevation_meters' => $m->elevation_meters,
+                                                'duration_label' => $m->duration_label,
+                                                'trail_type_label' => $m->trail_type_label,
+                                                'best_time_label' => $m->best_time_label,
+                                                'rating' => $m->rating,
+                                                'status' => $m->status,
+                                                'jumpoff_name' => $m->jumpoff_name,
+                                                'jumpoff_address' => $m->jumpoff_address,
+                                                'jumpoff_meeting_time' => $m->jumpoff_meeting_time,
+                                                'jumpoff_notes' => $m->jumpoff_notes,
+                                                'jumpoff_lat' => $m->jumpoff_lat,
+                                                'jumpoff_lng' => $m->jumpoff_lng,
+                                                'summit_lat' => $m->summit_lat,
+                                                'summit_lng' => $m->summit_lng,
+                                                'open_meteo_lat' => $m->open_meteo_lat,
+                                                'open_meteo_lng' => $m->open_meteo_lng,
+                                                'enable_weather' => ! is_null($m->open_meteo_lat) && ! is_null($m->open_meteo_lng),
+                                                'emergency_contact' => $m->emergency_contact,
+                                                'gear_csv' => is_array($m->gear) ? implode("\n", $m->gear) : '',
+                                                'registration_fee_per_person' => $m->registration_fee_per_person,
+                                                'environmental_fee_per_person' => $m->environmental_fee_per_person,
+                                                'local_fee_per_person' => $m->local_fee_per_person,
+                                                'guide_fee_per_person' => $m->guide_fee_per_person,
+                                                'guide_fee_per_group' => $m->guide_fee_per_group,
+                                                'image_url' => asset($m->image_path),
+                                            ];
+                                        @endphp
+                                        <tr>
+                                            <td>
+                                                <div style="display:flex;align-items:center;gap:10px;">
+                                                    <div style="width:42px;height:42px;border-radius:10px;background-image:url('{{ asset($m->image_path) }}');background-size:cover;background-position:center;flex-shrink:0;border:1px solid var(--line);"></div>
+                                                    <div>
+                                                        <div style="font-weight:800;color:var(--text);">{{ $m->name }}</div>
+                                                        <div style="font-size:12px;color:var(--muted);">{{ $m->location }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ $m->difficulty }}</td>
+                                            <td>{{ $m->elevation_label }}</td>
+                                            <td>
+                                                <div style="font-size:12px;color:var(--muted);line-height:1.5;">
+                                                    <div><strong style="color:var(--text);">Jump-off:</strong> {{ number_format((float) $m->jumpoff_lat, 5) }}, {{ number_format((float) $m->jumpoff_lng, 5) }}</div>
+                                                    <div><strong style="color:var(--text);">Summit:</strong> {{ number_format((float) $m->summit_lat, 5) }}, {{ number_format((float) $m->summit_lng, 5) }}</div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @php
+                                                    $safety = $m->safety_status ?? \App\Models\Mountain::SAFETY_OPEN;
+                                                @endphp
+                                                <span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;background:{{ $m->status === 'open' ? '#dcfce7' : '#fee2e2' }};color:{{ $m->status === 'open' ? '#166534' : '#991b1b' }};">{{ ucfirst($m->status) }}</span>
+                                                <div style="font-size:11px;color:var(--muted);margin-top:4px;">Safety: {{ $m->safety_status_label }}</div>
+                                            </td>
+                                            <td style="text-align:right;">
+                                                <div class="tg-row-actions" style="justify-content:flex-end;flex-wrap:wrap;gap:6px;">
+                                                    <button class="tg-btn" type="button"
+                                                        data-open-modal="adm-modal-mountain-edit"
+                                                        data-mountain='@json($mountainPayload)'>
+                                                        <iconify-icon icon="lucide:edit-3"></iconify-icon> Edit
+                                                    </button>
+                                                    <form method="POST" action="{{ route('admin.mountains.destroy', $m) }}" style="display:inline;" onsubmit="return confirm('Delete {{ $m->name }}? This cannot be undone, and only works if no bookings reference it.');">
+                                                        @csrf @method('DELETE')
+                                                        <button class="tg-btn danger" type="submit"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             {{-- ============== HIKERS ============== --}}
             <div class="view-section" id="view-hikers">
                 <header class="dashboard-header">
@@ -1583,6 +1703,42 @@
         </div>
     </div>
 
+    {{-- Create mountain --}}
+    <div class="adm-modal-back" id="adm-modal-mountain-create">
+        <div class="adm-modal" style="max-width:920px;">
+            <div class="adm-modal-head">
+                <h3>Add Mountain</h3>
+                <button type="button" class="adm-modal-close" data-close-modal><iconify-icon icon="lucide:x" style="font-size:20px;"></iconify-icon></button>
+            </div>
+            <form method="POST" action="{{ route('admin.mountains.store') }}" enctype="multipart/form-data" id="adm-mountain-create-form">
+                @csrf
+                @include('partials.admin._mountain-form-fields', ['isEdit' => false])
+                <div class="adm-modal-foot">
+                    <button type="button" class="tg-btn" data-close-modal>Cancel</button>
+                    <button type="submit" class="tg-btn primary"><iconify-icon icon="lucide:plus"></iconify-icon> Create mountain</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Edit mountain --}}
+    <div class="adm-modal-back" id="adm-modal-mountain-edit">
+        <div class="adm-modal" style="max-width:920px;">
+            <div class="adm-modal-head">
+                <h3>Edit Mountain</h3>
+                <button type="button" class="adm-modal-close" data-close-modal><iconify-icon icon="lucide:x" style="font-size:20px;"></iconify-icon></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data" id="adm-mountain-edit-form">
+                @csrf @method('PUT')
+                @include('partials.admin._mountain-form-fields', ['isEdit' => true])
+                <div class="adm-modal-foot">
+                    <button type="button" class="tg-btn" data-close-modal>Cancel</button>
+                    <button type="submit" class="tg-btn primary"><iconify-icon icon="lucide:save"></iconify-icon> Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- Create admin --}}
     <div class="adm-modal-back" id="adm-modal-admin-create">
         <div class="adm-modal">
@@ -1679,6 +1835,7 @@
             'security':  document.getElementById('view-security'),
             'analytics': document.getElementById('view-analytics'),
             'guides':    document.getElementById('view-guides'),
+            'mountains': document.getElementById('view-mountains'),
             'hikers':    document.getElementById('view-hikers'),
             'admins':    document.getElementById('view-admins'),
             'audit':     document.getElementById('view-audit'),
@@ -1735,6 +1892,13 @@
             if (boot.openModal === 'guide-create') {
                 showView('#guides');
                 document.getElementById('adm-modal-guide-create')?.classList.add('show');
+            }
+            if (boot.openModal === 'mountain-create') {
+                showView('#mountains');
+                document.getElementById('adm-modal-mountain-create')?.classList.add('show');
+            }
+            if (boot.openModal === 'mountain-edit') {
+                showView('#mountains');
             }
         })();
 
@@ -1800,6 +1964,74 @@
         darkBtn?.addEventListener('click', () => applyTheme('dark'));
 
         // ====== Modal helpers ======
+        // ---- Mountain form helpers ----
+        function setIfPresent(form, name, value) {
+            const el = form.querySelector(`[name="${name}"]`);
+            if (!el) return;
+            if (el.type === 'checkbox') {
+                el.checked = !!value;
+            } else {
+                el.value = (value === null || value === undefined) ? '' : value;
+            }
+        }
+        function syncMountainWeatherToggle(form) {
+            const toggle = form.querySelector('[data-role="weather-toggle"]');
+            const coords = form.querySelector('[data-role="weather-coords"]');
+            if (!toggle || !coords) return;
+            coords.style.display = toggle.checked ? '' : 'none';
+        }
+        function bindMountainImagePreview(form) {
+            const input = form.querySelector('[data-role="image-input"]');
+            const preview = form.querySelector('[data-role="image-preview"]');
+            if (!input || !preview || input.dataset.bound === '1') return;
+            input.dataset.bound = '1';
+            input.addEventListener('change', () => {
+                const file = input.files && input.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    preview.style.backgroundImage = `url('${ev.target.result}')`;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        function bindMountainWeatherToggle(form) {
+            const toggle = form.querySelector('[data-role="weather-toggle"]');
+            if (!toggle || toggle.dataset.bound === '1') return;
+            toggle.dataset.bound = '1';
+            toggle.addEventListener('change', () => syncMountainWeatherToggle(form));
+        }
+        function resetMountainForm(form) {
+            form.reset();
+            const preview = form.querySelector('[data-role="image-preview"]');
+            if (preview) preview.style.backgroundImage = '';
+            bindMountainImagePreview(form);
+            bindMountainWeatherToggle(form);
+            syncMountainWeatherToggle(form);
+        }
+        function populateMountainForm(form, data) {
+            form.action = `{{ url('admin/mountains') }}/${data.id}`;
+            const fields = [
+                'name', 'location', 'difficulty', 'short_description', 'full_description',
+                'elevation_label', 'elevation_meters', 'duration_label', 'trail_type_label',
+                'best_time_label', 'rating', 'status',
+                'jumpoff_name', 'jumpoff_address', 'jumpoff_meeting_time', 'jumpoff_notes',
+                'jumpoff_lat', 'jumpoff_lng', 'summit_lat', 'summit_lng',
+                'open_meteo_lat', 'open_meteo_lng', 'emergency_contact', 'gear_csv',
+                'registration_fee_per_person', 'environmental_fee_per_person', 'local_fee_per_person',
+                'guide_fee_per_person', 'guide_fee_per_group',
+            ];
+            fields.forEach((f) => setIfPresent(form, f, data[f]));
+            const weatherToggle = form.querySelector('[data-role="weather-toggle"]');
+            if (weatherToggle) weatherToggle.checked = !!data.enable_weather;
+            const preview = form.querySelector('[data-role="image-preview"]');
+            if (preview && data.image_url) preview.style.backgroundImage = `url('${data.image_url}')`;
+            const imageInput = form.querySelector('[data-role="image-input"]');
+            if (imageInput) imageInput.value = '';
+            bindMountainImagePreview(form);
+            bindMountainWeatherToggle(form);
+            syncMountainWeatherToggle(form);
+        }
         document.addEventListener('click', (e) => {
             const opener = e.target.closest('[data-open-modal]');
             if (opener) {
@@ -1820,6 +2052,15 @@
                     form.querySelector('[name="status"]').value = data.status || 'available';
                     form.querySelector('[name="mountain_id"]').value = data.mountain_id || '';
                     form.querySelector('[name="reset_password"]').value = '';
+                }
+                if (id === 'adm-modal-mountain-create') {
+                    const form = document.getElementById('adm-mountain-create-form');
+                    if (form) resetMountainForm(form);
+                }
+                if (id === 'adm-modal-mountain-edit') {
+                    const data = JSON.parse(opener.getAttribute('data-mountain') || '{}');
+                    const form = document.getElementById('adm-mountain-edit-form');
+                    if (form) populateMountainForm(form, data);
                 }
             }
             const closer = e.target.closest('[data-close-modal]');

@@ -732,6 +732,234 @@ class AdminController extends Controller
         return back()->with('admin_status', 'Trail safety status updated for '.$mountain->name.'.');
     }
 
+    /* ==========================================================
+     * Mountain CRUD (admin can add/edit/remove a mountain).
+     * ========================================================== */
+
+    public function storeMountain(Request $request)
+    {
+        $data = $this->validateMountainForm($request);
+
+        $slug = $this->uniqueMountainSlug($data['name']);
+        $imagePath = $this->handleMountainImage($request, null);
+
+        $mountain = Mountain::create(array_merge($this->mapMountainFields($data, $imagePath), [
+            'slug' => $slug,
+            'safety_status' => Mountain::SAFETY_OPEN,
+        ]));
+
+        AuditLogger::log(
+            'admin.mountain.created',
+            'Created mountain '.$mountain->name,
+            null,
+            $mountain,
+            ['mountain_id' => $mountain->id]
+        );
+
+        return redirect()->route('admin.dashboard')
+            ->withFragment('mountains')
+            ->with('admin_status', 'Mountain "'.$mountain->name.'" added.');
+    }
+
+    public function updateMountain(Request $request, Mountain $mountain)
+    {
+        $data = $this->validateMountainForm($request, $mountain);
+        $imagePath = $this->handleMountainImage($request, $mountain);
+
+        $mountain->fill($this->mapMountainFields($data, $imagePath))->save();
+
+        AuditLogger::log(
+            'admin.mountain.updated',
+            'Updated mountain '.$mountain->name,
+            null,
+            $mountain,
+            ['mountain_id' => $mountain->id]
+        );
+
+        return redirect()->route('admin.dashboard')
+            ->withFragment('mountains')
+            ->with('admin_status', 'Mountain "'.$mountain->name.'" updated.');
+    }
+
+    public function destroyMountain(Mountain $mountain)
+    {
+        $bookingsCount = HikeBooking::where('mountain_id', $mountain->id)->count();
+        if ($bookingsCount > 0) {
+            return back()->with('admin_error', 'Cannot delete '.$mountain->name.' — '.$bookingsCount.' booking(s) reference it. Archive instead.');
+        }
+
+        $name = $mountain->name;
+        $imagePath = $mountain->image_path;
+        $mountain->delete();
+
+        // Best-effort cleanup of the uploaded image. Only delete from the
+        // managed mountains/ folder so we never wipe seeded images.
+        if ($imagePath && str_starts_with($imagePath, 'storage/mountains/')) {
+            try {
+                Storage::disk('public')->delete(Str::after($imagePath, 'storage/'));
+            } catch (\Throwable $e) {
+                // Don't block the deletion on file cleanup failure.
+            }
+        }
+
+        AuditLogger::log(
+            'admin.mountain.deleted',
+            'Deleted mountain '.$name,
+            null,
+            null,
+            ['mountain_name' => $name]
+        );
+
+        return redirect()->route('admin.dashboard')
+            ->withFragment('mountains')
+            ->with('admin_status', 'Mountain "'.$name.'" removed.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validateMountainForm(Request $request, ?Mountain $mountain = null): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'location' => ['required', 'string', 'max:160'],
+            'difficulty' => ['required', 'string', 'max:32'],
+            'short_description' => ['nullable', 'string', 'max:512'],
+            'full_description' => ['required', 'string', 'max:5000'],
+            'elevation_label' => ['required', 'string', 'max:32'],
+            'elevation_meters' => ['required', 'integer', 'min:0', 'max:9000'],
+            'duration_label' => ['required', 'string', 'max:32'],
+            'trail_type_label' => ['required', 'string', 'max:64'],
+            'best_time_label' => ['required', 'string', 'max:64'],
+            'rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
+            'status' => ['required', Rule::in(['open', 'closed'])],
+            'jumpoff_name' => ['required', 'string', 'max:160'],
+            'jumpoff_address' => ['required', 'string', 'max:255'],
+            'jumpoff_meeting_time' => ['required', 'string', 'max:32'],
+            'jumpoff_notes' => ['nullable', 'string', 'max:1000'],
+            'jumpoff_lat' => ['required', 'numeric', 'between:-90,90'],
+            'jumpoff_lng' => ['required', 'numeric', 'between:-180,180'],
+            'summit_lat' => ['required', 'numeric', 'between:-90,90'],
+            'summit_lng' => ['required', 'numeric', 'between:-180,180'],
+            'open_meteo_lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'open_meteo_lng' => ['nullable', 'numeric', 'between:-180,180'],
+            'enable_weather' => ['nullable', 'boolean'],
+            'emergency_contact' => ['nullable', 'string', 'max:64'],
+            'gear_csv' => ['nullable', 'string', 'max:2000'],
+            'registration_fee_per_person' => ['nullable', 'numeric', 'min:0'],
+            'environmental_fee_per_person' => ['nullable', 'numeric', 'min:0'],
+            'local_fee_per_person' => ['nullable', 'numeric', 'min:0'],
+            'guide_fee_per_person' => ['nullable', 'numeric', 'min:0'],
+            'guide_fee_per_group' => ['nullable', 'numeric', 'min:0'],
+            'image' => ['nullable', 'image', 'max:8192', 'mimes:jpeg,jpg,png,webp'],
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function mapMountainFields(array $data, ?string $imagePath): array
+    {
+        $weatherEnabled = filter_var($data['enable_weather'] ?? false, FILTER_VALIDATE_BOOL);
+        $gearList = collect(explode("\n", str_replace([',', ';'], "\n", (string) ($data['gear_csv'] ?? ''))))
+            ->map(fn ($g) => trim((string) $g))
+            ->filter()
+            ->values()
+            ->all();
+
+        $fields = [
+            'name' => $data['name'],
+            'location' => $data['location'],
+            'difficulty' => $data['difficulty'],
+            'short_description' => $data['short_description'] ?? null,
+            'full_description' => $data['full_description'],
+            'elevation_label' => $data['elevation_label'],
+            'elevation_meters' => (int) $data['elevation_meters'],
+            'duration_label' => $data['duration_label'],
+            'trail_type_label' => $data['trail_type_label'],
+            'best_time_label' => $data['best_time_label'],
+            'rating' => isset($data['rating']) ? (float) $data['rating'] : 5.0,
+            'status' => $data['status'],
+            'jumpoff_name' => $data['jumpoff_name'],
+            'jumpoff_address' => $data['jumpoff_address'],
+            'jumpoff_meeting_time' => $data['jumpoff_meeting_time'],
+            'jumpoff_notes' => $data['jumpoff_notes'] ?? null,
+            'jumpoff_lat' => (float) $data['jumpoff_lat'],
+            'jumpoff_lng' => (float) $data['jumpoff_lng'],
+            'summit_lat' => (float) $data['summit_lat'],
+            'summit_lng' => (float) $data['summit_lng'],
+            'open_meteo_lat' => $weatherEnabled
+                ? (isset($data['open_meteo_lat']) ? (float) $data['open_meteo_lat'] : (float) $data['jumpoff_lat'])
+                : null,
+            'open_meteo_lng' => $weatherEnabled
+                ? (isset($data['open_meteo_lng']) ? (float) $data['open_meteo_lng'] : (float) $data['jumpoff_lng'])
+                : null,
+            'gear' => $gearList,
+            'emergency_contact' => $data['emergency_contact'] ?? null,
+            'registration_fee_per_person' => isset($data['registration_fee_per_person']) ? (float) $data['registration_fee_per_person'] : 0,
+            'environmental_fee_per_person' => isset($data['environmental_fee_per_person']) ? (float) $data['environmental_fee_per_person'] : 0,
+            'local_fee_per_person' => isset($data['local_fee_per_person']) ? (float) $data['local_fee_per_person'] : 0,
+            'guide_fee_per_person' => isset($data['guide_fee_per_person']) ? (float) $data['guide_fee_per_person'] : 0,
+            'guide_fee_per_group' => isset($data['guide_fee_per_group']) ? (float) $data['guide_fee_per_group'] : 0,
+        ];
+
+        if ($imagePath !== null) {
+            $fields['image_path'] = $imagePath;
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Store the uploaded image in public/storage/mountains and return the
+     * relative path used by Mountain::image_path (so asset($path) resolves).
+     * Returns null when no new image is uploaded.
+     */
+    private function handleMountainImage(Request $request, ?Mountain $mountain): ?string
+    {
+        if (! $request->hasFile('image')) {
+            // For new mountains require an image; the validator above already
+            // marks it nullable so callers can fall back to a default below.
+            if ($mountain === null) {
+                return 'images/mt-batulao.jpg'; // safe fallback so the column never goes null
+            }
+
+            return null;
+        }
+
+        $file = $request->file('image');
+        $stored = $file->store('mountains', 'public');
+
+        // Best-effort delete of the previous file if it was admin-uploaded.
+        if ($mountain && $mountain->image_path && str_starts_with($mountain->image_path, 'storage/mountains/')) {
+            try {
+                Storage::disk('public')->delete(Str::after($mountain->image_path, 'storage/'));
+            } catch (\Throwable $e) {
+                // ignore
+            }
+        }
+
+        return 'storage/'.$stored;
+    }
+
+    private function uniqueMountainSlug(string $name): string
+    {
+        $base = Str::slug($name);
+        if ($base === '') {
+            $base = 'mountain';
+        }
+
+        $slug = $base;
+        $i = 1;
+        while (Mountain::where('slug', $slug)->exists()) {
+            $i++;
+            $slug = $base.'-'.$i;
+        }
+
+        return $slug;
+    }
+
     private function sosAlertPayload()
     {
         return SosAlert::query()

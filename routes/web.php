@@ -74,6 +74,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/hikers/{hiker}', [AdminController::class, 'showHiker'])->name('hikers.show');
     Route::delete('/hikers/{hiker}', [AdminController::class, 'suspendHiker'])->name('hikers.destroy');
     Route::patch('/mountains/{mountain}/safety', [AdminController::class, 'updateMountainSafety'])->name('mountains.safety.update');
+    Route::post('/mountains', [AdminController::class, 'storeMountain'])->name('mountains.store');
+    Route::put('/mountains/{mountain}', [AdminController::class, 'updateMountain'])->name('mountains.update');
+    Route::delete('/mountains/{mountain}', [AdminController::class, 'destroyMountain'])->name('mountains.destroy');
 
     Route::get('/live-locations', [AdminController::class, 'liveLocations'])->name('live-locations');
     Route::get('/sos-alerts', [AdminController::class, 'sosAlerts'])->name('sos-alerts.index');
