@@ -26,6 +26,7 @@
                         <img src="{{ asset('images/HikeConnect-Logo.png') }}" class="brand-logo" alt="">
                         <span class="brand-name"><span class="brand-name__hike">Hike</span><span class="brand-name__connect">Connect</span></span>
                     </a>
+                    @include('partials._notification-bell')
                     <button class="sidebar-toggle" onclick="document.querySelector('.layout').classList.toggle('collapsed')" aria-label="Toggle Sidebar">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -92,6 +93,10 @@
                 <a href="#settings" class="menu-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     <span class="menu-text">Account Settings</span>
+                </a>
+                <a href="#notifications" class="menu-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                    <span class="menu-text">Notifications</span>
                 </a>
                 <a href="#safety-alerts" class="menu-item">
                     <svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -1068,6 +1073,7 @@
 
             {{-- === Include New Sections === --}}
             @include('hikers._new-sections')
+            @include('partials._notification-history')
         </main>
     </div>
 
@@ -2030,7 +2036,8 @@
                 'trail-plan': document.getElementById('view-trail-plan'),
                 'community-chat': document.getElementById('view-community-chat'),
                 'settings': document.getElementById('view-settings'),
-                'safety-alerts': document.getElementById('view-safety-alerts')
+                'safety-alerts': document.getElementById('view-safety-alerts'),
+                'notifications': document.getElementById('view-notifications')
             };
 
             window.showView = function(targetId) {
@@ -3909,4 +3916,6 @@
     @if (filled(config('services.google_maps.key')))
         <script src="https://maps.googleapis.com/maps/api/js?key={{ e(config('services.google_maps.key')) }}&v=beta&callback=initTrackerDefaultMap" async defer></script>
     @endif
+
+    @include('partials._notification-bell-script')
 </body>

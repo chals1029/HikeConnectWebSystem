@@ -37,6 +37,7 @@
                         <img src="{{ asset('images/HikeConnect-Logo.png') }}" class="brand-logo" alt="">
                         <span class="brand-name"><span class="brand-name__hike">Hike</span><span class="brand-name__connect">Connect</span></span>
                     </a>
+                    @include('partials._notification-bell')
                     <button class="sidebar-toggle" onclick="document.querySelector('.layout').classList.toggle('collapsed')" aria-label="Toggle Sidebar">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -94,6 +95,10 @@
                 <a href="#audit" class="menu-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     <span class="menu-text">Audit Logs</span>
+                </a>
+                <a href="#notifications" class="menu-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                    <span class="menu-text">Notifications</span>
                 </a>
                 <a href="#health" class="menu-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
@@ -1590,6 +1595,8 @@
                     </div>
                 </div>
             </div>
+
+            @include('partials._notification-history')
         </main>
     </div>
 
@@ -1840,6 +1847,7 @@
             'admins':    document.getElementById('view-admins'),
             'audit':     document.getElementById('view-audit'),
             'health':    document.getElementById('view-health'),
+            'notifications': document.getElementById('view-notifications'),
         };
         function showView(targetId) {
             Object.values(sections).forEach(s => { if (s) s.classList.remove('active'); });
@@ -2679,5 +2687,7 @@
         window.__hcAdminInitLineCharts = initLineCharts;
     })();
     </script>
+
+    @include('partials._notification-bell-script')
 </body>
 </html>

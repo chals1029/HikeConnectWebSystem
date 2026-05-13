@@ -7,6 +7,7 @@ use App\Models\Mountain;
 use App\Models\SosAlert;
 use App\Models\TourGuide;
 use App\Services\AuditLogger;
+use App\Services\NotificationDispatcher;
 use App\Services\ProfilePictureDatabaseWriter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -119,6 +120,17 @@ class TourGuideDashboardController extends Controller
             'mountain_id' => $booking->mountain_id,
         ]);
 
+        $mountainName = $booking->mountain?->name ?? 'your hike';
+        NotificationDispatcher::notify(
+            $booking->user_id,
+            'booking.approved',
+            'Booking approved',
+            "Your hike on {$mountainName} on ".$booking->hike_on->format('M j, Y').' was approved.',
+            url('/hikers#bookings'),
+            'lucide:badge-check',
+            ['booking_id' => $booking->id]
+        );
+
         return response()->json(['success' => true, 'status' => $booking->status]);
     }
 
@@ -135,6 +147,17 @@ class TourGuideDashboardController extends Controller
 
         $booking->update(['status' => 'cancelled']);
         AuditLogger::log('booking.rejected', "Rejected/cancelled booking #{$booking->id}", $booking->user, $booking);
+
+        $mountainName = $booking->mountain?->name ?? 'your hike';
+        NotificationDispatcher::notify(
+            $booking->user_id,
+            'booking.rejected',
+            'Booking rejected',
+            "Your hike request for {$mountainName} on ".$booking->hike_on->format('M j, Y').' was declined. Try a different date or guide.',
+            url('/hikers#bookings'),
+            'lucide:circle-x',
+            ['booking_id' => $booking->id]
+        );
 
         return response()->json(['success' => true, 'status' => $booking->status]);
     }
@@ -161,6 +184,17 @@ class TourGuideDashboardController extends Controller
         AuditLogger::log('booking.completed', "Completed booking #{$booking->id}", $booking->user, $booking, [
             'duration_hours' => $booking->duration_hours,
         ]);
+
+        $mountainName = $booking->mountain?->name ?? 'your hike';
+        NotificationDispatcher::notify(
+            $booking->user_id,
+            'booking.completed',
+            'Hike marked complete',
+            "Your hike on {$mountainName} is complete. Leave a review and unlock your achievements.",
+            url('/hikers#bookings'),
+            'lucide:trophy',
+            ['booking_id' => $booking->id]
+        );
 
         return response()->json(['success' => true, 'status' => $booking->status]);
     }

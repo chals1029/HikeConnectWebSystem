@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HikerDashboardController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TourGuideDashboardController;
 use App\Http\Controllers\TrailExploreController;
 use App\Http\Controllers\UserAvatarController;
@@ -23,6 +24,15 @@ Route::get('/avatars/{user}', [UserAvatarController::class, 'show'])->name('user
 // Public trail exploration — no login required
 Route::get('/trails/{slug}', [TrailExploreController::class, 'show'])->name('trails.explore');
 Route::get('/trails/{slug}/preview', [TrailExploreController::class, 'preview'])->name('trails.preview');
+
+// Notifications (shared by hikers, tour guides, admins). The bell partial
+// and Notifications tab on every dashboard read from these endpoints.
+Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
+    Route::get('/bell', [NotificationController::class, 'bell'])->name('bell');
+    Route::get('/', [NotificationController::class, 'index'])->name('index');
+    Route::post('/{notification}/read', [NotificationController::class, 'markRead'])->name('mark-read');
+    Route::post('/read-all', [NotificationController::class, 'markAllRead'])->name('mark-all-read');
+});
 
 // Authenticated Hikers Dashboard
 Route::middleware('auth')->group(function () {

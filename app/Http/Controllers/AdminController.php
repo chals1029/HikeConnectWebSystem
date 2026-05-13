@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\UserExperienceFeedback;
 use App\Services\AuditLogger;
 use App\Services\MountainTrailProfileService;
+use App\Services\NotificationDispatcher;
 use App\Services\TrailDataService;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
@@ -417,6 +418,16 @@ class AdminController extends Controller
             'guide_id' => $guide->id,
         ]);
 
+        // Welcome the brand-new guide with a notification linking to their dashboard.
+        NotificationDispatcher::notify(
+            $guide->user_id,
+            'account.welcome',
+            'Welcome to HikeConnect',
+            'Your tour guide account is ready. Set your availability and check incoming bookings.',
+            url('/tour-guide'),
+            'lucide:hand'
+        );
+
         return redirect()->route('admin.dashboard')
             ->withFragment('guides')
             ->with('admin_status', 'Tour guide created successfully.');
@@ -728,6 +739,28 @@ class AdminController extends Controller
             $mountain,
             ['safety_status' => $mountain->safety_status]
         );
+
+        // Notify hikers with upcoming bookings on this mountain so they
+        // know about the change before their hike day.
+        if ($mountain->hasSafetyWarning()) {
+            $upcomingUserIds = HikeBooking::query()
+                ->where('mountain_id', $mountain->id)
+                ->where('hike_on', '>=', now()->startOfDay())
+                ->whereIn('status', ['pending', 'approved', 'in_progress'])
+                ->pluck('user_id')
+                ->unique();
+            foreach ($upcomingUserIds as $userId) {
+                NotificationDispatcher::notify(
+                    (int) $userId,
+                    'mountain.safety',
+                    "{$mountain->name}: {$mountain->safety_status_label}",
+                    $mountain->safety_note ?: 'Trail conditions have changed. Check the mountain page before your hike.',
+                    url('/hikers#bookings'),
+                    'lucide:triangle-alert',
+                    ['mountain_id' => $mountain->id, 'safety_status' => $mountain->safety_status]
+                );
+            }
+        }
 
         return back()->with('admin_status', 'Trail safety status updated for '.$mountain->name.'.');
     }

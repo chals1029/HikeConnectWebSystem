@@ -36,6 +36,7 @@
                         <img src="{{ asset('images/HikeConnect-Logo.png') }}" class="brand-logo" alt="">
                         <span class="brand-name"><span class="brand-name__hike">Hike</span><span class="brand-name__connect">Connect</span></span>
                     </a>
+                    @include('partials._notification-bell')
                     <button class="sidebar-toggle" onclick="document.querySelector('.layout').classList.toggle('collapsed')" aria-label="Toggle Sidebar">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -73,6 +74,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                     <span class="menu-text">Reviews</span>
                     @if($stats['rating_count'] > 0)<span class="menu-badge">{{ $stats['rating_count'] }}</span>@endif
+                </a>
+                <a href="#notifications" class="menu-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                    <span class="menu-text">Notifications</span>
                 </a>
                 <a href="#profile" class="menu-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -697,6 +702,8 @@
                     <div class="tg-empty">More settings coming soon. For now, edit your guiding info under <a href="#profile" class="js-go-profile" style="color:var(--brand-dark);font-weight:700;">My Profile</a>.</div>
                 </div>
             </div>
+
+            @include('partials._notification-history')
         </main>
     </div>
 
@@ -724,6 +731,7 @@
                 'reviews':  document.getElementById('view-reviews'),
                 'profile':  document.getElementById('view-profile'),
                 'settings': document.getElementById('view-settings'),
+                'notifications': document.getElementById('view-notifications'),
             };
 
             function showView(targetId) {
@@ -935,5 +943,7 @@
             });
         })();
     </script>
+
+    @include('partials._notification-bell-script')
 </body>
 </html>

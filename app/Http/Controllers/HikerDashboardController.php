@@ -19,6 +19,7 @@ use App\Services\AchievementEvaluator;
 use App\Services\AuditLogger;
 use App\Services\EmailService;
 use App\Services\MountainTrailProfileService;
+use App\Services\NotificationDispatcher;
 use App\Services\ProfilePictureDatabaseWriter;
 use App\Services\TrailDataService;
 use Illuminate\Support\Facades\DB;
@@ -789,6 +790,20 @@ class HikerDashboardController extends Controller
             'hikers_count' => $validated['hikers_count'],
         ]);
 
+        // Notify the assigned tour guide so they can review the request.
+        if ($guide->user_id) {
+            $hikerName = Auth::user()->full_name ?? 'A hiker';
+            NotificationDispatcher::notify(
+                $guide->user_id,
+                'booking.created',
+                'New booking request',
+                "{$hikerName} requested a hike on {$mountain->name} for ".\Carbon\Carbon::parse($validated['hike_on'])->format('M j, Y').'.',
+                url('/tour-guide#bookings'),
+                'lucide:calendar-plus',
+                ['booking_id' => $booking->id]
+            );
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Booking request sent! Your guide will review it (pending).',
@@ -1275,6 +1290,30 @@ class HikerDashboardController extends Controller
             $alert,
             ['sos_alert_id' => $alert->id, 'email_sent' => $emailSent]
         );
+
+        // In-app notifications: every admin and (if assigned) the tour guide.
+        $hikerName = $user->full_name;
+        $mountainName = $alert->mountain?->name ?? $alert->hikeBooking?->mountain?->name ?? 'an unspecified mountain';
+        $sosBody = "{$hikerName} triggered SOS on {$mountainName}. Open the live map to coordinate response.";
+        NotificationDispatcher::notifyAdmins(
+            'sos.triggered',
+            'SOS triggered',
+            $sosBody,
+            url('/admin#live-map'),
+            'lucide:siren',
+            ['sos_alert_id' => $alert->id]
+        );
+        if ($alert->tourGuide?->user_id) {
+            NotificationDispatcher::notify(
+                $alert->tourGuide->user_id,
+                'sos.triggered',
+                'SOS from your hiker',
+                $sosBody,
+                url('/tour-guide#sos-alerts'),
+                'lucide:siren',
+                ['sos_alert_id' => $alert->id]
+            );
+        }
 
         return response()->json([
             'success' => true,
