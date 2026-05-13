@@ -28,12 +28,27 @@ class HikeBooking extends Model
 
     public function canCheckIn(): bool
     {
-        return $this->status === 'approved' && $this->checked_in_at === null;
+        return $this->status === 'approved'
+            && $this->checked_in_at === null
+            && $this->isHikeDay();
     }
 
     public function canCheckOut(): bool
     {
         return $this->status === 'in_progress' && $this->checked_in_at !== null && $this->checked_out_at === null;
+    }
+
+    /**
+     * True only on the actual hike day. Hikers can't check in early or late
+     * because the QR code at the trailhead is meant for that day's group.
+     */
+    public function isHikeDay(): bool
+    {
+        if (! $this->hike_on) {
+            return false;
+        }
+
+        return $this->hike_on->isSameDay(today());
     }
 
     public function user(): BelongsTo

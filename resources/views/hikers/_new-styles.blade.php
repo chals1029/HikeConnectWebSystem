@@ -339,6 +339,8 @@
     .ns-booking-status.rejected { background:#fef2f2; color:#b91c1c; }
     .ns-cancel-btn { padding:6px 12px; border:1px solid var(--danger); color:var(--danger); background:transparent; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; transition:all .2s ease; }
     .ns-cancel-btn:hover { background:var(--danger); color:#fff; }
+    .ns-checkin-locked { display:inline-flex; align-items:center; padding:6px 12px; border:1px dashed var(--line); border-radius:999px; background:#f9fafb; color:var(--muted); font-size:12px; font-weight:600; line-height:1; }
+    .ns-checkin-locked iconify-icon { font-size:13px; }
     .ns-booking-feedback { flex:1 1 100%; width:100%; max-width:100%; padding-top:4px; }
     .ns-completed-feedback-grid { display:grid; grid-template-columns:minmax(0, 1fr); gap:14px; width:100%; max-width:100%; }
     .ns-booking-card.is-completed .ns-booking-review-inline {

@@ -838,8 +838,20 @@ class HikerDashboardController extends Controller
         }
 
         if (! $booking->canCheckIn()) {
+            // Surface the most likely reason so the hiker isn't left guessing.
+            $message = 'This booking cannot be checked in right now.';
+            if ($booking->checked_in_at !== null) {
+                $message = 'You have already checked in for this hike.';
+            } elseif ($booking->status !== 'approved') {
+                $message = 'This booking is not approved yet.';
+            } elseif (! $booking->isHikeDay()) {
+                $hikeDate = $booking->hike_on?->format('M j, Y');
+                $message = $booking->hike_on && $booking->hike_on->isFuture()
+                    ? "Check-in opens on your hike day ($hikeDate)."
+                    : "This hike was scheduled for $hikeDate. Contact your tour guide.";
+            }
             throw ValidationException::withMessages([
-                'booking' => 'This booking cannot be checked in right now.',
+                'booking' => $message,
             ]);
         }
 

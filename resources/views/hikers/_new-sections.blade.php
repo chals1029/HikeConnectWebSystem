@@ -516,8 +516,14 @@
                 @if($booking->ui_tab === 'upcoming' && in_array($booking->status, ['pending', 'approved'], true))
                 <button type="button" class="ns-cancel-btn" onclick="cancelBooking(this)">Cancel</button>
                 @endif
-                @if($booking->status === 'approved')
-                <button type="button" class="ns-action-btn" onclick="openBookingQrScan(this, 'checkin')">Check in</button>
+                @if($booking->status === 'approved' && $booking->canCheckIn())
+                    <button type="button" class="ns-action-btn" onclick="openBookingQrScan(this, 'checkin')">Check in</button>
+                @elseif($booking->status === 'approved' && $booking->checked_in_at === null)
+                    @php $hikeDateLabel = $booking->hike_on?->format('M j'); @endphp
+                    <span class="ns-checkin-locked" title="Check-in opens on the hike day">
+                        <iconify-icon icon="lucide:lock" style="vertical-align:text-bottom;margin-right:4px;"></iconify-icon>
+                        Check in opens {{ $hikeDateLabel }}
+                    </span>
                 @endif
                 @if($booking->status === 'in_progress')
                 <button type="button" class="ns-action-btn" onclick="openBookingQrScan(this, 'checkout')">Check out</button>
