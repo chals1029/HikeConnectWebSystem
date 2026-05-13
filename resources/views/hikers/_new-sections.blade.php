@@ -385,7 +385,7 @@
         </div>
     </div>
 
-    <div class="ns-booking-layout">
+    <div class="ns-booking-layout" id="booking-form-area">
         <div class="card ns-booking-form-card">
             <h3>Booking Details</h3>
             <form id="booking-form" onsubmit="submitBooking(event)">
@@ -448,15 +448,15 @@
         </div>
     </div>
 
-    {{-- Success Message (hidden by default) --}}
-    <div class="ns-booking-success" id="booking-success" style="display:none;">
+    {{-- Success Message (hidden by default, replaces the form area on success) --}}
+    <div class="ns-booking-success" id="booking-success">
         <div class="ns-success-card">
-            <div class="ns-success-icon"><iconify-icon icon="lucide:check-circle" style="vertical-align:text-bottom; margin-right:4px;"></iconify-icon></div>
-            <h3>Booking Request Sent!</h3>
+            <div class="ns-success-icon"><iconify-icon icon="lucide:check-circle"></iconify-icon></div>
+            <h3>Booking Request Sent</h3>
             <p>Your booking is now <strong>Pending</strong> approval. You'll be notified once your guide confirms.</p>
             <div class="ns-success-actions">
-                <button class="ns-submit-btn" onclick="showView('#bookings')">View My Bookings</button>
-                <button class="ns-back-btn" onclick="resetBookingForm()" style="margin-top:8px;">Book Another Hike</button>
+                <button type="button" class="ns-submit-btn" onclick="showView('#bookings')">View My Bookings</button>
+                <button type="button" class="ns-back-btn" onclick="resetBookingForm()">Book Another Hike</button>
             </div>
         </div>
     </div>

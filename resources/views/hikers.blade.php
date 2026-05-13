@@ -2723,16 +2723,18 @@
             }).then(function(res) {
                 if (btn) { btn.disabled = false; }
                 if (res.status === 200 && res.body.success) {
-                    var okMsg = res.body.message || 'Booking request sent! Pending guide approval.';
-                    hcToast(okMsg, false);
+                    var formArea = document.getElementById('booking-form-area');
                     var bs = document.getElementById('booking-success');
-                    if (bs) bs.style.display = 'flex';
-                    // Clear the form so the user doesn't accidentally re-submit.
+                    if (formArea) formArea.style.display = 'none';
+                    if (bs) bs.classList.add('is-shown');
+                    // Reset form fields so the next "Book Another Hike" starts fresh.
                     var form = document.getElementById('booking-form');
                     if (form) form.reset();
                     if (typeof updateBookingPreview === 'function') updateBookingPreview();
-                    // Quick browser confirmation so it's obvious the request landed.
-                    setTimeout(function () { window.alert(okMsg); }, 50);
+                    // Move the user's view to the success card.
+                    if (bs && typeof bs.scrollIntoView === 'function') {
+                        bs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
                 } else if (res.body.errors) {
                     hcToast(Object.values(res.body.errors).flat().join(' · '), true);
                 } else {
@@ -2745,9 +2747,13 @@
         };
 
         window.resetBookingForm = function() {
-            document.getElementById('booking-form')?.reset();
-            document.getElementById('booking-success').style.display = 'none';
-            updateBookingPreview();
+            var form = document.getElementById('booking-form');
+            var bs = document.getElementById('booking-success');
+            var formArea = document.getElementById('booking-form-area');
+            if (form) form.reset();
+            if (bs) bs.classList.remove('is-shown');
+            if (formArea) formArea.style.display = '';
+            if (typeof updateBookingPreview === 'function') updateBookingPreview();
         };
 
         const bookingQrState = {

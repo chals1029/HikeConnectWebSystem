@@ -308,12 +308,36 @@
     .ns-dot.completed { background:#3b82f6; }
     .ns-dot.cancelled { background:#94a3b8; }
 
-    .ns-booking-success { position:absolute; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:10; }
-    .ns-success-card { text-align:center; max-width:400px; }
-    .ns-success-icon { font-size:64px; margin-bottom:16px; }
-    .ns-success-card h3 { font-size:24px; margin-bottom:8px; color:var(--text); }
-    .ns-success-card p { color:var(--muted); margin-bottom:20px; line-height:1.6; }
-    .ns-success-actions { display:flex; flex-direction:column; gap:0; }
+    .ns-booking-success {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 60px 20px 80px;
+        animation: ns-success-fade-in .25s ease;
+    }
+    .ns-booking-success.is-shown { display: flex; }
+    .ns-success-card {
+        text-align: center;
+        max-width: 440px;
+        width: 100%;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        padding: 40px 28px;
+        box-shadow: 0 1px 2px rgba(6,95,70,0.04), 0 8px 20px rgba(6,95,70,0.06), 0 18px 36px rgba(6,95,70,0.08);
+    }
+    .ns-success-icon { font-size: 64px; margin-bottom: 16px; color: var(--brand-dark); }
+    .ns-success-card h3 { font-size: 24px; margin-bottom: 8px; color: var(--text); }
+    .ns-success-card p { color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+    .ns-success-actions { display: flex; flex-direction: column; gap: 10px; }
+    .ns-success-actions .ns-submit-btn,
+    .ns-success-actions .ns-back-btn { width: 100%; }
+    @keyframes ns-success-fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
 
     /* ── My Bookings ────────────────────────────────────────── */
     .ns-tabs { display:flex; gap:4px; margin-bottom:20px; background:var(--panel); padding:4px; border-radius:12px; border:none; box-shadow:0 1px 2px rgba(6,95,70,0.04), 0 4px 12px rgba(6,95,70,0.06), 0 10px 24px rgba(6,95,70,0.06); }
