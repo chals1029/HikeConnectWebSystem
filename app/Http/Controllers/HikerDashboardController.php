@@ -773,6 +773,26 @@ class HikerDashboardController extends Controller
             ]);
         }
 
+        // Block duplicate bookings: same hiker, same date, still active.
+        // Cancelled and rejected entries don't count so a hiker can re-book
+        // after being declined or after they cancelled themselves.
+        $duplicate = HikeBooking::query()
+            ->where('user_id', Auth::id())
+            ->whereDate('hike_on', $validated['hike_on'])
+            ->whereIn('status', ['pending', 'approved', 'in_progress'])
+            ->first();
+        if ($duplicate) {
+            $msg = match ($duplicate->status) {
+                'pending' => 'You already have a pending booking on this date. Wait for the guide to respond before booking another.',
+                'approved' => 'You already have an approved hike on this date. Cancel it first if you want to switch.',
+                'in_progress' => 'You already have a hike in progress today. Finish that one before booking another.',
+                default => 'You already have a booking on this date.',
+            };
+            throw ValidationException::withMessages([
+                'hike_on' => [$msg],
+            ]);
+        }
+
         $booking = HikeBooking::query()->create([
             'user_id' => Auth::id(),
             'mountain_id' => $mountain->id,

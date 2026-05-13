@@ -524,6 +524,11 @@
                         <iconify-icon icon="lucide:lock" style="vertical-align:text-bottom;margin-right:4px;"></iconify-icon>
                         Check in opens {{ $hikeDateLabel }}
                     </span>
+                @elseif($booking->status === 'pending' && $booking->isHikeDay())
+                    <span class="ns-checkin-locked" title="Your guide hasn't approved this hike yet" style="border-color:rgba(217,119,6,.45);background:#fffbeb;color:#92400e;">
+                        <iconify-icon icon="lucide:hourglass" style="vertical-align:text-bottom;margin-right:4px;"></iconify-icon>
+                        Waiting for guide approval
+                    </span>
                 @endif
                 @if($booking->status === 'in_progress')
                 <button type="button" class="ns-action-btn" onclick="openBookingQrScan(this, 'checkout')">Check out</button>

@@ -2684,6 +2684,29 @@
         window.submitBooking = function(e) {
             e.preventDefault();
             const fd = new FormData(document.getElementById('booking-form'));
+            const mountain = (fd.get('mountain') || '').toString();
+            const date = (fd.get('hike_on') || '').toString();
+            const hikers = (fd.get('hikers_count') || '').toString();
+
+            if (!mountain || !date || !hikers) {
+                hcToast('Please choose a mountain, date, and number of hikers.', true);
+                return;
+            }
+
+            const friendlyDate = (function () {
+                const d = new Date(date + 'T00:00:00');
+                if (Number.isNaN(d.getTime())) return date;
+                return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+            })();
+
+            const proceed = window.confirm(
+                'Confirm booking?\n\n' +
+                'Date: ' + friendlyDate + '\n' +
+                'Hikers: ' + hikers + '\n\n' +
+                'Heads up: you can only have one active booking per date. Tap OK to send the request.'
+            );
+            if (!proceed) return;
+
             fd.append('_token', window.HIKER_BOOTSTRAP.csrf);
             const btn = document.getElementById('booking-submit-btn');
             if (btn) { btn.disabled = true; }
@@ -2704,6 +2727,12 @@
                     hcToast(okMsg, false);
                     var bs = document.getElementById('booking-success');
                     if (bs) bs.style.display = 'flex';
+                    // Clear the form so the user doesn't accidentally re-submit.
+                    var form = document.getElementById('booking-form');
+                    if (form) form.reset();
+                    if (typeof updateBookingPreview === 'function') updateBookingPreview();
+                    // Quick browser confirmation so it's obvious the request landed.
+                    setTimeout(function () { window.alert(okMsg); }, 50);
                 } else if (res.body.errors) {
                     hcToast(Object.values(res.body.errors).flat().join(' · '), true);
                 } else {

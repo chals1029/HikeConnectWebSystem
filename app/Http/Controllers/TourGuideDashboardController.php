@@ -171,15 +171,26 @@ class TourGuideDashboardController extends Controller
             'duration_hours' => ['nullable', 'numeric', 'min:0', 'max:48'],
         ]);
 
-        if ($booking->status !== 'approved') {
+        if ($booking->status !== 'approved' && $booking->status !== 'in_progress') {
             throw ValidationException::withMessages([
                 'booking' => 'Only approved bookings can be marked completed.',
+            ]);
+        }
+
+        // Require the hiker to have actually checked in before we can mark
+        // the hike done. Otherwise we'd be confirming a hike that may never
+        // have happened, which is what triggered the "completed without
+        // check-in" issue.
+        if ($booking->checked_in_at === null) {
+            throw ValidationException::withMessages([
+                'booking' => 'The hiker has not checked in yet. They need to scan the check-in QR before this hike can be marked complete.',
             ]);
         }
 
         $booking->update([
             'status' => 'completed',
             'duration_hours' => $validated['duration_hours'] ?? $booking->duration_hours,
+            'checked_out_at' => $booking->checked_out_at ?? now(),
         ]);
         AuditLogger::log('booking.completed', "Completed booking #{$booking->id}", $booking->user, $booking, [
             'duration_hours' => $booking->duration_hours,
