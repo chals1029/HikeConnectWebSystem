@@ -1371,32 +1371,43 @@ class HikerDashboardController extends Controller
 
     private function resolveSosBooking(int $userId, ?int $requestedBookingId): ?HikeBooking
     {
+        $with = array_filter([
+            'mountain',
+            'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
+            User::supportsDatabaseProfilePictures() ? 'tourGuide.user.profilePicture:user_id,mime,updated_at' : null,
+        ]);
+
+        // If the client passed a specific booking id, honor it as long as
+        // it belongs to the hiker AND has actually started (checked in).
+        // We never link an SOS to a pending or future booking — the alert
+        // is supposed to mean "I'm in trouble on the trail right now."
         if ($requestedBookingId) {
             $booking = HikeBooking::query()
                 ->where('user_id', $userId)
-                ->with(array_filter([
-                    'mountain',
-                    'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                    User::supportsDatabaseProfilePictures() ? 'tourGuide.user.profilePicture:user_id,mime,updated_at' : null,
-                ]))
-                ->find($requestedBookingId);
+                ->where('id', $requestedBookingId)
+                ->whereNotNull('checked_in_at')
+                ->whereNull('checked_out_at')
+                ->whereIn('status', ['approved', 'in_progress'])
+                ->with($with)
+                ->first();
 
             if ($booking) {
                 return $booking;
             }
         }
 
+        // Auto-pick: only an in-progress hike (checked in, not yet checked out)
+        // counts. A pending or approved-but-unstarted booking should NOT carry
+        // the SOS. If nothing matches we return null and the alert is logged
+        // without a booking — the location ping is still useful.
         return HikeBooking::query()
             ->where('user_id', $userId)
-            ->whereIn('status', ['pending', 'approved', 'in_progress'])
-            ->whereDate('hike_on', '>=', today())
-            ->with(array_filter([
-                'mountain',
-                'tourGuide.user:id,first_name,last_name,email,phone,profile_picture_path',
-                User::supportsDatabaseProfilePictures() ? 'tourGuide.user.profilePicture:user_id,mime,updated_at' : null,
-            ]))
-            ->orderBy('hike_on')
-            ->orderBy('id')
+            ->where('status', 'in_progress')
+            ->whereNotNull('checked_in_at')
+            ->whereNull('checked_out_at')
+            ->with($with)
+            ->orderByDesc('checked_in_at')
+            ->orderByDesc('id')
             ->first();
     }
 
