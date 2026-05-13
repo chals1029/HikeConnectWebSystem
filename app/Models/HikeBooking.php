@@ -39,8 +39,9 @@ class HikeBooking extends Model
     }
 
     /**
-     * True only on the actual hike day. Hikers can't check in early or late
-     * because the QR code at the trailhead is meant for that day's group.
+     * True only on the actual hike day. We compare against "today" in the
+     * configured app timezone so a hiker booking in Manila isn't blocked
+     * because UTC is still on the previous date.
      */
     public function isHikeDay(): bool
     {
@@ -48,7 +49,9 @@ class HikeBooking extends Model
             return false;
         }
 
-        return $this->hike_on->isSameDay(today());
+        $tz = config('app.timezone', 'UTC');
+
+        return $this->hike_on->copy()->setTimezone($tz)->isSameDay(now($tz));
     }
 
     public function user(): BelongsTo
